@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AutoGala.Core/Plugin.Core.csproj" Id="08bd69d9-a7b3-48e0-9e94-f60ce350c506" />
+  <Project Path="AutoGala.Plugin/Plugin.AutoCAD.csproj" Id="f598179c-8ffa-48b1-bafe-4a5f99408cf7" />
+  <Project Path="AutoGala/AutoGala.csproj" />
+</Solution>
