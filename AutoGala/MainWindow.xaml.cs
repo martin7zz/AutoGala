@@ -1,4 +1,5 @@
-﻿using Plugin.Core.Models;
+﻿using AutoGala.ViewModels;
+using Plugin.Core.Models;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,9 +18,10 @@ namespace AutoGala
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(MainWindowViewModel vm)
         {
             InitializeComponent();
+            DataContext = vm;
         }
     }
 }

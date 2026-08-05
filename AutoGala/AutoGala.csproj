@@ -9,7 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AutoGala.Core\Plugin.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoGala.Core\AutoGala.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AutoGala"
         xmlns:view="clr-namespace:AutoGala.views"
+        xmlns:vm="clr-namespace:AutoGala.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="550" Width="900">
 
@@ -56,21 +57,25 @@
                     <MenuItem Header="_Save"/>
                     <MenuItem Header="_Load"/>
                     <Separator/>
-                    <MenuItem Header="_Simple Bending"/>
-                    <MenuItem Header="_Append On Paste"/>
-                    <Separator/>
-                    <MenuItem Header="_Clear List"/>
-                    <MenuItem Header="_Edit List"/>
-                    <MenuItem Header="_Delete Selected"/>
-                    <MenuItem Header="_Delete Zero Load Cases"/>
-                    <MenuItem Header="_Paste from Clipboard"/>
-                    <MenuItem Header="_Reverse Mx sign"/>
-                    <MenuItem Header="_Reverse My sign"/>
-                    <MenuItem Header="_Swap Mx and My"/>
-                    <MenuItem Header="_Select All"/>
-                    <Separator/>
-                    <MenuItem Header="_Set to Gala"/>
-                    <MenuItem Header="_Get from Gala"/>
+                    <!--<MenuItem Header="_Simple Bending"/>-->
+                    <!--<MenuItem Header="_Append On Paste"/>
+                    <Separator/>-->
+                    <MenuItem Header="_Clear List"
+                              Command="{Binding LoadView.ClearListCommand}"/>
+                    <MenuItem Header="_Edit List"
+                              Command="{Binding LoadView.EditLoadCommand}"/>
+                    <MenuItem Header="_Delete Selected"
+                              Command="{Binding LoadView.RemoveLoadCommand}"/>
+                    <!--<MenuItem Header="_Delete Zero Load Cases"/>-->
+                    <MenuItem Header="_Paste from Clipboard"
+                              Command="{Binding LoadView.PasteLoadCommand}"/>
+                    <!--<MenuItem Header="_Reverse Mx sign"/>-->
+                    <!--<MenuItem Header="_Reverse My sign"/>-->
+                    <!--<MenuItem Header="_Swap Mx and My"/>-->
+                    <!--<MenuItem Header="_Select All"/>-->
+                    <!--<Separator/>-->
+                    <!--<MenuItem Header="_Set to Gala"/>-->
+                    <!--<MenuItem Header="_Get from Gala"/>-->
 
                 </MenuItem>
 
@@ -86,19 +91,31 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
 
+            <ContentControl Grid.Column="0" Content="{Binding SectionView}"/>
 
-            <view:SectionView Grid.Column="0"/>
+            <ContentControl Grid.Column="1" Content="{Binding RebarView}"/>
 
-            <view:RebarView Grid.Column="1"/>
-
-            <view:LoadView Grid.Column="2"/>
+            <ContentControl Grid.Column="2" Content="{Binding LoadView}" />
 
 
         </Grid>
-
+        
     </Grid>
 
     <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:SectionViewModel}">
+            <view:SectionView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:RebarViewModel}">
+            <view:RebarView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:LoadViewModel}">
+            <view:LoadView/>
+        </DataTemplate>
+
+
         <Style TargetType="DataGrid">
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="RowHeight" Value="18"/>
