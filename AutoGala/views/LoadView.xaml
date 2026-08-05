@@ -11,34 +11,75 @@
           Grid.Column="2"
           Margin="0,0,10,0">
 
-        <DataGrid x:Name="LoadGrid"
-              AutoGenerateColumns="False"
-              HeadersVisibility="Column"
-              CanUserAddRows="False"
-              GridLinesVisibility="All"
-              IsReadOnly="True">
+        <DockPanel>
 
-            <DataGrid.Columns>
+            <Grid DockPanel.Dock="Bottom">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
 
-                <DataGridTextColumn Header="#"
-                                Width="30"
-                                Binding="{Binding Id}"/>
+                <Button Content="Add Load"
+                        Grid.Column="0"
+                        Command="{Binding AddLoadCommand}"
+                        Height="25"
+                        Margin="5"/>
 
-                <DataGridTextColumn Header="N [kn]"
-                                Width="*"
-                                Binding="{Binding N}"/>
+                <Button Content="Delete Load"
+                        Grid.Column="1"
+                        Command="{Binding RemoveLoadCommand}"
+                        Height="25"
+                        Margin="5"/>
 
-                <DataGridTextColumn Header="Mx [kN.m]"
-                                Width="*"
-                                Binding="{Binding Mx}"/>
+                <Button Content="{Binding EditButtonText}"
+                        Grid.Column="2"
+                        Command="{Binding EditLoadCommand}"
+                        Height="25"
+                        Margin="5"/>
 
-                <DataGridTextColumn Header="My [kN.m]"
-                                Width="*"
-                                Binding="{Binding My}"/>
+                <Button Content="Paste Loads"
+                        Grid.Column="3"
+                        Command="{Binding PasteLoadCommand}"
+                        Height="25"
+                        Margin="5"/>
+            </Grid>
 
-            </DataGrid.Columns>
+            <DataGrid x:Name="LoadGrid"
+                      SelectedItem="{Binding SelectedLoad}"
+                      ItemsSource="{Binding Loads}"
+                      CopyingRowClipboardContent="CopyingRowClipboardContent"
+                      AutoGenerateColumns="False"
+                      HeadersVisibility="Column"
+                      CanUserAddRows="False"
+                      GridLinesVisibility="All"
+                      IsReadOnly="{Binding IsGridReadOnly}">
 
-        </DataGrid>
+
+                <DataGrid.Columns>
+
+                    <DataGridTextColumn Header="#"
+                                        Width="30"
+                                        Binding="{Binding Id}"/>
+
+                    <DataGridTextColumn Header="N [kn]"
+                                        Width="*"
+                                        Binding="{Binding N}"/>
+
+                    <DataGridTextColumn Header="Mx [kN.m]"
+                                        Width="*"
+                                        Binding="{Binding Mx}"/>
+
+                    <DataGridTextColumn Header="My [kN.m]"
+                                        Width="*"
+                                        Binding="{Binding My}"/>
+
+                </DataGrid.Columns>
+
+            </DataGrid>
+        
+        </DockPanel>
 
     </GroupBox>
 </UserControl>

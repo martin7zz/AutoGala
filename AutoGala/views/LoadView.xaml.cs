@@ -1,4 +1,7 @@
-﻿using Plugin.Core.Models;
+﻿using AutoGala.Services;
+using AutoGala.ViewModels;
+using Plugin.Core.Models;
+using Plugin.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,12 +25,68 @@ namespace AutoGala.views
         public LoadView()
         {
             InitializeComponent();
-
-            LoadGrid.ItemsSource = new List<LoadItem>
-            {
-                new LoadItem {Id = 1, N = 100, Mx = 20, My = 30},
-                new LoadItem { Id = 2, N = 120, Mx = 25, My = 35}
-            };
         }
+
+
+        private void CopyingRowClipboardContent(
+        object sender,
+        DataGridRowClipboardEventArgs e)
+        {
+            if (e.ClipboardRowContent.Count > 0)
+                e.ClipboardRowContent.RemoveAt(0);
+        }
+
+        //private void LoadGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+        //{
+        //    if (e.Key == Key.V &&
+        //        Keyboard.Modifiers == ModifierKeys.Control)
+        //    {
+        //        PasteFromExcel();
+        //        e.Handled = true;
+        //    }
+        //}
+
+        //private void PasteFromExcel()
+        //{
+        //    if (DataContext is not LoadViewModel vm)
+        //    {
+        //        return;
+        //    }
+
+        //    var clipboard = Clipboard.GetText();
+
+        //    if (string.IsNullOrWhiteSpace(clipboard))
+        //    {
+        //        return;
+        //    }
+
+        //    var rows = clipboard.Split(
+        //        new[] { "\r\n", "\n" },
+        //        StringSplitOptions.RemoveEmptyEntries);
+
+        //    foreach (var row in rows) 
+        //    {
+        //        var cells = row.Split('\t');
+
+        //        if (cells.Length < 3)
+        //        {
+        //            continue;
+        //        }
+
+        //        if (double.TryParse(cells[0], out var n) &&
+        //            double.TryParse(cells[1], out var mx) &&
+        //            double.TryParse(cells[2], out var my))
+        //        {
+        //            var load = new LoadItem
+        //            {
+        //                N = n,
+        //                Mx = mx,
+        //                My = my
+        //            };
+
+        //            vm.Loads.Add(load);
+        //        }
+        //    }
+        //}
     }
 }
