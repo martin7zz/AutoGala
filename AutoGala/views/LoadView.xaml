@@ -19,6 +19,7 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
+                    <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
                 <Button Content="Add Load"
@@ -42,6 +43,12 @@
                 <Button Content="Paste Loads"
                         Grid.Column="3"
                         Command="{Binding PasteLoadCommand}"
+                        Height="25"
+                        Margin="5"/>
+
+                <Button Content="To Gala"
+                        Grid.Column="4"
+                        Command="{Binding HookToGalaCommand}"
                         Height="25"
                         Margin="5"/>
             </Grid>

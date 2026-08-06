@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\IClipboardService.cs" />
+    <Compile Include="Contracts\IGalaService.cs" />
     <Compile Include="Contracts\ILoadService.cs" />
     <Compile Include="Contracts\IMainWindowService.cs" />
     <Compile Include="Models\LoadItem.cs" />

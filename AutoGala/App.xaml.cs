@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using AutoGala.Contracts;
 using AutoGala.Services;
 using AutoGala.ViewModels;
 using AutoGala.views;
@@ -41,6 +42,8 @@ namespace AutoGala
 
             services.AddSingleton<ILoadService, LoadService>();
             services.AddSingleton<IClipboardService, ClipboardService>();
+            services.AddSingleton<IWindowService, WindowService>();
+            services.AddSingleton<IGalaService, GalaService>();
 
             services.AddTransient<SectionViewModel>();
             services.AddTransient<RebarViewModel>();
@@ -49,6 +52,8 @@ namespace AutoGala
             services.AddTransient<SectionView>();
             services.AddTransient<RebarView>();
             services.AddTransient<LoadView>();
+            services.AddTransient<GalaPromptView>();
+            //services.AddTransient<WindowService>();
         }
     }
 }

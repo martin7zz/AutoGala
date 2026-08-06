@@ -1,0 +1,28 @@
+﻿<Window x:Class="AutoGala.views.GalaPromptView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AutoGala.views"
+        mc:Ignorable="d"
+        Title="GalaPromptView"
+        WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight"
+        ShowInTaskbar="False"
+        Topmost="True">
+
+    <Border Padding="25">
+        <StackPanel>
+            <TextBlock Text="Click on Grid Box inside Gala"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"/>
+
+            <TextBlock Text="Waiting for your click..."
+                       Margin="0,10,0,0"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Border>
+</Window>

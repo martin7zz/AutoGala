@@ -1,4 +1,5 @@
 ﻿using AutoGala.Common;
+using AutoGala.Contracts;
 using AutoGala.Services;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Contracts;
@@ -48,23 +49,28 @@ namespace AutoGala.ViewModels
             IsGridReadOnly ? "Edit Load" : "Save Load";
 
         private readonly ILoadService _loadService;
-        private IClipboardService _clipboardService;
+        private readonly IClipboardService _clipboardService;
+        private readonly IGalaService _galaService;
 
         public ICommand AddLoadCommand { get; }
         public ICommand RemoveLoadCommand { get; }
         public ICommand PasteLoadCommand { get; }
         public ICommand EditLoadCommand { get; }
         public ICommand ClearListCommand { get; }
+        public ICommand HookToGalaCommand { get; }
 
-        public LoadViewModel(ILoadService loadService, IClipboardService clipboardService)
+
+        public LoadViewModel(ILoadService loadService, IClipboardService clipboardService, IGalaService galaService)
         {
             _loadService = loadService;
             _clipboardService = clipboardService;
+            _galaService = galaService;
             AddLoadCommand = new RelayCommand(_ => AddLoad());
             RemoveLoadCommand = new RelayCommand(_ => RemoveLoad(), _ => SelectedLoad != null);
             PasteLoadCommand = new RelayCommand(_ => Paste());
             EditLoadCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedLoad != null);
             ClearListCommand = new RelayCommand(_ => ClearList(), _ => Loads.Count > 0);
+            HookToGalaCommand = new RelayCommand(async _ => await GetGala());
         }
 
         private void AddLoad()
@@ -140,6 +146,11 @@ namespace AutoGala.ViewModels
                     Loads.Add(_loadService.CreateLoad(n, mx, my));
                 }
             }
+        }
+
+        private async Task GetGala()
+        {
+            await _galaService.HookToGalaAsync(Loads);
         }
     }
 }
