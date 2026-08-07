@@ -22,12 +22,14 @@ namespace AutoGala.views
         public SectionView()
         {
             InitializeComponent();
+        }
 
-            SectionGrid.ItemsSource = new List<SectionItem>
-            {
-                new SectionItem {Id = 1, X = 10, Y = 20},
-                new SectionItem {Id = 2, X = 15, Y = 25 }
-            };
+        private void CopyingRowClipboardContent(
+        object sender,
+        DataGridRowClipboardEventArgs e)
+        {
+            if (e.ClipboardRowContent.Count > 0)
+                e.ClipboardRowContent.RemoveAt(0);
         }
     }
 }

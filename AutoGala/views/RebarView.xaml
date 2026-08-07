@@ -6,38 +6,87 @@
              xmlns:local="clr-namespace:AutoGala.views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    
+
     <GroupBox Header="Rebar List Data"
-          Grid.Column="1"
-          Margin="0,0,10,0">
+      Grid.Column="2"
+      Margin="0,0,10,0">
 
-        <DataGrid x:Name="RebarGrid"
-              AutoGenerateColumns="False"
-              HeadersVisibility="Column"
-              CanUserAddRows="False"
-              GridLinesVisibility="All"
-              IsReadOnly="True">
+        <DockPanel>
 
-            <DataGrid.Columns>
+            <Grid DockPanel.Dock="Bottom">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
 
-                <DataGridTextColumn Header="#"
-                                Width="30"
-                                Binding="{Binding Id}"/>
+                <Button Content="Add Rebar"
+                    Grid.Column="0"
+                    Command="{Binding AddRebarCommand}"
+                    Height="25"
+                    Margin="5"/>
 
-                <DataGridTextColumn Header="As [cm2]"
-                                Width="*"
-                                Binding="{Binding Area}"/>
+                <Button Content="Delete Rebar"
+                    Grid.Column="1"
+                    Command="{Binding RemoveRebarCommand}"
+                    Height="25"
+                    Margin="5"/>
 
-                <DataGridTextColumn Header="X [cm]"
-                                Width="*"
-                                Binding="{Binding X}"/>
+                <Button Content="{Binding EditButtonText}"
+                    Grid.Column="2"
+                    Command="{Binding EditRebarCommand}"
+                    Height="25"
+                    Margin="5"/>
 
-                <DataGridTextColumn Header="Y [cm]"
-                                Width="*"
-                                Binding="{Binding Y}"/>
-            </DataGrid.Columns>
+                <Button Content="Paste Rebars"
+                    Grid.Column="3"
+                    Command="{Binding PasteRebarCommand}"
+                    Height="25"
+                    Margin="5"/>
 
-        </DataGrid>
+                <Button Content="To Gala"
+                    Grid.Column="4"
+                    Command="{Binding HookToGalaCommand}"
+                    Height="25"
+                    Margin="5"/>
+            </Grid>
+
+            <DataGrid x:Name="RebarGrid"
+                  SelectedItem="{Binding SelectedRebar}"
+                  ItemsSource="{Binding Rebars}"
+                  CopyingRowClipboardContent="CopyingRowClipboardContent"
+                  AutoGenerateColumns="False"
+                  HeadersVisibility="Column"
+                  CanUserAddRows="False"
+                  GridLinesVisibility="All"
+                  IsReadOnly="{Binding IsGridReadOnly}">
+
+
+                <DataGrid.Columns>
+
+                    <DataGridTextColumn Header="#"
+                                    Width="30"
+                                    Binding="{Binding Id}"/>
+
+                    <DataGridTextColumn Header="As [cm2]"
+                                    Width="*"
+                                    Binding="{Binding Area}"/>
+
+                    <DataGridTextColumn Header="X [cm]"
+                                    Width="*"
+                                    Binding="{Binding X}"/>
+
+                    <DataGridTextColumn Header="Y [cm]"
+                                    Width="*"
+                                    Binding="{Binding Y}"/>
+
+                </DataGrid.Columns>
+
+            </DataGrid>
+
+        </DockPanel>
 
     </GroupBox>
 </UserControl>

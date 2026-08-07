@@ -26,31 +26,39 @@
                     <MenuItem Header="_Save"/>
                     <MenuItem Header="_Load"/>
                     <Separator/>
-                    <MenuItem Header="_Clear List"/>
-                    <MenuItem Header="_Edit List"/>
-                    <MenuItem Header="_Delete Selected"/>
-                    <MenuItem Header="_Paste from Clipboard"/>
-                    <MenuItem Header="_Select All"/>
+                    <MenuItem Header="_Clear List"
+                              Command="{Binding SectionView.ClearListCommand}"/>
+                    <MenuItem Header="_Edit List"
+                              Command="{Binding SectionView.EditSectionCommand}"/>
+                    <MenuItem Header="_Delete Selected"
+                              Command="{Binding SectionView.RemoveSectionCommand}"/>
+                    <MenuItem Header="_Paste from Clipboard"
+                              Command="{Binding SectionView.PasteSectionCommand}"/>
+                    <!--<MenuItem Header="_Select All"/>
                     <Separator/>
                     <MenuItem Header="_Set to Gala"/>
                     <MenuItem Header="_Get from Gala"/>
-                    <MenuItem Header="_Get from AutoCAD"/>
+                    <MenuItem Header="_Get from AutoCAD"/>-->
                 </MenuItem>
 
                 <MenuItem Header="_Rebar">
                     <MenuItem Header="_Save"/>
                     <MenuItem Header="_Load"/>
                     <Separator/>
-                    <MenuItem Header="_Clear List"/>
-                    <MenuItem Header="_Edit List"/>
-                    <MenuItem Header="_Delete Selected"/>
-                    <MenuItem Header="_Check for Duplicate Rebars"/>
-                    <MenuItem Header="_Paste from Clipboard"/>
-                    <MenuItem Header="_Select All"/>
-                    <Separator/>
+                    <MenuItem Header="_Clear List"
+                              Command="{Binding RebarView.ClearListCommand}"/>
+                    <MenuItem Header="_Edit List"
+                              Command="{Binding RebarView.EditRebarCommand}"/>
+                    <MenuItem Header="_Delete Selected"
+                              Command="{Binding RebarView.RemoveRebarCommand}"/>
+                    <!--<MenuItem Header="_Check for Duplicate Rebars"/>-->
+                    <MenuItem Header="_Paste from Clipboard"
+                              Command="{Binding RebarView.PasteRebarCommand}"/>
+                    <!--<MenuItem Header="_Select All"/>-->
+                    <!--<Separator/>
                     <MenuItem Header="_Set to Gala"/>
                     <MenuItem Header="_Get from Gala"/>
-                    <MenuItem Header="_Get from AutoCAD"/>
+                    <MenuItem Header="_Get from AutoCAD"/>-->
                 </MenuItem>
 
                 <MenuItem Header="_Loads">

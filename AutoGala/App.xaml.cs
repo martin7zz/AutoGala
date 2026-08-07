@@ -41,6 +41,8 @@ namespace AutoGala
             services.AddSingleton<MainWindowViewModel>();
 
             services.AddSingleton<ILoadService, LoadService>();
+            services.AddSingleton<IRebarService, RebarService>();
+            services.AddSingleton<ISectionService, SectionService>();
             services.AddSingleton<IClipboardService, ClipboardService>();
             services.AddSingleton<IWindowService, WindowService>();
             services.AddSingleton<IGalaService, GalaService>();

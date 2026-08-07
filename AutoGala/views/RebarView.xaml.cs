@@ -22,13 +22,14 @@ namespace AutoGala.views
         public RebarView()
         {
             InitializeComponent();
+        }
 
-            RebarGrid.ItemsSource = new List<RebarItem>
-            {
-                new RebarItem { Id = 1, Area = 5.5, X = 3, Y = 4},
-                new RebarItem { Id = 2, Area = 6.2, X = 5, Y = 6 }
-            };
-
+        private void CopyingRowClipboardContent(
+        object sender,
+        DataGridRowClipboardEventArgs e)
+        {
+            if (e.ClipboardRowContent.Count > 0)
+                e.ClipboardRowContent.RemoveAt(0);
         }
     }
 }

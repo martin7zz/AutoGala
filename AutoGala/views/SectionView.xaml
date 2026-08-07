@@ -6,35 +6,83 @@
              xmlns:local="clr-namespace:AutoGala.views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    
+
     <GroupBox Header="Section List Data"
-          Grid.Column="0"
-          Margin="0,0,10,0">
+      Grid.Column="2"
+      Margin="0,0,10,0">
 
-        <DataGrid x:Name="SectionGrid"
-              AutoGenerateColumns="False"
-              HeadersVisibility="Column"
-              CanUserAddRows="False"
-              GridLinesVisibility="All"
-              IsReadOnly="True">
+        <DockPanel>
 
-            <DataGrid.Columns>
+            <Grid DockPanel.Dock="Bottom">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
 
-                <DataGridTextColumn Header="#"
-                                Width="30"
-                                Binding="{Binding Id}"/>
+                <Button Content="Add Section"
+                    Grid.Column="0"
+                    Command="{Binding AddSectionCommand}"
+                    Height="25"
+                    Margin="5"/>
 
-                <DataGridTextColumn Header="X [cm]"
-                                Width="*"
-                                Binding="{Binding X}"/>
+                <Button Content="Delete Section"
+                    Grid.Column="1"
+                    Command="{Binding RemoveSectionCommand}"
+                    Height="25"
+                    Margin="5"/>
 
-                <DataGridTextColumn Header="Y [cm]"
-                                Width="*"
-                                Binding="{Binding Y}"/>
+                <Button Content="{Binding EditButtonText}"
+                    Grid.Column="2"
+                    Command="{Binding EditSectionCommand}"
+                    Height="25"
+                    Margin="5"/>
 
-            </DataGrid.Columns>
+                <Button Content="Paste Sections"
+                    Grid.Column="3"
+                    Command="{Binding PasteSectionCommand}"
+                    Height="25"
+                    Margin="5"/>
 
-        </DataGrid>
+                <Button Content="To Gala"
+                    Grid.Column="4"
+                    Command="{Binding HookToGalaCommand}"
+                    Height="25"
+                    Margin="5"/>
+            </Grid>
+
+            <DataGrid x:Name="SectionGrid"
+                  SelectedItem="{Binding SelectedSection}"
+                  ItemsSource="{Binding Sections}"
+                  CopyingRowClipboardContent="CopyingRowClipboardContent"
+                  AutoGenerateColumns="False"
+                  HeadersVisibility="Column"
+                  CanUserAddRows="False"
+                  GridLinesVisibility="All"
+                  IsReadOnly="{Binding IsGridReadOnly}">
+
+
+                <DataGrid.Columns>
+
+                    <DataGridTextColumn Header="#"
+                                    Width="30"
+                                    Binding="{Binding Id}"/>
+
+                    <DataGridTextColumn Header="X [cm]"
+                                    Width="*"
+                                    Binding="{Binding X}"/>
+
+                    <DataGridTextColumn Header="Y [cm]"
+                                    Width="*"
+                                    Binding="{Binding Y}"/>
+
+                </DataGrid.Columns>
+
+            </DataGrid>
+
+        </DockPanel>
 
     </GroupBox>
 </UserControl>
