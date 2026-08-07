@@ -46,11 +46,15 @@
     <Compile Include="Contracts\IGalaService.cs" />
     <Compile Include="Contracts\ILoadService.cs" />
     <Compile Include="Contracts\IMainWindowService.cs" />
+    <Compile Include="Contracts\IRebarService.cs" />
+    <Compile Include="Contracts\ISectionService.cs" />
     <Compile Include="Models\LoadItem.cs" />
     <Compile Include="Models\RebarItem.cs" />
     <Compile Include="Models\SectionItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\LoadService.cs" />
+    <Compile Include="Services\RebarService.cs" />
+    <Compile Include="Services\SectionService.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

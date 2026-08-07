@@ -10,7 +10,8 @@ namespace Plugin.Core.Contracts
 {
     public interface IGalaService
     {
-        Task HookToGalaAsync(ObservableCollection<LoadItem> loads);
-
+        Task HookToGalaAsync(ObservableCollection<SectionItem> items);
+        Task HookToGalaAsync(ObservableCollection<RebarItem> items);
+        Task HookToGalaAsync(ObservableCollection<LoadItem> items);
     }
 }
