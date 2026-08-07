@@ -17,12 +17,42 @@ namespace AutoGala.Services
     {
 
         private readonly IWindowService _windowService;
-        private AutomationElement? _rootPane;
-        private AutomationElement? _casesEdit;
 
         public GalaService(IWindowService windowService)
         {
             _windowService = windowService;
+        }
+
+        public async Task HookToGalaAsync(ObservableCollection<SectionItem> sections)
+        {
+            var prompt = _windowService.ShowGalaPrompt();
+
+            try
+            {
+                var clickPoint = await WaitForUserClickAsync();
+
+                AttachAndPush(clickPoint, nav => nav.WriteItems(sections));
+            }
+            finally
+            {
+                prompt.Close();
+            }
+        }
+
+        public async Task HookToGalaAsync(ObservableCollection<RebarItem> rebars)
+        {
+            var prompt = _windowService.ShowGalaPrompt();
+
+            try
+            {
+                var clickPoint = await WaitForUserClickAsync();
+
+                AttachAndPush(clickPoint, nav => nav.WriteItems(rebars));
+            }
+            finally
+            {
+                prompt.Close();
+            }
         }
 
         public async Task HookToGalaAsync(ObservableCollection<LoadItem> loads)
@@ -33,7 +63,7 @@ namespace AutoGala.Services
             {
                 var clickPoint = await WaitForUserClickAsync();
 
-                AttachAndPush(clickPoint, loads);
+                AttachAndPush(clickPoint, nav => nav.WriteItems(loads));
             }
             finally
             {
@@ -43,9 +73,6 @@ namespace AutoGala.Services
 
         private Task<Point> WaitForUserClickAsync()
         {
-            // Temporary implementation.
-            // Replace this with your mouse hook later.
-
             var tcs = new TaskCompletionSource<Point>();
 
             var hook = Hook.GlobalEvents();
@@ -67,27 +94,24 @@ namespace AutoGala.Services
             return tcs.Task;
         }
 
-        private void AttachAndPush(Point screenPoint, ObservableCollection<LoadItem> loads)
+        private void AttachAndPush(Point screenPoint, Action<GalaNavigator> writeAction)
         {
             var clicked = AutomationElement.FromPoint(screenPoint);
-            Console.WriteLine(clicked.Current.Name);
             if (clicked == null)
             {
                 MessageBox.Show("No element found at that point.");
                 return;
             }
 
-            var loadsNav = new LoadsGalaNavigator();
-            if (!loadsNav.Attach(clicked))
+            var navigator = new GalaNavigator();
+
+            if (!navigator.Attach(clicked))
             {
-                MessageBox.Show("Could not locate the Loads structure in Gala.");
+                MessageBox.Show("Could not locate the structure in Gala.");
                 return;
             }
 
-            if (!loadsNav.WriteLoads(loads))
-            {
-                MessageBox.Show("Failed to write all rows — row count or tab index may be off.");
-            }
+            writeAction(navigator);
         }
     }
 }
