@@ -9,74 +9,54 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="550" Width="900">
 
-    <!--main window grid-->
-    <Grid>
-
+    <!-- Main window grid -->
+    <Grid Background="#F4F6F8">
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
-        <!--menu grid-->
-        <Grid Grid.Row="0">
-
-            <Menu>
-
-                <MenuItem Header="_Section">
+        
+        <!-- Menu -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#D9DEE5" BorderThickness="0,0,0,1">
+            
+            <Menu Padding="6,3" Background="Transparent" BorderThickness="0" FontSize="13">
+               
+                <MenuItem Header="_Section" Padding="10,6">
                     <MenuItem Header="_Save"/>
                     <MenuItem Header="_Load"/>
                     <Separator/>
-                    <MenuItem Header="_Clear List"
-                              Command="{Binding SectionView.ClearListCommand}"/>
-                    <MenuItem Header="_Edit List"
-                              Command="{Binding SectionView.EditSectionCommand}"/>
-                    <MenuItem Header="_Delete Selected"
-                              Command="{Binding SectionView.RemoveSectionCommand}"/>
-                    <MenuItem Header="_Paste from Clipboard"
-                              Command="{Binding SectionView.PasteSectionCommand}"/>
-                    <!--<MenuItem Header="_Select All"/>
-                    <Separator/>
-                    <MenuItem Header="_Set to Gala"/>
-                    <MenuItem Header="_Get from Gala"/>
-                    <MenuItem Header="_Get from AutoCAD"/>-->
+                    <MenuItem Header="_Clear List" Command="{Binding SectionView.ClearSectionCommand}"/>
+                    <MenuItem Header="_Edit List" Command="{Binding SectionView.EditSectionCommand}"/>
+                    <MenuItem Header="_Delete Selected" Command="{Binding SectionView.RemoveSectionCommand}"/>
+                    <MenuItem Header="_Paste from Clipboard" Command="{Binding SectionView.PasteSectionCommand}"/>
+                    <!--<MenuItem Header="_Select All"/> <Separator/> <MenuItem Header="_Set to Gala"/> <MenuItem Header="_Get from Gala"/> <MenuItem Header="_Get from AutoCAD"/>-->
                 </MenuItem>
-
-                <MenuItem Header="_Rebar">
+                
+                <MenuItem Header="_Rebar" Padding="10,6">
                     <MenuItem Header="_Save"/>
                     <MenuItem Header="_Load"/>
                     <Separator/>
-                    <MenuItem Header="_Clear List"
-                              Command="{Binding RebarView.ClearListCommand}"/>
-                    <MenuItem Header="_Edit List"
-                              Command="{Binding RebarView.EditRebarCommand}"/>
-                    <MenuItem Header="_Delete Selected"
-                              Command="{Binding RebarView.RemoveRebarCommand}"/>
+                    <MenuItem Header="_Clear List" Command="{Binding RebarView.ClearRebarCommand}"/>
+                    <MenuItem Header="_Edit List" Command="{Binding RebarView.EditRebarCommand}"/>
+                    <MenuItem Header="_Delete Selected" Command="{Binding RebarView.RemoveRebarCommand}"/>
                     <!--<MenuItem Header="_Check for Duplicate Rebars"/>-->
-                    <MenuItem Header="_Paste from Clipboard"
-                              Command="{Binding RebarView.PasteRebarCommand}"/>
+                    <MenuItem Header="_Paste from Clipboard" Command="{Binding RebarView.PasteRebarCommand}"/>
                     <!--<MenuItem Header="_Select All"/>-->
-                    <!--<Separator/>
-                    <MenuItem Header="_Set to Gala"/>
-                    <MenuItem Header="_Get from Gala"/>
-                    <MenuItem Header="_Get from AutoCAD"/>-->
+                    <!--<Separator/> <MenuItem Header="_Set to Gala"/> <MenuItem Header="_Get from Gala"/> <MenuItem Header="_Get from AutoCAD"/>-->
                 </MenuItem>
-
-                <MenuItem Header="_Loads">
+                
+                <MenuItem Header="_Loads" Padding="10,6">
                     <MenuItem Header="_Save"/>
                     <MenuItem Header="_Load"/>
                     <Separator/>
                     <!--<MenuItem Header="_Simple Bending"/>-->
-                    <!--<MenuItem Header="_Append On Paste"/>
-                    <Separator/>-->
-                    <MenuItem Header="_Clear List"
-                              Command="{Binding LoadView.ClearListCommand}"/>
-                    <MenuItem Header="_Edit List"
-                              Command="{Binding LoadView.EditLoadCommand}"/>
-                    <MenuItem Header="_Delete Selected"
-                              Command="{Binding LoadView.RemoveLoadCommand}"/>
+                    <!--<MenuItem Header="_Append On Paste"/> <Separator/>-->
+                    <MenuItem Header="_Clear List" Command="{Binding LoadView.ClearListCommand}"/>
+                    <MenuItem Header="_Edit List" Command="{Binding LoadView.EditLoadCommand}"/>
+                    <MenuItem Header="_Delete Selected" Command="{Binding LoadView.RemoveLoadCommand}"/>
                     <!--<MenuItem Header="_Delete Zero Load Cases"/>-->
-                    <MenuItem Header="_Paste from Clipboard"
-                              Command="{Binding LoadView.PasteLoadCommand}"/>
+                    <MenuItem Header="_Paste from Clipboard" Command="{Binding LoadView.PasteLoadCommand}"/>
                     <!--<MenuItem Header="_Reverse Mx sign"/>-->
                     <!--<MenuItem Header="_Reverse My sign"/>-->
                     <!--<MenuItem Header="_Swap Mx and My"/>-->
@@ -84,57 +64,122 @@
                     <!--<Separator/>-->
                     <!--<MenuItem Header="_Set to Gala"/>-->
                     <!--<MenuItem Header="_Get from Gala"/>-->
-
+                
                 </MenuItem>
-
+            
             </Menu>
-
-        </Grid>
-
-        <Grid Grid.Row="1" Margin="10,31,10,10">
-
+        
+        </Border>
+        
+        <!-- Main content -->
+        <Grid Grid.Row="1" Margin="12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-
-            <ContentControl Grid.Column="0" Content="{Binding SectionView}"/>
-
-            <ContentControl Grid.Column="1" Content="{Binding RebarView}"/>
-
-            <ContentControl Grid.Column="2" Content="{Binding LoadView}" />
-
-
+            
+            <!-- Section -->
+            <Border Grid.Column="0" Margin="0,0,6,0" Background="White" BorderBrush="#D9DEE5" BorderThickness="1" CornerRadius="5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Background="#F8F9FA" BorderBrush="#E3E6EA" BorderThickness="0,0,0,1" Padding="10,7">
+                        <TextBlock Text="Sections" FontSize="13" FontWeight="SemiBold" Foreground="#343A40"/>
+                    </Border>
+                    <ContentControl Grid.Row="1" Content="{Binding SectionView}" Margin="6"/>
+                </Grid>
+            </Border>
+            
+            <!-- Rebar -->
+            <Border Grid.Column="1" Margin="6,0" Background="White" BorderBrush="#D9DEE5" BorderThickness="1" CornerRadius="5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Background="#F8F9FA" BorderBrush="#E3E6EA" BorderThickness="0,0,0,1" Padding="10,7">
+                        <TextBlock Text="Rebar" FontSize="13" FontWeight="SemiBold" Foreground="#343A40"/>
+                    </Border>
+                    <ContentControl Grid.Row="1" Content="{Binding RebarView}" Margin="6"/>
+                </Grid>
+            </Border>
+            
+            <!-- Loads -->
+            <Border Grid.Column="2" Margin="6,0,0,0" Background="White" BorderBrush="#D9DEE5" BorderThickness="1" CornerRadius="5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Background="#F8F9FA" BorderBrush="#E3E6EA" BorderThickness="0,0,0,1" Padding="10,7">
+                        <TextBlock Text="Loads" FontSize="13" FontWeight="SemiBold" Foreground="#343A40"/>
+                    </Border>
+                    <ContentControl Grid.Row="1" Content="{Binding LoadView}" Margin="6"/>
+                </Grid>
+            </Border>
+            
         </Grid>
         
     </Grid>
-
+    
     <Window.Resources>
+        
+        <!-- View models -->
         <DataTemplate DataType="{x:Type vm:SectionViewModel}">
             <view:SectionView/>
         </DataTemplate>
-
         <DataTemplate DataType="{x:Type vm:RebarViewModel}">
             <view:RebarView/>
         </DataTemplate>
-
         <DataTemplate DataType="{x:Type vm:LoadViewModel}">
             <view:LoadView/>
         </DataTemplate>
-
-
+        
+        <!-- DataGrid -->
         <Style TargetType="DataGrid">
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="RowHeight" Value="18"/>
-            <Setter Property="ColumnHeaderHeight" Value="22"/>
-            <Setter Property="BorderBrush" Value="#888"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#DDD"/>
-            <Setter Property="VerticalGridLinesBrush" Value="#DDD"/>
+            <Setter Property="RowHeight" Value="22"/>
+            <Setter Property="ColumnHeaderHeight" Value="26"/>
+            <Setter Property="BorderBrush" Value="#D0D5DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#E5E7EB"/>
+            <Setter Property="VerticalGridLinesBrush" Value="#E5E7EB"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#30343B"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
         </Style>
-
+        
+        <!-- DataGrid column headers -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F1F3F5"/>
+            <Setter Property="Foreground" Value="#343A40"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="BorderBrush" Value="#D9DEE5"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+        
+        <!-- GroupBox -->
         <Style TargetType="GroupBox">
             <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#343A40"/>
+            <Setter Property="Margin" Value="3"/>
         </Style>
+        
+        <!-- Menu -->
+        <Style TargetType="MenuItem">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#343A40"/>
+            <Setter Property="Padding" Value="8,5"/>
+        </Style>
+        
     </Window.Resources>
+    
 </Window>

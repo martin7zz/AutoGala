@@ -1,5 +1,4 @@
-﻿using AutoGala.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -14,18 +13,15 @@ using System.Windows.Shapes;
 namespace AutoGala.views
 {
     /// <summary>
-    /// Interaction logic for GalaPromptView.xaml
+    /// Interaction logic for ClipboardErrorView.xaml
     /// </summary>
-    public partial class GalaPromptView : Window
+    public partial class ClipboardErrorView : Window
     {
-        public GalaPromptView()
+        public ClipboardErrorView()
         {
             InitializeComponent();
         }
 
-        public void SetMessage(string message)
-        {
-            ((GalaPromptViewModel)DataContext).Message = message;
-        }
+        private void OkButton_Click(object sender, RoutedEventArgs e) => Close();
     }
 }

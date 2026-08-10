@@ -50,11 +50,14 @@ namespace AutoGala
             services.AddTransient<SectionViewModel>();
             services.AddTransient<RebarViewModel>();
             services.AddTransient<LoadViewModel>();
+            services.AddTransient<ClipboardErrorViewModel>();
+            services.AddTransient<GalaPromptViewModel>();
 
             services.AddTransient<SectionView>();
             services.AddTransient<RebarView>();
             services.AddTransient<LoadView>();
             services.AddTransient<GalaPromptView>();
+            services.AddTransient<ClipboardErrorView>();
             //services.AddTransient<WindowService>();
         }
     }
