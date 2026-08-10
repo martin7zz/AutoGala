@@ -1,4 +1,5 @@
 ﻿using AutoGala.Common;
+using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
@@ -47,6 +48,7 @@ namespace AutoGala.ViewModels
         private readonly ISectionService _sectionService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
+        private readonly IWindowService _windowService;
 
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionCommand { get; }
@@ -56,11 +58,12 @@ namespace AutoGala.ViewModels
         public ICommand HookToGalaCommand { get; }
 
 
-        public SectionViewModel(ISectionService sectionService, IClipboardService clipboardService, IGalaService galaService)
+        public SectionViewModel(ISectionService sectionService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService)
         {
             _sectionService = sectionService;
             _clipboardService = clipboardService;
             _galaService = galaService;
+            _windowService = windowService;
             AddSectionCommand = new RelayCommand(_ => AddSection());
             RemoveSectionCommand = new RelayCommand(_ => RemoveSection(), _ => SelectedSection != null);
             PasteSectionCommand = new RelayCommand(_ => Paste());
@@ -119,6 +122,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
+                _windowService.ShowClipboardError("Clipboard is empty.");
                 return;
             }
 
@@ -126,20 +130,36 @@ namespace AutoGala.ViewModels
                 new[] { "\r\n", "\n" },
                 StringSplitOptions.RemoveEmptyEntries);
 
+            int added = 0;
+            var failedRows = new List<string>();
+
             foreach (var row in rows)
             {
                 var cells = row.Split('\t');
 
-                if (cells.Length < 2)
+                if (cells.Length < 1 || cells.Length >= 3 ||
+                    !double.TryParse(cells[0], out var x) ||
+                    !double.TryParse(cells[1], out var y))
                 {
+                    failedRows.Add(row);
                     continue;
                 }
 
-                if (double.TryParse(cells[0], out var x) &&
-                    double.TryParse(cells[1], out var y))
-                {
-                    Sections.Add(_sectionService.CreateSection(x, y));
-                }
+                Sections.Add(_sectionService.CreateSection(x, y));
+                added++;
+            }
+
+            if (added == 0)
+            {
+                _windowService.ShowClipboardError(
+                    "Clipboard data isn't in the expected format (X and Y separated by a tab, one pair per line).",
+                    failedRows);
+            }
+            else if (failedRows.Count > 0)
+            {
+                _windowService.ShowClipboardError(
+                    $"{added} row(s) added, but {failedRows.Count} row(s) couldn't be parsed.",
+                    failedRows);
             }
         }
 

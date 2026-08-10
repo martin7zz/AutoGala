@@ -51,6 +51,7 @@ namespace AutoGala.ViewModels
         private readonly ILoadService _loadService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
+        private readonly IWindowService _windowService;
 
         public ICommand AddLoadCommand { get; }
         public ICommand RemoveLoadCommand { get; }
@@ -60,11 +61,12 @@ namespace AutoGala.ViewModels
         public ICommand HookToGalaCommand { get; }
 
 
-        public LoadViewModel(ILoadService loadService, IClipboardService clipboardService, IGalaService galaService)
+        public LoadViewModel(ILoadService loadService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService)
         {
             _loadService = loadService;
             _clipboardService = clipboardService;
             _galaService = galaService;
+            _windowService = windowService;
             AddLoadCommand = new RelayCommand(_ => AddLoad());
             RemoveLoadCommand = new RelayCommand(_ => RemoveLoad(), _ => SelectedLoad != null);
             PasteLoadCommand = new RelayCommand(_ => Paste());
@@ -123,6 +125,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
+                _windowService.ShowClipboardError("Clipboard is empty.");
                 return;
             }
 
@@ -130,21 +133,37 @@ namespace AutoGala.ViewModels
                 new[] { "\r\n", "\n" },
                 StringSplitOptions.RemoveEmptyEntries);
 
+            int added = 0;
+            var failedRows = new List<string>();
+
             foreach (var row in rows)
             {
                 var cells = row.Split('\t');
 
-                if (cells.Length < 3)
+                if (cells.Length < 3 ||
+                    !double.TryParse(cells[0], out var n) ||
+                    !double.TryParse(cells[1], out var mx) ||
+                    !double.TryParse(cells[2], out var my))
                 {
+                    failedRows.Add(row);
                     continue;
                 }
 
-                if (double.TryParse(cells[0], out var n) &&
-                    double.TryParse(cells[1], out var mx) &&
-                    double.TryParse(cells[2], out var my))
-                {
-                    Loads.Add(_loadService.CreateLoad(n, mx, my));
-                }
+                Loads.Add(_loadService.CreateLoad(n, mx, my));
+                added++;
+            }
+
+            if (added == 0)
+            {
+                _windowService.ShowClipboardError(
+                    "Clipboard data isn't in the expected format (n and Mx and My separated by a tab, one pair per line).",
+                    failedRows);
+            }
+            else if (failedRows.Count > 0)
+            {
+                _windowService.ShowClipboardError(
+                    $"{added} row(s) added, but {failedRows.Count} row(s) couldn't be parsed.",
+                    failedRows);
             }
         }
 

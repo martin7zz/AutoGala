@@ -1,4 +1,5 @@
 ﻿using AutoGala.Common;
+using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
@@ -46,6 +47,7 @@ namespace AutoGala.ViewModels
         private readonly IRebarService _rebarService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
+        private readonly IWindowService _windowService;
 
         public ICommand AddRebarCommand { get; }
         public ICommand RemoveRebarCommand { get; }
@@ -55,11 +57,12 @@ namespace AutoGala.ViewModels
         public ICommand HookToGalaCommand { get; }
 
 
-        public RebarViewModel(IRebarService rebarService, IClipboardService clipboardService, IGalaService galaService)
+        public RebarViewModel(IRebarService rebarService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService)
         {
             _rebarService = rebarService;
             _clipboardService = clipboardService;
             _galaService = galaService;
+            _windowService = windowService;
             AddRebarCommand = new RelayCommand(_ => AddRebar());
             RemoveRebarCommand = new RelayCommand(_ => RemoveRebar(), _ => SelectedRebar != null);
             PasteRebarCommand = new RelayCommand(_ => Paste());
@@ -118,6 +121,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
+                _windowService.ShowClipboardError("Clipboard is empty.");
                 return;
             }
 
@@ -125,21 +129,37 @@ namespace AutoGala.ViewModels
                 new[] { "\r\n", "\n" },
                 StringSplitOptions.RemoveEmptyEntries);
 
+            int added = 0;
+            var failedRows = new List<string>();
+
             foreach (var row in rows)
             {
                 var cells = row.Split('\t');
 
-                if (cells.Length < 3)
+                if (cells.Length < 3 ||
+                    !double.TryParse(cells[0], out var area) ||
+                    !double.TryParse(cells[1], out var x) ||
+                    !double.TryParse(cells[2], out var y))
                 {
+                    failedRows.Add(row);
                     continue;
                 }
+                
+                Rebars.Add(_rebarService.CreateRebar(area, x, y));
+                added++;
+            }
 
-                if (double.TryParse(cells[0], out var area) &&
-                    double.TryParse(cells[1], out var x) &&
-                    double.TryParse(cells[2], out var y))
-                {
-                    Rebars.Add(_rebarService.CreateRebar(area, x, y));
-                }
+            if (added == 0)
+            {
+                _windowService.ShowClipboardError(
+                    "Clipboard data isn't in the expected format (area and x and y separated by a tab, one pair per line).",
+                    failedRows);
+            }
+            else if (failedRows.Count > 0)
+            {
+                _windowService.ShowClipboardError(
+                    $"{added} row(s) added, but {failedRows.Count} row(s) couldn't be parsed.",
+                    failedRows);
             }
         }
 
