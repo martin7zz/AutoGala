@@ -58,7 +58,6 @@ namespace AutoGala
             services.AddTransient<LoadView>();
             services.AddTransient<GalaPromptView>();
             services.AddTransient<ClipboardErrorView>();
-            //services.AddTransient<WindowService>();
         }
     }
 }
