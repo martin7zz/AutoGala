@@ -99,9 +99,9 @@ namespace AutoGala.Services.Helper
             _spinHandle = FindDescendantByClass(_mainWindow, "TRxSpinEdit");
             _gridHandleLoads = FindDescendantByClass(_mainWindow, "TStringGrid");
 
-            Debug.WriteLine($"Main : 0x{_mainWindow:X}");
-            Debug.WriteLine($"Spin : 0x{_spinHandle:X}");
-            Debug.WriteLine($"Grid : 0x{_gridHandleLoads:X}");
+            //Debug.WriteLine($"Main : 0x{_mainWindow:X}");
+            //Debug.WriteLine($"Spin : 0x{_spinHandle:X}");
+            //Debug.WriteLine($"Grid : 0x{_gridHandleLoads:X}");
 
             return _spinHandle != IntPtr.Zero;
         }
@@ -142,88 +142,60 @@ namespace AutoGala.Services.Helper
         /// LoadItem's N/Mx/My into the corresponding row's cells.
         /// </summary>
         /// 
+
+        private bool WriteItemsCore<T>(
+            ObservableCollection<T> items,
+            IntPtr gridHandle,
+            Func<T, IEnumerable<string>> fieldSelector)
+        {
+            if (_spinHandle == IntPtr.Zero || gridHandle == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            SetRowCount(items.Count);
+            SetFocus(gridHandle);
+
+            GoToFirstCell();
+
+            foreach (var item in items)
+            {
+                foreach (var value in fieldSelector(item))
+                {
+                    WriteCurrentCell(value);
+                    NextCell();
+                }
+            }
+
+            return true;
+        }
+
         public bool WriteItems(ObservableCollection<SectionItem> sections)
         {
             var spins = FindDescendantsByClass(_mainWindow, "TRxSpinEdit");
 
-            _spinHandle = spins[1];
-
-            if (_spinHandle == IntPtr.Zero) return false;
-
-            SetRowCount(sections.Count);
-
+            _spinHandle = spins.Count > 1 ? spins[1] : IntPtr.Zero;
             _gridHandle = FindDescendantByClass(_mainWindow, "TStringGrid");
 
-            SetFocus(_gridHandle);
-
-            foreach (var section in sections)
-            {
-                WriteCurrentCell(section.X.ToString());
-                NextCell();
-
-                WriteCurrentCell(section.Y.ToString());
-                NextCell();
-            }
-
-            return true;
+            return WriteItemsCore(sections, _gridHandle,
+                s => new[] { s.X.ToString(), s.Y.ToString() });
         }
 
         public bool WriteItems(ObservableCollection<RebarItem> rebars)
         {
             var spins = FindDescendantsByClass(_mainWindow, "TRxSpinEdit");
 
-            _spinHandle = spins[1];
-
-            if (_spinHandle == IntPtr.Zero) return false;
-
-            SetRowCount(rebars.Count);
-
+            _spinHandle = spins.Count > 1 ? spins[1] : IntPtr.Zero;
             _gridHandle = FindDescendantByClass(_mainWindow, "TStringGrid");
-            
-            SetFocus(_gridHandle);
 
-            foreach (var rebar in rebars)
-            {
-                WriteCurrentCell(rebar.Area.ToString());
-                NextCell();
-
-                WriteCurrentCell(rebar.X.ToString());
-                NextCell();
-
-                WriteCurrentCell(rebar.Y.ToString());
-                NextCell();
-            }
-
-            return true;
+            return WriteItemsCore(rebars, _gridHandle,
+                r => new[] { r.Area.ToString(), r.X.ToString(), r.Y.ToString() });
         }
 
         public bool WriteItems(ObservableCollection<LoadItem> loads)
         {
-            if (_spinHandle == IntPtr.Zero ||
-                   _gridHandleLoads == IntPtr.Zero) return false;
-
-            SetRowCount(loads.Count);
-            
-            SetFocus(_gridHandleLoads);
-
-            var edit = FindDescendantByClass(_mainWindow, "TInplaceEdit");
-            Debug.WriteLine($"Editor: 0x{edit:X}");
-
-
-
-            foreach (var load in loads)
-            {
-                WriteCurrentCell(load.N.ToString());
-                NextCell();
-
-                WriteCurrentCell(load.Mx.ToString());
-                NextCell();
-
-                WriteCurrentCell(load.My.ToString());
-                NextCell();
-            }
-
-            return true;
+            return WriteItemsCore(loads, _gridHandleLoads,
+                l => new[] { l.N.ToString(), l.Mx.ToString(), l.My.ToString() });
         }
 
         private void WriteCurrentCell(string value)
@@ -305,12 +277,14 @@ namespace AutoGala.Services.Helper
         // internals
         private void GoToFirstCell()
         {
-            var edit = FindDescendantByClass(_mainWindow, "TInplaceEdit");
-            SetForegroundWindow(_mainWindow);
-            SetFocus(edit != IntPtr.Zero ? edit : _gridHandle);
-            Thread.Sleep(30);
+            var target = FindDescendantByClass(_mainWindow, "TInplaceEdit");
+            if (target == IntPtr.Zero) target = _gridHandle;
+            if (target == IntPtr.Zero) return;
 
-            SendKeys.SendWait("^{HOME}");
+            PostMessage(target, WM_KEYDOWN, (IntPtr)VK_CONTROL, IntPtr.Zero);
+            PostMessage(target, WM_KEYDOWN, (IntPtr)VK_HOME, IntPtr.Zero);
+            PostMessage(target, WM_KEYUP, (IntPtr)VK_HOME, IntPtr.Zero);
+            PostMessage(target, WM_KEYUP, (IntPtr)VK_CONTROL, IntPtr.Zero);
 
             Thread.Sleep(50);
         }

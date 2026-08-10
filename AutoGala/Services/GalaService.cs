@@ -23,53 +23,48 @@ namespace AutoGala.Services
             _windowService = windowService;
         }
 
-        public async Task HookToGalaAsync(ObservableCollection<SectionItem> sections)
+        private async Task HookToGalaAsync<T>(
+            ObservableCollection<T> items,
+            Func<GalaNavigator, ObservableCollection<T>, bool> write)
         {
-            var prompt = _windowService.ShowGalaPrompt();
+            if (items.Count == 0)
+            {
+                MessageBox.Show("There is nothing to transfer.");
+                return;
+            }
+
+            string message = "Click inside Gala";
+            var prompt = _windowService.ShowGalaPrompt(message);
+            string? errorMessage = null;
 
             try
             {
                 var clickPoint = await WaitForUserClickAsync();
 
-                AttachAndPush(clickPoint, nav => nav.WriteItems(sections));
+                message = "Transferring data!";
+                _windowService.UpdateGalaPrompt(message, prompt);
+
+                errorMessage = await Task.Run(() => AttachAndPush(clickPoint, nav => write(nav, items)));
             }
             finally
             {
                 prompt.Close();
             }
-        }
 
-        public async Task HookToGalaAsync(ObservableCollection<RebarItem> rebars)
-        {
-            var prompt = _windowService.ShowGalaPrompt();
-
-            try
+            if (errorMessage != null)
             {
-                var clickPoint = await WaitForUserClickAsync();
-
-                AttachAndPush(clickPoint, nav => nav.WriteItems(rebars));
-            }
-            finally
-            {
-                prompt.Close();
+                MessageBox.Show(errorMessage);
             }
         }
 
-        public async Task HookToGalaAsync(ObservableCollection<LoadItem> loads)
-        {
-            var prompt = _windowService.ShowGalaPrompt();
+        public Task HookToGalaAsync(ObservableCollection<SectionItem> items) =>
+            HookToGalaAsync(items, (nav, i) => nav.WriteItems(i));
 
-            try
-            {
-                var clickPoint = await WaitForUserClickAsync();
+        public Task HookToGalaAsync(ObservableCollection<RebarItem> items) =>
+            HookToGalaAsync(items, (nav, i) => nav.WriteItems(i));
 
-                AttachAndPush(clickPoint, nav => nav.WriteItems(loads));
-            }
-            finally
-            {
-                prompt.Close();
-            }
-        }
+        public Task HookToGalaAsync(ObservableCollection<LoadItem> items) =>
+            HookToGalaAsync(items, (nav, i) => nav.WriteItems(i));
 
         private Task<Point> WaitForUserClickAsync()
         {
@@ -94,24 +89,19 @@ namespace AutoGala.Services
             return tcs.Task;
         }
 
-        private void AttachAndPush(Point screenPoint, Action<GalaNavigator> writeAction)
+        private string? AttachAndPush(Point screenPoint, Action<GalaNavigator> writeAction)
         {
             var clicked = AutomationElement.FromPoint(screenPoint);
             if (clicked == null)
-            {
-                MessageBox.Show("No element found at that point.");
-                return;
-            }
+                return "No element found at that point.";
 
             var navigator = new GalaNavigator();
 
             if (!navigator.Attach(clicked))
-            {
-                MessageBox.Show("Could not locate the structure in Gala.");
-                return;
-            }
+                return "Could not locate the structure in Gala.";
 
             writeAction(navigator);
+            return null;
         }
     }
 }
