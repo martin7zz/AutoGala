@@ -8,6 +8,9 @@ namespace AutoGala.Contracts
 {
     public interface IWindowService
     {
-        GalaPromptView ShowGalaPrompt();
+        GalaPromptView ShowGalaPrompt(string data);
+
+        ClipboardErrorView ShowClipboardError(string data, IEnumerable<string>? failedRows = null);
+        void UpdateGalaPrompt(string data, GalaPromptView galaPromptView);
     }
 }
