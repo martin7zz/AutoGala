@@ -54,7 +54,7 @@
                               Color="#000000"/>
         </Border.Effect>
         
-        <Grid MinWidth="360">
+        <Grid MaxWidth="360">
             
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -64,8 +64,8 @@
             
             <Border Grid.Row="0"
                     Width="48"
-                    Height="4"
-                    Margin="0,0,0,18"
+                    Height="8"
+                    Margin="0,0,0,45"
                     HorizontalAlignment="Left"
                     Background="#EF4444"
                     CornerRadius="2"/>
@@ -76,7 +76,7 @@
                        TextWrapping="Wrap"
                        FontSize="16"
                        FontWeight="SemiBold"
-                       Margin="0,18,0,14"/>
+                       Margin="0,20,0,19"/>
             
             <ListBox Grid.Row="1"
                      ItemsSource="{Binding FailedRows}"

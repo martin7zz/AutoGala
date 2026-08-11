@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AutoGala.views"
+             xmlns:common="clr-namespace:AutoGala.Common"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -37,6 +38,7 @@
                 <Button Content="{Binding EditButtonText}"
                     Grid.Column="2"
                     Command="{Binding EditRebarCommand}"
+                    PreviewMouseLeftButtonDown="SaveEditButton_PreviewMouseLeftButtonDown"
                     Height="25"
                     Margin="5"/>
 
@@ -67,20 +69,48 @@
                 <DataGrid.Columns>
 
                     <DataGridTextColumn Header="#"
-                                    Width="30"
-                                    Binding="{Binding Id}"/>
+                                        Width="30"
+                                        Binding="{Binding Id}"
+                                        IsReadOnly="True"/>
 
                     <DataGridTextColumn Header="As [cm2]"
-                                    Width="*"
-                                    Binding="{Binding Area}"/>
+                                        Width="*">
+
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="Area">
+                                <Binding.ValidationRules>
+                                    <common:RequiredNumberValidationRule/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </DataGridTextColumn.Binding>
+
+                    </DataGridTextColumn>
 
                     <DataGridTextColumn Header="X [cm]"
-                                    Width="*"
-                                    Binding="{Binding X}"/>
+                                        Width="*">
+
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="X">
+                                <Binding.ValidationRules>
+                                    <common:RequiredNumberValidationRule/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </DataGridTextColumn.Binding>
+
+                    </DataGridTextColumn>
 
                     <DataGridTextColumn Header="Y [cm]"
-                                    Width="*"
-                                    Binding="{Binding Y}"/>
+                                        Width="*">
+
+                        <DataGridTextColumn.Binding>
+                            <Binding Path="Y">
+                                <Binding.ValidationRules>
+                                    <common:RequiredNumberValidationRule/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </DataGridTextColumn.Binding>
+
+                    </DataGridTextColumn>
 
                 </DataGrid.Columns>
 

@@ -36,57 +36,20 @@ namespace AutoGala.views
                 e.ClipboardRowContent.RemoveAt(0);
         }
 
-        //private void LoadGrid_PreviewKeyDown(object sender, KeyEventArgs e)
-        //{
-        //    if (e.Key == Key.V &&
-        //        Keyboard.Modifiers == ModifierKeys.Control)
-        //    {
-        //        PasteFromExcel();
-        //        e.Handled = true;
-        //    }
-        //}
+        private void SaveEditButton_PreviewMouseLeftButtonDown(
+           object sender,
+           MouseButtonEventArgs e)
+        {
+            var vm = (LoadViewModel)DataContext;
+            if (vm.IsGridReadOnly) return;
 
-        //private void PasteFromExcel()
-        //{
-        //    if (DataContext is not LoadViewModel vm)
-        //    {
-        //        return;
-        //    }
+            bool committed = LoadGrid.CommitEdit(DataGridEditingUnit.Row, true);
 
-        //    var clipboard = Clipboard.GetText();
-
-        //    if (string.IsNullOrWhiteSpace(clipboard))
-        //    {
-        //        return;
-        //    }
-
-        //    var rows = clipboard.Split(
-        //        new[] { "\r\n", "\n" },
-        //        StringSplitOptions.RemoveEmptyEntries);
-
-        //    foreach (var row in rows) 
-        //    {
-        //        var cells = row.Split('\t');
-
-        //        if (cells.Length < 3)
-        //        {
-        //            continue;
-        //        }
-
-        //        if (double.TryParse(cells[0], out var n) &&
-        //            double.TryParse(cells[1], out var mx) &&
-        //            double.TryParse(cells[2], out var my))
-        //        {
-        //            var load = new LoadItem
-        //            {
-        //                N = n,
-        //                Mx = mx,
-        //                My = my
-        //            };
-
-        //            vm.Loads.Add(load);
-        //        }
-        //    }
-        //}
+            if (!committed || Validation.GetHasError(LoadGrid))
+            {
+                MessageBox.Show("Fix invalid N/Mx/My values before saving.");
+                e.Handled = true;
+            }
+        }
     }
 }

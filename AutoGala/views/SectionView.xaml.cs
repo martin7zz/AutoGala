@@ -1,4 +1,5 @@
-﻿using Plugin.Core.Models;
+﻿using AutoGala.ViewModels;
+using Plugin.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -30,6 +31,22 @@ namespace AutoGala.views
         {
             if (e.ClipboardRowContent.Count > 0)
                 e.ClipboardRowContent.RemoveAt(0);
+        }
+
+        private void SaveEditButton_PreviewMouseLeftButtonDown(
+            object sender,
+            MouseButtonEventArgs e)
+        {
+            var vm = (SectionViewModel)DataContext;
+            if (vm.IsGridReadOnly) return;
+
+            bool committed = SectionGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            if (!committed || Validation.GetHasError(SectionGrid))
+            {
+                MessageBox.Show("Fix invalid X/Y values before saving.");
+                e.Handled = true;
+            }
         }
     }
 }
