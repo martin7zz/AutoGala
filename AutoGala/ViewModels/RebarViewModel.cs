@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows.Input;
+using static AutoGala.Common.NotificationMessages;
 
 namespace AutoGala.ViewModels
 {
@@ -38,6 +39,7 @@ namespace AutoGala.ViewModels
                 _isGridReadOnly = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EditButtonText));
+                CommandManager.InvalidateRequerySuggested();
             }
         }
 
@@ -63,12 +65,12 @@ namespace AutoGala.ViewModels
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
-            AddRebarCommand = new RelayCommand(_ => AddRebar());
-            RemoveRebarCommand = new RelayCommand(_ => RemoveRebar(), _ => SelectedRebar != null);
-            PasteRebarCommand = new RelayCommand(_ => Paste());
+            AddRebarCommand = new RelayCommand(_ => AddRebar(), _ => IsGridReadOnly);
+            RemoveRebarCommand = new RelayCommand(_ => RemoveRebar(), _ => SelectedRebar != null && IsGridReadOnly);
+            PasteRebarCommand = new RelayCommand(_ => Paste(), _ => IsGridReadOnly);
             EditRebarCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedRebar != null);
-            ClearRebarCommand = new RelayCommand(_ => ClearList(), _ => Rebars.Count > 0);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala());
+            ClearRebarCommand = new RelayCommand(_ => ClearList(), _ => Rebars.Count > 0 && IsGridReadOnly);
+            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => IsGridReadOnly);
         }
 
         private void AddRebar()
@@ -105,6 +107,17 @@ namespace AutoGala.ViewModels
 
         private void SaveRebar()
         {
+            var InvalidRebars = Rebars
+                .Where(r => r.X == null || r.Y == null || r.Area == null)
+                .ToList();
+
+            if (InvalidRebars.Count > 0)
+            {
+                _windowService.ShowClipboardError(UnfilledRebarErrorMessage);
+
+                return;
+            }
+
             IsGridReadOnly = true;
         }
 
@@ -121,7 +134,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
-                _windowService.ShowClipboardError("Clipboard is empty.");
+                _windowService.ShowClipboardError(NotificationMessages.NoClipboardDataErrorMassage);
                 return;
             }
 
@@ -152,7 +165,7 @@ namespace AutoGala.ViewModels
             if (added == 0)
             {
                 _windowService.ShowClipboardError(
-                    "Clipboard data isn't in the expected format (area and x and y separated by a tab, one pair per line).",
+                    NotificationMessages.RebarPasteErrorMessage,
                     failedRows);
             }
             else if (failedRows.Count > 0)

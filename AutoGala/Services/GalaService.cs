@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Forms;
 using MessageBox = System.Windows.Forms.MessageBox;
+using static AutoGala.Common.NotificationMessages;
 
 namespace AutoGala.Services
 {
@@ -29,20 +30,18 @@ namespace AutoGala.Services
         {
             if (items.Count == 0)
             {
-                MessageBox.Show("There is nothing to transfer.");
+                MessageBox.Show(NoDataErrorMessage);
                 return;
             }
 
-            string message = "Click inside Gala";
-            var prompt = _windowService.ShowGalaPrompt(message);
+            var prompt = _windowService.ShowGalaPrompt(WaitingGalaClickMessage);
             string? errorMessage = null;
 
             try
             {
                 var clickPoint = await WaitForUserClickAsync();
 
-                message = "Transferring data!";
-                _windowService.UpdateGalaPrompt(message, prompt);
+                _windowService.UpdateGalaPrompt(TransferingToGalaMessage, prompt);
 
                 errorMessage = await Task.Run(() => AttachAndPush(clickPoint, nav => write(nav, items)));
             }
@@ -93,12 +92,12 @@ namespace AutoGala.Services
         {
             var clicked = AutomationElement.FromPoint(screenPoint);
             if (clicked == null)
-                return "No element found at that point.";
+                return NoGalaElementFoundErrorMessage;
 
             var navigator = new GalaNavigator();
 
             if (!navigator.Attach(clicked))
-                return "Could not locate the structure in Gala.";
+                return NoGalaStructureFoundErrorMessage;
 
             writeAction(navigator);
             return null;

@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.Design;
 using System.Text;
 using System.Windows.Input;
+using static AutoGala.Common.NotificationMessages;
 
 namespace AutoGala.ViewModels
 {
@@ -39,6 +40,7 @@ namespace AutoGala.ViewModels
                 _isGridReadOnly = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EditButtonText));
+                CommandManager.InvalidateRequerySuggested();
             }
         }
 
@@ -64,12 +66,12 @@ namespace AutoGala.ViewModels
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
-            AddSectionCommand = new RelayCommand(_ => AddSection());
-            RemoveSectionCommand = new RelayCommand(_ => RemoveSection(), _ => SelectedSection != null);
-            PasteSectionCommand = new RelayCommand(_ => Paste());
+            AddSectionCommand = new RelayCommand(_ => AddSection(), _ => IsGridReadOnly);
+            RemoveSectionCommand = new RelayCommand(_ => RemoveSection(), _ => SelectedSection != null && IsGridReadOnly);
+            PasteSectionCommand = new RelayCommand(_ => Paste(), _ => IsGridReadOnly);
             EditSectionCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedSection != null);
-            ClearSectionCommand = new RelayCommand(_ => ClearList(), _ => Sections.Count > 0);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala());
+            ClearSectionCommand = new RelayCommand(_ => ClearList(), _ => Sections.Count > 0 && IsGridReadOnly);
+            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => IsGridReadOnly);
         }
 
         private void AddSection()
@@ -106,6 +108,17 @@ namespace AutoGala.ViewModels
 
         private void SaveSection()
         {
+            var InvalidSections = Sections
+                .Where(s => s.X == null || s.Y == null)
+                .ToList();
+
+            if (InvalidSections.Count > 0)
+            {
+                _windowService.ShowClipboardError(UnfilledSectionErrorMessage);
+
+                return;
+            }
+
             IsGridReadOnly = true;
         }
 
@@ -122,7 +135,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
-                _windowService.ShowClipboardError("Clipboard is empty.");
+                _windowService.ShowClipboardError(NotificationMessages.NoClipboardDataErrorMassage);
                 return;
             }
 
@@ -137,7 +150,7 @@ namespace AutoGala.ViewModels
             {
                 var cells = row.Split('\t');
 
-                if (cells.Length < 1 || cells.Length >= 3 ||
+                if (cells.Length <= 1 || cells.Length >= 3 ||
                     !double.TryParse(cells[0], out var x) ||
                     !double.TryParse(cells[1], out var y))
                 {
@@ -152,7 +165,7 @@ namespace AutoGala.ViewModels
             if (added == 0)
             {
                 _windowService.ShowClipboardError(
-                    "Clipboard data isn't in the expected format (X and Y separated by a tab, one pair per line).",
+                    NotificationMessages.SectionPasteErrorMessage,
                     failedRows);
             }
             else if (failedRows.Count > 0)

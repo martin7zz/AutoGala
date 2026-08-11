@@ -12,6 +12,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static AutoGala.Common.NotificationMessages;
 
 namespace AutoGala.ViewModels
 {
@@ -42,6 +44,7 @@ namespace AutoGala.ViewModels
                 _isGridReadOnly = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EditButtonText));
+                CommandManager.InvalidateRequerySuggested();
             }
         }
 
@@ -67,12 +70,12 @@ namespace AutoGala.ViewModels
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
-            AddLoadCommand = new RelayCommand(_ => AddLoad());
-            RemoveLoadCommand = new RelayCommand(_ => RemoveLoad(), _ => SelectedLoad != null);
-            PasteLoadCommand = new RelayCommand(_ => Paste());
+            AddLoadCommand = new RelayCommand(_ => AddLoad(), _ => IsGridReadOnly);
+            RemoveLoadCommand = new RelayCommand(_ => RemoveLoad(), _ => SelectedLoad != null && IsGridReadOnly);
+            PasteLoadCommand = new RelayCommand(_ => Paste(), _ => IsGridReadOnly);
             EditLoadCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedLoad != null);
-            ClearListCommand = new RelayCommand(_ => ClearList(), _ => Loads.Count > 0);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala());
+            ClearListCommand = new RelayCommand(_ => ClearList(), _ => Loads.Count > 0 && IsGridReadOnly);
+            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => IsGridReadOnly);
         }
 
         private void AddLoad()
@@ -109,6 +112,17 @@ namespace AutoGala.ViewModels
 
         private void SaveLoad()
         {
+            var InvalidLoads = Loads
+                .Where(l => l.N == null || l.Mx == null || l.My == null)
+                .ToList();
+
+            if (InvalidLoads.Count > 0)
+            {
+                _windowService.ShowClipboardError(UnfilledLoadErrorMessage);
+
+                return;
+            }
+
             IsGridReadOnly = true;
         }
 
@@ -125,7 +139,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
-                _windowService.ShowClipboardError("Clipboard is empty.");
+                _windowService.ShowClipboardError(NotificationMessages.NoClipboardDataErrorMassage);
                 return;
             }
 
@@ -156,7 +170,7 @@ namespace AutoGala.ViewModels
             if (added == 0)
             {
                 _windowService.ShowClipboardError(
-                    "Clipboard data isn't in the expected format (n and Mx and My separated by a tab, one pair per line).",
+                    NotificationMessages.LoadPasteErrorMessage,
                     failedRows);
             }
             else if (failedRows.Count > 0)
