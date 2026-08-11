@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AutoGala.Common\AutoGala.Common.csproj" />
     <ProjectReference Include="..\AutoGala.Core\AutoGala.Core.csproj" />
   </ItemGroup>
 
