@@ -34,48 +34,60 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private bool _isGridReadOnly = true;
+        public LoadItem? _editingLoad;
 
-        public bool IsGridReadOnly
+        public LoadItem? EditingLoad
         {
-            get => _isGridReadOnly;
-            set
+            get => _editingLoad;
+            private set
             {
-                _isGridReadOnly = value;
+                _editingLoad = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EditButtonText));
                 CommandManager.InvalidateRequerySuggested();
             }
         }
 
-        public string EditButtonText =>
-            IsGridReadOnly ? "Edit Load" : "Save Load";
+        public string EditButtonText => EditingLoad == null ? "Edit" : "Save";
+
+        private int _validationErrorCount;
+        public bool HasValidationError => _validationErrorCount > 0;
 
         private readonly ILoadService _loadService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
+        private readonly IMainWindowService _mainWindowService;
 
         public ICommand AddLoadCommand { get; }
         public ICommand RemoveLoadCommand { get; }
         public ICommand PasteLoadCommand { get; }
         public ICommand EditLoadCommand { get; }
+        public ICommand MenuEditLoadCommand { get; }
         public ICommand ClearListCommand { get; }
         public ICommand HookToGalaCommand { get; }
+        public ICommand SaveToExcelCommand { get; }
+        public ICommand LoadFromExcelCommand { get; }
 
 
-        public LoadViewModel(ILoadService loadService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService)
+
+        public LoadViewModel(ILoadService loadService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService, IMainWindowService mainWindowService)
         {
             _loadService = loadService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
-            AddLoadCommand = new RelayCommand(_ => AddLoad(), _ => IsGridReadOnly);
-            RemoveLoadCommand = new RelayCommand(_ => RemoveLoad(), _ => SelectedLoad != null && IsGridReadOnly);
-            PasteLoadCommand = new RelayCommand(_ => Paste(), _ => IsGridReadOnly);
-            EditLoadCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedLoad != null);
-            ClearListCommand = new RelayCommand(_ => ClearList(), _ => Loads.Count > 0 && IsGridReadOnly);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => IsGridReadOnly);
+            _mainWindowService = mainWindowService;
+
+            AddLoadCommand = new RelayCommand(_ => AddLoad(), _ => EditingLoad == null && !HasValidationError);
+            RemoveLoadCommand = new RelayCommand(_ => RemoveLoad(), _ => SelectedLoad != null && EditingLoad == null && !HasValidationError);
+            PasteLoadCommand = new RelayCommand(_ => Paste(), _ => EditingLoad == null && !HasValidationError);
+            EditLoadCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedLoad != null && !HasValidationError);
+            ClearListCommand = new RelayCommand(_ => ClearList(), _ => Loads.Count > 0 && EditingLoad == null && !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => EditingLoad == null && !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(_ => SaveToExcel(), _ => Loads.Count > 0 && EditingLoad == null && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(_ => LoadFromExcel(), _ => EditingLoad == null && !HasValidationError);
+            MenuEditLoadCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedLoad != null && EditingLoad == null && !HasValidationError);
         }
 
         private void AddLoad()
@@ -95,9 +107,9 @@ namespace AutoGala.ViewModels
 
         private void ToggleEdit()
         {
-            if (IsGridReadOnly)
+            if (EditingLoad == null)
             {
-                EditLoad();
+                EditingLoad = SelectedLoad;
             }
             else
             {
@@ -105,25 +117,18 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private void EditLoad()
-        {
-            IsGridReadOnly = false;
-        }
-
         private void SaveLoad()
         {
-            var InvalidLoads = Loads
-                .Where(l => l.N == null || l.Mx == null || l.My == null)
-                .ToList();
+            if (HasValidationError) return;
 
-            if (InvalidLoads.Count > 0)
+            if (EditingLoad == null ||
+            EditingLoad.N == null || EditingLoad.Mx == null || EditingLoad.My == null)
             {
                 _windowService.ShowClipboardError(UnfilledLoadErrorMessage);
-
                 return;
             }
 
-            IsGridReadOnly = true;
+            EditingLoad = null;
         }
 
         private void ClearList()
@@ -184,6 +189,32 @@ namespace AutoGala.ViewModels
         private async Task GetGala()
         {
             await _galaService.HookToGalaAsync(Loads);
+        }
+
+        private void SaveToExcel()
+        {
+            _mainWindowService.SaveExcel(Loads);
+        }
+
+        private void LoadFromExcel()
+        {
+            if (Loads.Count > 0)
+            {
+                Loads.Clear();
+            }
+
+
+        }
+        public void RegisterValidationError(bool errorAdded)
+        {
+            _validationErrorCount += errorAdded ? 1 : -1;
+            if (_validationErrorCount < 0)
+            {
+                _validationErrorCount = 0;
+            }
+
+            OnPropertyChanged(nameof(HasValidationError));
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 }

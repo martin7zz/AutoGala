@@ -30,14 +30,13 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private bool _isGridReadOnly = true;
-
-        public bool IsGridReadOnly
+        private SectionItem? _editingSection;
+        public SectionItem? EditingSection
         {
-            get => _isGridReadOnly;
-            set
+            get => _editingSection;
+            private set
             {
-                _isGridReadOnly = value;
+                _editingSection = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EditButtonText));
                 CommandManager.InvalidateRequerySuggested();
@@ -45,33 +44,45 @@ namespace AutoGala.ViewModels
         }
 
         public string EditButtonText =>
-            IsGridReadOnly ? "Edit Section" : "Save Section";
+            EditingSection == null ? "Edit" : "Save";
+
+        private int _validationErrorCount;
+        private bool HasValidationError => _validationErrorCount > 0;
 
         private readonly ISectionService _sectionService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
+        private readonly IMainWindowService _mainWindowService;
 
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionCommand { get; }
         public ICommand PasteSectionCommand { get; }
         public ICommand EditSectionCommand { get; }
+        public ICommand MenuEditSectionCommand { get; }
         public ICommand ClearSectionCommand { get; }
         public ICommand HookToGalaCommand { get; }
+        public ICommand SaveToExcelCommand { get; }
+        public ICommand LoadFromExcelCommand { get; }
 
 
-        public SectionViewModel(ISectionService sectionService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService)
+        public SectionViewModel(ISectionService sectionService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService, IMainWindowService mainWindowService)
         {
             _sectionService = sectionService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
-            AddSectionCommand = new RelayCommand(_ => AddSection(), _ => IsGridReadOnly);
-            RemoveSectionCommand = new RelayCommand(_ => RemoveSection(), _ => SelectedSection != null && IsGridReadOnly);
-            PasteSectionCommand = new RelayCommand(_ => Paste(), _ => IsGridReadOnly);
-            EditSectionCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedSection != null);
-            ClearSectionCommand = new RelayCommand(_ => ClearList(), _ => Sections.Count > 0 && IsGridReadOnly);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => IsGridReadOnly);
+            _mainWindowService = mainWindowService;
+
+            AddSectionCommand = new RelayCommand(_ => AddSection(), _ => EditingSection == null && !HasValidationError);
+            RemoveSectionCommand = new RelayCommand(_ => RemoveSection(), _ => SelectedSection != null && EditingSection == null && !HasValidationError);
+            PasteSectionCommand = new RelayCommand(_ => Paste(), _ => EditingSection == null && !HasValidationError);
+            EditSectionCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedSection != null && !HasValidationError);
+            MenuEditSectionCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedSection != null && EditingSection == null && !HasValidationError);
+            ClearSectionCommand = new RelayCommand(_ => ClearList(), _ => Sections.Count > 0 && EditingSection == null && !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => EditingSection == null && !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(_ => SaveToExcel(), _ => Sections.Count > 0 && EditingSection == null && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(_ => LoadFromExcel(),_ => EditingSection == null && !HasValidationError);
         }
 
         private void AddSection()
@@ -91,9 +102,9 @@ namespace AutoGala.ViewModels
 
         private void ToggleEdit()
         {
-            if (IsGridReadOnly)
+            if (EditingSection == null)
             {
-                EditSection();
+                EditingSection = SelectedSection;
             }
             else
             {
@@ -101,25 +112,18 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private void EditSection()
-        {
-            IsGridReadOnly = false;
-        }
-
         private void SaveSection()
         {
-            var InvalidSections = Sections
-                .Where(s => s.X == null || s.Y == null)
-                .ToList();
+            if (HasValidationError) return;
 
-            if (InvalidSections.Count > 0)
+            if (EditingSection == null || EditingSection.X == null || EditingSection.Y == null)
             {
                 _windowService.ShowClipboardError(UnfilledSectionErrorMessage);
 
                 return;
             }
 
-            IsGridReadOnly = true;
+            EditingSection = null;
         }
 
         private void ClearList()
@@ -179,6 +183,32 @@ namespace AutoGala.ViewModels
         private async Task GetGala()
         {
             await _galaService.HookToGalaAsync(Sections);
+        }
+
+        private void SaveToExcel()
+        {
+            _mainWindowService.SaveExcel(Sections);
+        }
+
+        private void LoadFromExcel()
+        {
+            if (Sections.Count > 0)
+            {
+                Sections.Clear();
+            }
+
+
+        }
+
+        public void RegisterValidationError(bool errorAdded)
+        {
+            _validationErrorCount += errorAdded ? 1 : -1;
+            if (_validationErrorCount < 0)
+            {
+                _validationErrorCount = 0;
+            }
+            OnPropertyChanged(nameof(HasValidationError));
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 }

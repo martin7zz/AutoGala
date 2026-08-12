@@ -29,14 +29,14 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private bool _isGridReadOnly = true;
+        private RebarItem? _editingRebar;
 
-        public bool IsGridReadOnly
+        public RebarItem? EditingRebar
         {
-            get => _isGridReadOnly;
-            set
+            get => _editingRebar;
+            private set
             {
-                _isGridReadOnly = value;
+                _editingRebar = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EditButtonText));
                 CommandManager.InvalidateRequerySuggested();
@@ -44,33 +44,45 @@ namespace AutoGala.ViewModels
         }
 
         public string EditButtonText =>
-            IsGridReadOnly ? "Edit Rebar" : "Save Rebar";
+            EditingRebar == null ? "Edit" : "Save";
+
+        private int _validationErrorCount;
+        public bool HasValidationError => _validationErrorCount > 0;
 
         private readonly IRebarService _rebarService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
+        private readonly IMainWindowService _mainWindowService;
 
         public ICommand AddRebarCommand { get; }
         public ICommand RemoveRebarCommand { get; }
         public ICommand PasteRebarCommand { get; }
         public ICommand EditRebarCommand { get; }
+        public ICommand MenuEditRebarCommand { get; }
         public ICommand ClearRebarCommand { get; }
         public ICommand HookToGalaCommand { get; }
+        public ICommand SaveToExcelCommand { get; }
+        public ICommand LoadFromExcelCommand { get; }
 
 
-        public RebarViewModel(IRebarService rebarService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService)
+        public RebarViewModel(IRebarService rebarService, IClipboardService clipboardService, IGalaService galaService, IWindowService windowService, IMainWindowService mainWindowService)
         {
             _rebarService = rebarService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
-            AddRebarCommand = new RelayCommand(_ => AddRebar(), _ => IsGridReadOnly);
-            RemoveRebarCommand = new RelayCommand(_ => RemoveRebar(), _ => SelectedRebar != null && IsGridReadOnly);
-            PasteRebarCommand = new RelayCommand(_ => Paste(), _ => IsGridReadOnly);
-            EditRebarCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedRebar != null);
-            ClearRebarCommand = new RelayCommand(_ => ClearList(), _ => Rebars.Count > 0 && IsGridReadOnly);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => IsGridReadOnly);
+            _mainWindowService = mainWindowService;
+
+            AddRebarCommand = new RelayCommand(_ => AddRebar(), _ => EditingRebar == null && !HasValidationError);
+            RemoveRebarCommand = new RelayCommand(_ => RemoveRebar(), _ => SelectedRebar != null && EditingRebar == null && !HasValidationError);
+            PasteRebarCommand = new RelayCommand(_ => Paste(), _ => EditingRebar == null && !HasValidationError);
+            EditRebarCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedRebar != null && !HasValidationError);
+            MenuEditRebarCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedRebar != null && EditingRebar == null && !HasValidationError);
+            ClearRebarCommand = new RelayCommand(_ => ClearList(), _ => Rebars.Count > 0 && EditingRebar == null && !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => EditingRebar == null && !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(_ => SaveToExcel(), _ => Rebars.Count > 0 && EditingRebar == null && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(_ => LoadFromExcel(), _ => EditingRebar == null && !HasValidationError);
         }
 
         private void AddRebar()
@@ -90,9 +102,9 @@ namespace AutoGala.ViewModels
 
         private void ToggleEdit()
         {
-            if (IsGridReadOnly)
+            if (EditingRebar == null)
             {
-                EditRebar();
+                EditingRebar = SelectedRebar;
             }
             else
             {
@@ -100,25 +112,22 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private void EditRebar()
-        {
-            IsGridReadOnly = false;
-        }
-
         private void SaveRebar()
         {
-            var InvalidRebars = Rebars
-                .Where(r => r.X == null || r.Y == null || r.Area == null)
-                .ToList();
+            if (HasValidationError)
+            {
+                return;
+            }
 
-            if (InvalidRebars.Count > 0)
+            if (EditingRebar == null ||
+            EditingRebar.Area == null || EditingRebar.X == null || EditingRebar.Y == null)
             {
                 _windowService.ShowClipboardError(UnfilledRebarErrorMessage);
 
                 return;
             }
 
-            IsGridReadOnly = true;
+            EditingRebar = null;
         }
 
         private void ClearList()
@@ -179,6 +188,32 @@ namespace AutoGala.ViewModels
         private async Task GetGala()
         {
             await _galaService.HookToGalaAsync(Rebars);
+        }
+
+        private void SaveToExcel()
+        {
+            _mainWindowService.SaveExcel(Rebars);
+        }
+
+        private void LoadFromExcel()
+        {
+            if (Rebars.Count > 0)
+            {
+                Rebars.Clear();
+            }
+
+
+        }
+
+        public void RegisterValidationError(bool errorAdded)
+        {
+            _validationErrorCount += errorAdded ? 1 : -1;
+            if (_validationErrorCount < 0)
+            {
+                _validationErrorCount = 0;
+            }
+            OnPropertyChanged(nameof(HasValidationError));
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 }
