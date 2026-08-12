@@ -33,19 +33,21 @@ namespace AutoGala.views
                 e.ClipboardRowContent.RemoveAt(0);
         }
 
-        private void SaveEditButton_PreviewMouseLeftButtonDown(
-            object sender,
-            MouseButtonEventArgs e)
+        private void SectionGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
         {
-            var vm = (SectionViewModel)DataContext;
-            if (vm.IsGridReadOnly) return;
+            if (DataContext is not SectionViewModel vm) return;
 
-            bool committed = SectionGrid.CommitEdit(DataGridEditingUnit.Row, true);
-
-            if (!committed || Validation.GetHasError(SectionGrid))
+            if (vm.EditingSection == null || !ReferenceEquals(e.Row.Item, vm.EditingSection))
             {
-                MessageBox.Show("Fix invalid X/Y values before saving.");
-                e.Handled = true;
+                e.Cancel = true;
+            }
+        }
+
+        private void SectionGrid_ValidationError(object sender, ValidationErrorEventArgs e)
+        {
+            if (DataContext is SectionViewModel vm)
+            {
+                vm.RegisterValidationError(e.Action == ValidationErrorEventAction.Added);
             }
         }
     }

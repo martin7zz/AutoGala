@@ -13,22 +13,7 @@
         SizeToContent="WidthAndHeight"
         ShowInTaskbar="False"
         Topmost="True">
-
-    <Window.Resources>
-        <converters:BoolToVisibleConverter x:Key="BoolToVisibleConverter"/>
-
-        <Style x:Key="MessageTextStyle" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="Foreground" Value="#1F2937"/>
-        </Style>
-
-        <Style x:Key="WaitingTextStyle" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#6B7280"/>
-        </Style>
-    </Window.Resources>
-
+    
     <Border
     Padding="32"
     Background="#FFFFFF"

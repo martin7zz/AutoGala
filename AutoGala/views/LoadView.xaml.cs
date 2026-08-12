@@ -36,19 +36,21 @@ namespace AutoGala.views
                 e.ClipboardRowContent.RemoveAt(0);
         }
 
-        private void SaveEditButton_PreviewMouseLeftButtonDown(
-           object sender,
-           MouseButtonEventArgs e)
+        private void LoadGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
         {
-            var vm = (LoadViewModel)DataContext;
-            if (vm.IsGridReadOnly) return;
+            if (DataContext is not LoadViewModel vm) return;
 
-            bool committed = LoadGrid.CommitEdit(DataGridEditingUnit.Row, true);
-
-            if (!committed || Validation.GetHasError(LoadGrid))
+            if (vm.EditingLoad == null || !ReferenceEquals(e.Row.Item, vm.EditingLoad))
             {
-                MessageBox.Show("Fix invalid N/Mx/My values before saving.");
-                e.Handled = true;
+                e.Cancel = true;
+            }
+        }
+
+        private void LoadGrid_ValidationError(object sender, ValidationErrorEventArgs e)
+        {
+            if (DataContext is LoadViewModel vm)
+            {
+                vm.RegisterValidationError(e.Action == ValidationErrorEventAction.Added);
             }
         }
     }

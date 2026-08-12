@@ -14,7 +14,8 @@
 
         <DockPanel>
 
-            <Grid DockPanel.Dock="Bottom">
+            <Grid DockPanel.Dock="Bottom"
+                  Margin="5,8,5,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -23,48 +24,43 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <Button Content="Add Rebar"
+                <Button Content="Add"
                     Grid.Column="0"
                     Command="{Binding AddRebarCommand}"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource PrimaryButtonStyle}"/>
 
-                <Button Content="Delete Rebar"
+                <Button Content="Delete"
                     Grid.Column="1"
                     Command="{Binding RemoveRebarCommand}"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource DangerButtonStyle}"/>
 
                 <Button Content="{Binding EditButtonText}"
                     Grid.Column="2"
                     Command="{Binding EditRebarCommand}"
-                    PreviewMouseLeftButtonDown="SaveEditButton_PreviewMouseLeftButtonDown"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource SecondaryButtonStyle}"/>
 
-                <Button Content="Paste Rebars"
+                <Button Content="Paste"
                     Grid.Column="3"
                     Command="{Binding PasteRebarCommand}"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource SecondaryButtonStyle}"/>
 
-                <Button Content="To Gala"
+                <Button Content="Gala"
                     Grid.Column="4"
                     Command="{Binding HookToGalaCommand}"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
 
             <DataGrid x:Name="RebarGrid"
                   SelectedItem="{Binding SelectedRebar}"
                   ItemsSource="{Binding Rebars}"
+                  CanUserSortColumns="False"
                   CopyingRowClipboardContent="CopyingRowClipboardContent"
+                  BeginningEdit="RebarGrid_BeginningEdit"
+                  Validation.Error="RebarGrid_ValidationError"
                   AutoGenerateColumns="False"
                   HeadersVisibility="Column"
                   CanUserAddRows="False"
-                  GridLinesVisibility="All"
-                  IsReadOnly="{Binding IsGridReadOnly}">
-
+                  GridLinesVisibility="All">
 
                 <DataGrid.Columns>
 
@@ -74,10 +70,11 @@
                                         IsReadOnly="True"/>
 
                     <DataGridTextColumn Header="As [cm2]"
-                                        Width="*">
+                                        Width="*"
+                                        EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
 
                         <DataGridTextColumn.Binding>
-                            <Binding Path="Area">
+                            <Binding Path="Area" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
                                     <common:RequiredNumberValidationRule/>
                                 </Binding.ValidationRules>
@@ -87,10 +84,11 @@
                     </DataGridTextColumn>
 
                     <DataGridTextColumn Header="X [cm]"
-                                        Width="*">
+                                        Width="*"
+                                        EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
 
                         <DataGridTextColumn.Binding>
-                            <Binding Path="X">
+                            <Binding Path="X" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
                                     <common:RequiredNumberValidationRule/>
                                 </Binding.ValidationRules>
@@ -100,10 +98,11 @@
                     </DataGridTextColumn>
 
                     <DataGridTextColumn Header="Y [cm]"
-                                        Width="*">
+                                        Width="*"
+                                        EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
 
                         <DataGridTextColumn.Binding>
-                            <Binding Path="Y">
+                            <Binding Path="Y" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
                                     <common:RequiredNumberValidationRule/>
                                 </Binding.ValidationRules>

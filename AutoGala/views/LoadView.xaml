@@ -14,7 +14,8 @@
 
         <DockPanel>
 
-            <Grid DockPanel.Dock="Bottom">
+            <Grid DockPanel.Dock="Bottom"
+                  Margin="5,8,5,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -23,99 +24,82 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <Button Content="Add Load"
+                <Button Content="Add"
                         Grid.Column="0"
                         Command="{Binding AddLoadCommand}"
-                        Height="25"
-                        Margin="5"/>
+                        Style="{StaticResource PrimaryButtonStyle}"/>
 
-                <Button Content="Delete Load"
+                <Button Content="Delete"
                         Grid.Column="1"
                         Command="{Binding RemoveLoadCommand}"
-                        Height="25"
-                        Margin="5"/>
+                        Style="{StaticResource DangerButtonStyle}"/>
 
                 <Button Content="{Binding EditButtonText}"
                         Grid.Column="2"
                         Command="{Binding EditLoadCommand}"
-                        PreviewMouseLeftButtonDown="SaveEditButton_PreviewMouseLeftButtonDown"
-                        Height="25"
-                        Margin="5"/>
+                        Style="{StaticResource SecondaryButtonStyle}"/>
 
-                <Button Content="Paste Loads"
+                <Button Content="Paste"
                         Grid.Column="3"
                         Command="{Binding PasteLoadCommand}"
-                        Height="25"
-                        Margin="5"/>
+                        Style="{StaticResource SecondaryButtonStyle}"/>
 
-                <Button Content="To Gala"
+                <Button Content="Gala"
                         Grid.Column="4"
                         Command="{Binding HookToGalaCommand}"
-                        Height="25"
-                        Margin="5"/>
+                        Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
 
             <DataGrid x:Name="LoadGrid"
-                      SelectedItem="{Binding SelectedLoad}"
-                      ItemsSource="{Binding Loads}"
-                      CopyingRowClipboardContent="CopyingRowClipboardContent"
-                      AutoGenerateColumns="False"
-                      HeadersVisibility="Column"
-                      CanUserAddRows="False"
-                      GridLinesVisibility="All"
-                      IsReadOnly="{Binding IsGridReadOnly}">
-
+          SelectedItem="{Binding SelectedLoad}"
+          ItemsSource="{Binding Loads}"
+          CanUserSortColumns="False"
+          CopyingRowClipboardContent="CopyingRowClipboardContent"
+          BeginningEdit="LoadGrid_BeginningEdit"
+          Validation.Error="LoadGrid_ValidationError"
+          AutoGenerateColumns="False"
+          HeadersVisibility="Column"
+          CanUserAddRows="False"
+          GridLinesVisibility="All">
 
                 <DataGrid.Columns>
+                    <DataGridTextColumn Header="#" Width="30" Binding="{Binding Id}" IsReadOnly="True"/>
 
-                    <DataGridTextColumn Header="#"
-                                        Width="30"
-                                        Binding="{Binding Id}"
-                                        IsReadOnly="True"/>
-
-                    <DataGridTextColumn Header="N [kn]"
-                                        Width="*">
-
+                    <DataGridTextColumn Header="N [kn]" Width="*"
+                         EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
                         <DataGridTextColumn.Binding>
-                            <Binding Path="N">
+                            <Binding Path="N" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
                                     <common:RequiredNumberValidationRule/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>
-
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Mx [kN.m]"
-                                        Width="*">
-
+                    <DataGridTextColumn Header="Mx [kN.m]" Width="*"
+                         EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
                         <DataGridTextColumn.Binding>
-                            <Binding Path="Mx">
+                            <Binding Path="Mx" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
                                     <common:RequiredNumberValidationRule/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>
-
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="My [kN.m]"
-                                        Width="*">
-
+                    <DataGridTextColumn Header="My [kN.m]" Width="*"
+                         EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
                         <DataGridTextColumn.Binding>
-                            <Binding Path="My">
+                            <Binding Path="My" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
                                     <common:RequiredNumberValidationRule/>
                                 </Binding.ValidationRules>
                             </Binding>
                         </DataGridTextColumn.Binding>
-
                     </DataGridTextColumn>
-
                 </DataGrid.Columns>
-
             </DataGrid>
-        
+
         </DockPanel>
 
     </GroupBox>

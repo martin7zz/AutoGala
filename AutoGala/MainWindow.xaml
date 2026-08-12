@@ -7,7 +7,7 @@
         xmlns:view="clr-namespace:AutoGala.views"
         xmlns:vm="clr-namespace:AutoGala.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="550" Width="900">
+        Title="AutoGala" Height="550" Width="900">
 
     <!-- Main window grid -->
     <Grid Background="#F4F6F8">
@@ -23,40 +23,58 @@
             <Menu Padding="6,3" Background="Transparent" BorderThickness="0" FontSize="13">
                
                 <MenuItem Header="_Section" Padding="10,6">
-                    <MenuItem Header="_Save"/>
-                    <MenuItem Header="_Load"/>
+                    <MenuItem Header="_Save"
+                              Command="{Binding SectionView.SaveToExcelCommand}"/>
+                    <MenuItem Header="_Load"
+                              Command="{Binding SectionView.LoadFromExcelCommand}"/>
                     <Separator/>
-                    <MenuItem Header="_Clear List" Command="{Binding SectionView.ClearSectionCommand}"/>
-                    <MenuItem Header="_Edit List" Command="{Binding SectionView.EditSectionCommand}"/>
-                    <MenuItem Header="_Delete Selected" Command="{Binding SectionView.RemoveSectionCommand}"/>
-                    <MenuItem Header="_Paste from Clipboard" Command="{Binding SectionView.PasteSectionCommand}"/>
+                    <MenuItem Header="_Clear List"
+                              Command="{Binding SectionView.ClearSectionCommand}"/>
+                    <MenuItem Header="_Edit List" 
+                              Command="{Binding SectionView.MenuEditSectionCommand}"/>
+                    <MenuItem Header="_Delete Selected" 
+                              Command="{Binding SectionView.RemoveSectionCommand}"/>
+                    <MenuItem Header="_Paste from Clipboard" 
+                              Command="{Binding SectionView.PasteSectionCommand}"/>
                     <!--<MenuItem Header="_Select All"/> <Separator/> <MenuItem Header="_Set to Gala"/> <MenuItem Header="_Get from Gala"/> <MenuItem Header="_Get from AutoCAD"/>-->
                 </MenuItem>
                 
                 <MenuItem Header="_Rebar" Padding="10,6">
-                    <MenuItem Header="_Save"/>
-                    <MenuItem Header="_Load"/>
+                    <MenuItem Header="_Save"
+                              Command="{Binding RebarView.SaveToExcelCommand}"/>
+                    <MenuItem Header="_Load"
+                              Command="{Binding RebarView.LoadFromExcelCommand}"/>
                     <Separator/>
-                    <MenuItem Header="_Clear List" Command="{Binding RebarView.ClearRebarCommand}"/>
-                    <MenuItem Header="_Edit List" Command="{Binding RebarView.EditRebarCommand}"/>
-                    <MenuItem Header="_Delete Selected" Command="{Binding RebarView.RemoveRebarCommand}"/>
+                    <MenuItem Header="_Clear List"
+                              Command="{Binding RebarView.ClearRebarCommand}"/>
+                    <MenuItem Header="_Edit List" 
+                              Command="{Binding RebarView.MenuEditRebarCommand}"/>
+                    <MenuItem Header="_Delete Selected" 
+                              Command="{Binding RebarView.RemoveRebarCommand}"/>
                     <!--<MenuItem Header="_Check for Duplicate Rebars"/>-->
-                    <MenuItem Header="_Paste from Clipboard" Command="{Binding RebarView.PasteRebarCommand}"/>
+                    <MenuItem Header="_Paste from Clipboard" 
+                              Command="{Binding RebarView.PasteRebarCommand}"/>
                     <!--<MenuItem Header="_Select All"/>-->
                     <!--<Separator/> <MenuItem Header="_Set to Gala"/> <MenuItem Header="_Get from Gala"/> <MenuItem Header="_Get from AutoCAD"/>-->
                 </MenuItem>
                 
                 <MenuItem Header="_Loads" Padding="10,6">
-                    <MenuItem Header="_Save"/>
-                    <MenuItem Header="_Load"/>
+                    <MenuItem Header="_Save"
+                              Command="{Binding LoadView.SaveToExcelCommand}"/>
+                    <MenuItem Header="_Load"
+                              Command="{Binding LoadView.LoadFromExcelCommand}"/>
                     <Separator/>
                     <!--<MenuItem Header="_Simple Bending"/>-->
                     <!--<MenuItem Header="_Append On Paste"/> <Separator/>-->
-                    <MenuItem Header="_Clear List" Command="{Binding LoadView.ClearListCommand}"/>
-                    <MenuItem Header="_Edit List" Command="{Binding LoadView.EditLoadCommand}"/>
-                    <MenuItem Header="_Delete Selected" Command="{Binding LoadView.RemoveLoadCommand}"/>
+                    <MenuItem Header="_Clear List" 
+                              Command="{Binding LoadView.ClearListCommand}"/>
+                    <MenuItem Header="_Edit List" 
+                              Command="{Binding LoadView.MenuEditLoadCommand}"/>
+                    <MenuItem Header="_Delete Selected" 
+                              Command="{Binding LoadView.RemoveLoadCommand}"/>
                     <!--<MenuItem Header="_Delete Zero Load Cases"/>-->
-                    <MenuItem Header="_Paste from Clipboard" Command="{Binding LoadView.PasteLoadCommand}"/>
+                    <MenuItem Header="_Paste from Clipboard" 
+                              Command="{Binding LoadView.PasteLoadCommand}"/>
                     <!--<MenuItem Header="_Reverse Mx sign"/>-->
                     <!--<MenuItem Header="_Reverse My sign"/>-->
                     <!--<MenuItem Header="_Swap Mx and My"/>-->
@@ -137,48 +155,6 @@
         <DataTemplate DataType="{x:Type vm:LoadViewModel}">
             <view:LoadView/>
         </DataTemplate>
-        
-        <!-- DataGrid -->
-        <Style TargetType="DataGrid">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="RowHeight" Value="22"/>
-            <Setter Property="ColumnHeaderHeight" Value="26"/>
-            <Setter Property="BorderBrush" Value="#D0D5DB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#E5E7EB"/>
-            <Setter Property="VerticalGridLinesBrush" Value="#E5E7EB"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#30343B"/>
-            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-            <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="SelectionMode" Value="Single"/>
-            <Setter Property="CanUserAddRows" Value="False"/>
-        </Style>
-        
-        <!-- DataGrid column headers -->
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#F1F3F5"/>
-            <Setter Property="Foreground" Value="#343A40"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="7,4"/>
-            <Setter Property="BorderBrush" Value="#D9DEE5"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        </Style>
-        
-        <!-- GroupBox -->
-        <Style TargetType="GroupBox">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#343A40"/>
-            <Setter Property="Margin" Value="3"/>
-        </Style>
-        
-        <!-- Menu -->
-        <Style TargetType="MenuItem">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#343A40"/>
-            <Setter Property="Padding" Value="8,5"/>
-        </Style>
         
     </Window.Resources>
     

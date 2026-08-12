@@ -14,7 +14,8 @@
 
         <DockPanel>
 
-            <Grid DockPanel.Dock="Bottom">
+            <Grid DockPanel.Dock="Bottom"
+                  Margin="5,8,5,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -23,48 +24,43 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <Button Content="Add Section"
+                <Button Content="Add"
                     Grid.Column="0"
                     Command="{Binding AddSectionCommand}"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource PrimaryButtonStyle}"/>
 
-                <Button Content="Delete Section"
+                <Button Content="Delete"
                     Grid.Column="1"
                     Command="{Binding RemoveSectionCommand}"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource DangerButtonStyle}"/>
 
                 <Button Content="{Binding EditButtonText}"
                     Grid.Column="2"
                     Command="{Binding EditSectionCommand}"
-                    PreviewMouseLeftButtonDown="SaveEditButton_PreviewMouseLeftButtonDown"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource SecondaryButtonStyle}"/>
 
-                <Button Content="Paste Sections"
+                <Button Content="Paste"
                     Grid.Column="3"
                     Command="{Binding PasteSectionCommand}"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource SecondaryButtonStyle}"/>
 
-                <Button Content="To Gala"
+                <Button Content="Gala"
                     Grid.Column="4"
                     Command="{Binding HookToGalaCommand}"
-                    Height="25"
-                    Margin="5"/>
+                    Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
 
             <DataGrid x:Name="SectionGrid"
                   SelectedItem="{Binding SelectedSection}"
                   ItemsSource="{Binding Sections}"
+                  CanUserSortColumns="False"
                   CopyingRowClipboardContent="CopyingRowClipboardContent"
+                  BeginningEdit="SectionGrid_BeginningEdit"
+                  Validation.Error="SectionGrid_ValidationError"
                   AutoGenerateColumns="False"
                   HeadersVisibility="Column"
                   CanUserAddRows="False"
-                  GridLinesVisibility="All"
-                  IsReadOnly="{Binding IsGridReadOnly}">
-
+                  GridLinesVisibility="All">
 
                 <DataGrid.Columns>
 
@@ -74,10 +70,11 @@
                                         IsReadOnly="True"/>
 
                     <DataGridTextColumn Header="X [cm]"
-                                        Width="*">
+                                        Width="*"
+                                        EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
                         
                         <DataGridTextColumn.Binding>
-                            <Binding Path="X">
+                            <Binding Path="X" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
                                     <common:RequiredNumberValidationRule/>
                                 </Binding.ValidationRules>
@@ -87,10 +84,11 @@
                     </DataGridTextColumn>
 
                     <DataGridTextColumn Header="Y [cm]"
-                                        Width="*">
+                                        Width="*"
+                                        EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
                         
                         <DataGridTextColumn.Binding>
-                            <Binding Path="Y">
+                            <Binding Path="Y" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
                                     <common:RequiredNumberValidationRule/>
                                 </Binding.ValidationRules>

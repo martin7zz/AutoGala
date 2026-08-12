@@ -33,19 +33,21 @@ namespace AutoGala.views
                 e.ClipboardRowContent.RemoveAt(0);
         }
 
-        private void SaveEditButton_PreviewMouseLeftButtonDown(
-           object sender,
-           MouseButtonEventArgs e)
+        private void RebarGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
         {
-            var vm = (RebarViewModel)DataContext;
-            if (vm.IsGridReadOnly) return;
+            if (DataContext is not RebarViewModel vm) return;
 
-            bool committed = RebarGrid.CommitEdit(DataGridEditingUnit.Row, true);
-
-            if (!committed || Validation.GetHasError(RebarGrid))
+            if (vm.EditingRebar == null || !ReferenceEquals(e.Row.Item, vm.EditingRebar))
             {
-                MessageBox.Show("Fix invalid Area/X/Y values before saving.");
-                e.Handled = true;
+                e.Cancel = true;
+            }
+        }
+
+        private void RebarGrid_ValidationError(object sender, ValidationErrorEventArgs e)
+        {
+            if (DataContext is RebarViewModel vm)
+            {
+                vm.RegisterValidationError(e.Action == ValidationErrorEventAction.Added);
             }
         }
     }
