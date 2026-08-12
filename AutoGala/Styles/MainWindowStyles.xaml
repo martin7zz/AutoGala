@@ -1,0 +1,46 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- DataGrid -->
+    <Style TargetType="DataGrid">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="RowHeight" Value="22"/>
+        <Setter Property="ColumnHeaderHeight" Value="26"/>
+        <Setter Property="BorderBrush" Value="#D0D5DB"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="#E5E7EB"/>
+        <Setter Property="VerticalGridLinesBrush" Value="#E5E7EB"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#30343B"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="CanUserAddRows" Value="False"/>
+    </Style>
+
+    <!-- DataGrid column headers -->
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="#F1F3F5"/>
+        <Setter Property="Foreground" Value="#343A40"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="7,4"/>
+        <Setter Property="BorderBrush" Value="#D9DEE5"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+
+    <!-- GroupBox -->
+    <Style TargetType="GroupBox">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="#343A40"/>
+        <Setter Property="Margin" Value="3"/>
+    </Style>
+
+    <!-- Menu -->
+    <Style TargetType="MenuItem">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="#343A40"/>
+        <Setter Property="Padding" Value="8,5"/>
+    </Style>
+    
+</ResourceDictionary>
