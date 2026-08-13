@@ -1,10 +1,12 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Win32;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Text;
 using System.Windows;
 
@@ -52,7 +54,7 @@ namespace AutoGala.Services
                     worksheet.Cell(1, col + 1).Value = columns[col].Header;
                 }
 
-                for (int row = 0; row < items.Count; row++) 
+                for (int row = 0; row < items.Count; row++)
                 {
                     var item = items[row];
 
@@ -96,7 +98,7 @@ namespace AutoGala.Services
                 ("Area", r => r.Area),
                 ("X", r => r.X),
                 ("Y", r => r.Y));
-        
+
         public void SaveExcel(ObservableCollection<LoadItem> items) =>
             SaveExcel(items,
                 "Loads",
@@ -104,5 +106,307 @@ namespace AutoGala.Services
                 ("N", l => l.N),
                 ("Mx", l => l.Mx),
                 ("My", l => l.My));
+
+        public void SaveAllToExcel(ObservableCollection<SectionItem> sections, ObservableCollection<RebarItem> rebars, ObservableCollection<LoadItem> loads)
+        {
+            if ((sections == null || sections.Count == 0) &&
+        (rebars == null || rebars.Count == 0) &&
+        (loads == null || loads.Count == 0))
+            {
+                MessageBox.Show(
+                    "Nothing to save.",
+                    "Save to Excel",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return;
+            }
+
+            var saveDialog = new SaveFileDialog
+            {
+                Title = "Save Excel File",
+                Filter = "Excel Files (*.xlsx)|*.xlsx",
+                DefaultExt = ".xlsx",
+                AddExtension = true,
+                FileName = "AutoGala.xlsx"
+            };
+
+            if (saveDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            try
+            {
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("All");
+
+                // Sections
+                if (sections != null && sections.Count > 0)
+                {
+                    worksheet.Cell(1, 1).Value = "Id";
+                    worksheet.Cell(1, 2).Value = "X";
+                    worksheet.Cell(1, 3).Value = "Y";
+
+                    for (int row = 0; row < sections.Count; row++)
+                    {
+                        var item = sections[row];
+
+                        worksheet.Cell(row + 2, 1).Value = item.Id;
+                        worksheet.Cell(row + 2, 2).Value = item.X;
+                        worksheet.Cell(row + 2, 3).Value = item.Y;
+                    }
+
+                    worksheet.Columns();
+                }
+
+                // Rebars
+                if (rebars != null && rebars.Count > 0)
+                {
+                    worksheet.Cell(1, 5).Value = "Id";
+                    worksheet.Cell(1, 6).Value = "Area";
+                    worksheet.Cell(1, 7).Value = "X";
+                    worksheet.Cell(1, 8).Value = "Y";
+
+                    for (int row = 0; row < rebars.Count; row++)
+                    {
+                        var item = rebars[row];
+
+                        worksheet.Cell(row + 2, 5).Value = item.Id;
+                        worksheet.Cell(row + 2, 6).Value = item.Area;
+                        worksheet.Cell(row + 2, 7).Value = item.X;
+                        worksheet.Cell(row + 2, 8).Value = item.Y;
+                    }
+
+                    worksheet.Columns();
+                }
+
+                // Loads
+                if (loads != null && loads.Count > 0)
+                {
+                    worksheet.Cell(1, 10).Value = "Id";
+                    worksheet.Cell(1, 11).Value = "N";
+                    worksheet.Cell(1, 12).Value = "Mx";
+                    worksheet.Cell(1, 13).Value = "My";
+
+                    for (int row = 0; row < loads.Count; row++)
+                    {
+                        var item = loads[row];
+
+                        worksheet.Cell(row + 2, 10).Value = item.Id;
+                        worksheet.Cell(row + 2, 11).Value = item.N;
+                        worksheet.Cell(row + 2, 12).Value = item.Mx;
+                        worksheet.Cell(row + 2, 13).Value = item.My;
+                    }
+
+                    worksheet.Columns();
+                }
+
+                workbook.SaveAs(saveDialog.FileName);
+
+                MessageBox.Show(
+                    "File saved successfully.",
+                    "Save to Excel",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Could not save the Excel file.\n\n{ex.Message}",
+                    "Save Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        private ObservableCollection<T> LoadExcel<T>(Func<IXLRow, T> rowFactory)
+        {
+            var openDialogue = new OpenFileDialog
+            {
+                Title = "Open Excel File",
+                Filter = "Excel Files (*.xlsx)|*.xlsx",
+                DefaultExt = ".xlsx",
+                Multiselect = false
+            };
+
+            if (openDialogue.ShowDialog() != true)
+            {
+                return new ObservableCollection<T>();
+            }
+
+            try
+            {
+                using var workbook = new XLWorkbook(openDialogue.FileName);
+
+                var worksheet = workbook.Worksheets.First();
+
+                var result = new ObservableCollection<T>();
+
+                foreach (var row in worksheet.RowsUsed().Skip(1))
+                {
+                    if (row.CellsUsed().Count() == 0)
+                    {
+                        continue;
+                    }
+
+                    var item = rowFactory(row);
+                    result.Add(item);
+                }
+
+                MessageBox.Show(
+                    $"Loaded {result.Count} items successfully",
+                    "Load Excel",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Could not load the Excel file.\n\n{ex.Message}",
+                    "Load Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                return new ObservableCollection<T>();
+            }
+        }
+
+        public ObservableCollection<SectionItem> LoadSectionsExcel()
+        {
+            return LoadExcel(
+                row => new SectionItem
+                {
+                    Id = row.Cell(1).GetValue<int>(),
+                    X = row.Cell(2).GetValue<double>(),
+                    Y = row.Cell(3).GetValue<double>()
+                });
+        }
+
+        public ObservableCollection<RebarItem> LoadRebarsExcel()
+        {
+            return LoadExcel(
+                row => new RebarItem
+                {
+                    Id = row.Cell(1).GetValue<int>(),
+                    Area = row.Cell(2).GetValue<double>(),
+                    X = row.Cell(3).GetValue<double>(),
+                    Y = row.Cell(4).GetValue<double>()
+                });
+        }
+
+        public ObservableCollection<LoadItem> LoadLoadsExcel()
+        {
+            return LoadExcel(
+                row => new LoadItem
+                {
+                    Id = row.Cell(1).GetValue<int>(),
+                    N = row.Cell(2).GetValue<double>(),
+                    Mx = row.Cell(3).GetValue<double>(),
+                    My = row.Cell(4).GetValue<double>()
+                });
+        }
+
+        public List<Object> LoadAllExcel()
+        {
+            var openDialog = new OpenFileDialog
+            {
+                Title = "Open Excel File",
+                Filter = "Excel Files (*.xlsx)|*.xlsx",
+                DefaultExt = ".xlsx",
+                Multiselect = false
+            };
+
+            if (openDialog.ShowDialog() != true)
+            {
+                return (
+                    new List<Object>()
+                );
+            }
+
+            try
+            {
+                using var workbook = new XLWorkbook(openDialog.FileName);
+
+                var worksheet = workbook.Worksheets.First();
+
+                var items = new List<Object>();
+
+                var sections = new ObservableCollection<SectionItem>();
+                var rebars = new ObservableCollection<RebarItem>();
+                var loads = new ObservableCollection<LoadItem>();
+
+                // Sections
+                foreach (var row in worksheet.RowsUsed().Skip(1))
+                {
+                    if (!row.Cell(1).IsEmpty())
+                    {
+                        sections.Add(new SectionItem
+                        {
+                            Id = row.Cell(1).GetValue<int>(),
+                            X = row.Cell(2).GetValue<double>(),
+                            Y = row.Cell(3).GetValue<double>()
+                        });
+                    }
+                }
+
+                // Rebars
+                foreach (var row in worksheet.RowsUsed().Skip(1))
+                {
+                    if (!row.Cell(5).IsEmpty())
+                    {
+                        rebars.Add(new RebarItem
+                        {
+                            Id = row.Cell(5).GetValue<int>(),
+                            Area = row.Cell(6).GetValue<double>(),
+                            X = row.Cell(7).GetValue<double>(),
+                            Y = row.Cell(8).GetValue<double>()
+                        });
+                    }
+                }
+
+                // Loads
+                foreach (var row in worksheet.RowsUsed().Skip(1))
+                {
+                    if (!row.Cell(10).IsEmpty())
+                    {
+                        loads.Add(new LoadItem
+                        {
+                            Id = row.Cell(10).GetValue<int>(),
+                            N = row.Cell(11).GetValue<double>(),
+                            Mx = row.Cell(12).GetValue<double>(),
+                            My = row.Cell(13).GetValue<double>()
+                        });
+                    }
+                }
+
+                items.Add(sections);
+                items.Add(rebars);
+                items.Add(loads);
+
+                MessageBox.Show(
+                    $"Loaded successfully.",
+                    "Load Excel",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                return items;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Could not load the Excel file.\n\n{ex.Message}",
+                    "Load Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                return (
+                   new List<Object>()
+                );
+            }
+        }
     }
+
 }
