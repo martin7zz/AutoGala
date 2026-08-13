@@ -74,15 +74,15 @@ namespace AutoGala.ViewModels
             _windowService = windowService;
             _mainWindowService = mainWindowService;
 
-            AddSectionCommand = new RelayCommand(_ => AddSection(), _ => EditingSection == null && !HasValidationError);
-            RemoveSectionCommand = new RelayCommand(_ => RemoveSection(), _ => SelectedSection != null && EditingSection == null && !HasValidationError);
-            PasteSectionCommand = new RelayCommand(_ => Paste(), _ => EditingSection == null && !HasValidationError);
-            EditSectionCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedSection != null && !HasValidationError);
-            MenuEditSectionCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedSection != null && EditingSection == null && !HasValidationError);
-            ClearSectionCommand = new RelayCommand(_ => ClearList(), _ => Sections.Count > 0 && EditingSection == null && !HasValidationError);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => EditingSection == null && !HasValidationError);
-            SaveToExcelCommand = new RelayCommand(_ => SaveToExcel(), _ => Sections.Count > 0 && EditingSection == null && !HasValidationError);
-            LoadFromExcelCommand = new RelayCommand(_ => LoadFromExcel(),_ => EditingSection == null && !HasValidationError);
+            AddSectionCommand = new RelayCommand(param => AddSection(), param => EditingSection == null && !HasValidationError);
+            RemoveSectionCommand = new RelayCommand(param => RemoveSection(), param => SelectedSection != null && EditingSection == null && !HasValidationError);
+            PasteSectionCommand = new RelayCommand(param => Paste(), param => EditingSection == null && !HasValidationError);
+            EditSectionCommand = new RelayCommand(param => ToggleEdit(), param => SelectedSection != null && !HasValidationError);
+            MenuEditSectionCommand = new RelayCommand(param => ToggleEdit(), param => SelectedSection != null && EditingSection == null && !HasValidationError);
+            ClearSectionCommand = new RelayCommand(param => ClearList(), param => Sections.Count > 0 && EditingSection == null && !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => EditingSection == null && !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Sections.Count > 0 && EditingSection == null && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(),param => EditingSection == null && !HasValidationError);
         }
 
         private void AddSection()
@@ -126,7 +126,7 @@ namespace AutoGala.ViewModels
             EditingSection = null;
         }
 
-        private void ClearList()
+        public void ClearList()
         {
             Sections.Clear();
             _sectionService.ResetCounter();
@@ -192,12 +192,16 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
-            if (Sections.Count > 0)
+            var loadedSections = _mainWindowService.LoadSectionsExcel();
+
+            Sections.Clear();
+
+            foreach (var section in loadedSections)
             {
-                Sections.Clear();
+                Sections.Add(section);
             }
 
-
+            CommandManager.InvalidateRequerySuggested();
         }
 
         public void RegisterValidationError(bool errorAdded)

@@ -7,7 +7,7 @@
         xmlns:view="clr-namespace:AutoGala.views"
         xmlns:vm="clr-namespace:AutoGala.ViewModels"
         mc:Ignorable="d"
-        Title="AutoGala" Height="550" Width="900">
+        Title="AutoGala" Height="560" Width="970">
 
     <!-- Main window grid -->
     <Grid Background="#F4F6F8">
@@ -84,7 +84,17 @@
                     <!--<MenuItem Header="_Get from Gala"/>-->
                 
                 </MenuItem>
-            
+
+                <MenuItem Header="_More" Padding="10,6">
+                    <MenuItem Header="_Save All"
+                              Command="{Binding SaveAllToExcelCommand}"/>
+                    <MenuItem Header="_Load All"
+                              Command="{Binding LoadAllFromExcelCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="_Clear All" 
+                              Command="{Binding ClearAllCommand}"/>
+                </MenuItem>
+
             </Menu>
         
         </Border>

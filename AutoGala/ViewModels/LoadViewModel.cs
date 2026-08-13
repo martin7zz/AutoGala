@@ -2,6 +2,7 @@
 using AutoGala.Contracts;
 using AutoGala.Services;
 using AutoGala.ViewModels.Base;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System;
@@ -12,8 +13,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using static AutoGala.Common.NotificationMessages;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace AutoGala.ViewModels
 {
@@ -79,15 +80,15 @@ namespace AutoGala.ViewModels
             _windowService = windowService;
             _mainWindowService = mainWindowService;
 
-            AddLoadCommand = new RelayCommand(_ => AddLoad(), _ => EditingLoad == null && !HasValidationError);
-            RemoveLoadCommand = new RelayCommand(_ => RemoveLoad(), _ => SelectedLoad != null && EditingLoad == null && !HasValidationError);
-            PasteLoadCommand = new RelayCommand(_ => Paste(), _ => EditingLoad == null && !HasValidationError);
-            EditLoadCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedLoad != null && !HasValidationError);
-            ClearListCommand = new RelayCommand(_ => ClearList(), _ => Loads.Count > 0 && EditingLoad == null && !HasValidationError);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => EditingLoad == null && !HasValidationError);
-            SaveToExcelCommand = new RelayCommand(_ => SaveToExcel(), _ => Loads.Count > 0 && EditingLoad == null && !HasValidationError);
-            LoadFromExcelCommand = new RelayCommand(_ => LoadFromExcel(), _ => EditingLoad == null && !HasValidationError);
-            MenuEditLoadCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedLoad != null && EditingLoad == null && !HasValidationError);
+            AddLoadCommand = new RelayCommand(param => AddLoad(), param => EditingLoad == null && !HasValidationError);
+            RemoveLoadCommand = new RelayCommand(param => RemoveLoad(), param => SelectedLoad != null && EditingLoad == null && !HasValidationError);
+            PasteLoadCommand = new RelayCommand(param => Paste(), param => EditingLoad == null && !HasValidationError);
+            EditLoadCommand = new RelayCommand(param => ToggleEdit(), param => SelectedLoad != null && !HasValidationError);
+            ClearListCommand = new RelayCommand(param => ClearList(), param => Loads.Count > 0 && EditingLoad == null && !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => EditingLoad == null && !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Loads.Count > 0 && EditingLoad == null && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => EditingLoad == null && !HasValidationError);
+            MenuEditLoadCommand = new RelayCommand(param => ToggleEdit(), param => SelectedLoad != null && EditingLoad == null && !HasValidationError);
         }
 
         private void AddLoad()
@@ -131,7 +132,7 @@ namespace AutoGala.ViewModels
             EditingLoad = null;
         }
 
-        private void ClearList()
+        public void ClearList()
         {
             Loads.Clear();
             _loadService.ResetCounter();
@@ -198,11 +199,16 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
-            if (Loads.Count > 0)
+            var loadedLoads = _mainWindowService.LoadLoadsExcel();
+
+            Loads.Clear();
+
+            foreach (var load in loadedLoads)
             {
-                Loads.Clear();
+                Loads.Add(load);
             }
 
+            CommandManager.InvalidateRequerySuggested();
 
         }
         public void RegisterValidationError(bool errorAdded)

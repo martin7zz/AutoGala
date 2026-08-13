@@ -74,15 +74,15 @@ namespace AutoGala.ViewModels
             _windowService = windowService;
             _mainWindowService = mainWindowService;
 
-            AddRebarCommand = new RelayCommand(_ => AddRebar(), _ => EditingRebar == null && !HasValidationError);
-            RemoveRebarCommand = new RelayCommand(_ => RemoveRebar(), _ => SelectedRebar != null && EditingRebar == null && !HasValidationError);
-            PasteRebarCommand = new RelayCommand(_ => Paste(), _ => EditingRebar == null && !HasValidationError);
-            EditRebarCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedRebar != null && !HasValidationError);
-            MenuEditRebarCommand = new RelayCommand(_ => ToggleEdit(), _ => SelectedRebar != null && EditingRebar == null && !HasValidationError);
-            ClearRebarCommand = new RelayCommand(_ => ClearList(), _ => Rebars.Count > 0 && EditingRebar == null && !HasValidationError);
-            HookToGalaCommand = new RelayCommand(async _ => await GetGala(), _ => EditingRebar == null && !HasValidationError);
-            SaveToExcelCommand = new RelayCommand(_ => SaveToExcel(), _ => Rebars.Count > 0 && EditingRebar == null && !HasValidationError);
-            LoadFromExcelCommand = new RelayCommand(_ => LoadFromExcel(), _ => EditingRebar == null && !HasValidationError);
+            AddRebarCommand = new RelayCommand(param => AddRebar(), param => EditingRebar == null && !HasValidationError);
+            RemoveRebarCommand = new RelayCommand(param => RemoveRebar(), param => SelectedRebar != null && EditingRebar == null && !HasValidationError);
+            PasteRebarCommand = new RelayCommand(param => Paste(), param => EditingRebar == null && !HasValidationError);
+            EditRebarCommand = new RelayCommand(param => ToggleEdit(), param => SelectedRebar != null && !HasValidationError);
+            MenuEditRebarCommand = new RelayCommand(param => ToggleEdit(), param => SelectedRebar != null && EditingRebar == null && !HasValidationError);
+            ClearRebarCommand = new RelayCommand(param => ClearList(), param => Rebars.Count > 0 && EditingRebar == null && !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => EditingRebar == null && !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Rebars.Count > 0 && EditingRebar == null && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => EditingRebar == null && !HasValidationError);
         }
 
         private void AddRebar()
@@ -130,7 +130,7 @@ namespace AutoGala.ViewModels
             EditingRebar = null;
         }
 
-        private void ClearList()
+        public void ClearList()
         {
             Rebars.Clear();
             _rebarService.ResetCounter();
@@ -197,11 +197,16 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
-            if (Rebars.Count > 0)
+            var loadedRebars = _mainWindowService.LoadRebarsExcel();
+
+            Rebars.Clear();
+
+            foreach (var rebar in loadedRebars)
             {
-                Rebars.Clear();
+                Rebars.Add(rebar);
             }
 
+            CommandManager.InvalidateRequerySuggested();
 
         }
 

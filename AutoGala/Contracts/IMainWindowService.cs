@@ -16,5 +16,16 @@ namespace Plugin.Core.Contracts
             ObservableCollection<RebarItem> items);
         void SaveExcel(
             ObservableCollection<LoadItem> items);
+
+        ObservableCollection<SectionItem> LoadSectionsExcel();
+        ObservableCollection<RebarItem> LoadRebarsExcel();
+        ObservableCollection<LoadItem> LoadLoadsExcel();
+
+        void SaveAllToExcel(
+            ObservableCollection<SectionItem> sections,
+            ObservableCollection<RebarItem> rebars,
+            ObservableCollection<LoadItem> loads);
+
+        List<Object> LoadAllExcel();
     }
 }
