@@ -14,6 +14,20 @@ namespace AutoGala.Services
 {
     public class MainWindowService : IMainWindowService
     {
+        private readonly ISectionService _sectionService;
+        private readonly IRebarService _rebarService;
+        private readonly ILoadService _loadService;
+
+        public MainWindowService(
+            ISectionService sectionService,
+            IRebarService rebarService,
+            ILoadService loadService)
+        {
+            _sectionService = sectionService;
+            _rebarService = rebarService;
+            _loadService = loadService;
+        }
+
         private void SaveExcel<T>(
             ObservableCollection<T> items,
             string sheetName,
@@ -277,36 +291,22 @@ namespace AutoGala.Services
         public ObservableCollection<SectionItem> LoadSectionsExcel()
         {
             return LoadExcel(
-                row => new SectionItem
-                {
-                    Id = row.Cell(1).GetValue<int>(),
-                    X = row.Cell(2).GetValue<double>(),
-                    Y = row.Cell(3).GetValue<double>()
-                });
+                row => _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>())
+                );
         }
 
         public ObservableCollection<RebarItem> LoadRebarsExcel()
         {
             return LoadExcel(
-                row => new RebarItem
-                {
-                    Id = row.Cell(1).GetValue<int>(),
-                    Area = row.Cell(2).GetValue<double>(),
-                    X = row.Cell(3).GetValue<double>(),
-                    Y = row.Cell(4).GetValue<double>()
-                });
+                row => _rebarService.CreateRebar(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>())
+                );
         }
 
         public ObservableCollection<LoadItem> LoadLoadsExcel()
         {
             return LoadExcel(
-                row => new LoadItem
-                {
-                    Id = row.Cell(1).GetValue<int>(),
-                    N = row.Cell(2).GetValue<double>(),
-                    Mx = row.Cell(3).GetValue<double>(),
-                    My = row.Cell(4).GetValue<double>()
-                });
+                row => _loadService.CreateLoad(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>())
+                );
         }
 
         public List<Object> LoadAllExcel()
@@ -343,12 +343,7 @@ namespace AutoGala.Services
                 {
                     if (!row.Cell(1).IsEmpty())
                     {
-                        sections.Add(new SectionItem
-                        {
-                            Id = row.Cell(1).GetValue<int>(),
-                            X = row.Cell(2).GetValue<double>(),
-                            Y = row.Cell(3).GetValue<double>()
-                        });
+                        sections.Add(_sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>()));
                     }
                 }
 
@@ -357,13 +352,7 @@ namespace AutoGala.Services
                 {
                     if (!row.Cell(5).IsEmpty())
                     {
-                        rebars.Add(new RebarItem
-                        {
-                            Id = row.Cell(5).GetValue<int>(),
-                            Area = row.Cell(6).GetValue<double>(),
-                            X = row.Cell(7).GetValue<double>(),
-                            Y = row.Cell(8).GetValue<double>()
-                        });
+                        rebars.Add(_rebarService.CreateRebar(row.Cell(6).GetValue<double>(), row.Cell(7).GetValue<double>(), row.Cell(8).GetValue<double>()));
                     }
                 }
 
@@ -372,13 +361,7 @@ namespace AutoGala.Services
                 {
                     if (!row.Cell(10).IsEmpty())
                     {
-                        loads.Add(new LoadItem
-                        {
-                            Id = row.Cell(10).GetValue<int>(),
-                            N = row.Cell(11).GetValue<double>(),
-                            Mx = row.Cell(12).GetValue<double>(),
-                            My = row.Cell(13).GetValue<double>()
-                        });
+                        loads.Add(_loadService.CreateLoad(row.Cell(11).GetValue<double>(), row.Cell(12).GetValue<double>(), row.Cell(13).GetValue<double>()));
                     }
                 }
 

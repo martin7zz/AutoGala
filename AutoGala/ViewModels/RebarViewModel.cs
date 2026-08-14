@@ -197,9 +197,10 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
+            ClearList();
+
             var loadedRebars = _mainWindowService.LoadRebarsExcel();
 
-            Rebars.Clear();
 
             foreach (var rebar in loadedRebars)
             {

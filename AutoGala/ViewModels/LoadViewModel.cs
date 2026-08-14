@@ -199,9 +199,10 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
+            ClearList();
+
             var loadedLoads = _mainWindowService.LoadLoadsExcel();
 
-            Loads.Clear();
 
             foreach (var load in loadedLoads)
             {

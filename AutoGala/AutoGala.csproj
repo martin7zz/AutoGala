@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.1" />
+    <PackageReference Include="InputSimulatorStandard" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
     <PackageReference Include="MouseKeyHook" Version="5.7.1" />
   </ItemGroup>

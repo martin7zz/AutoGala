@@ -192,9 +192,10 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
+            ClearList();
+
             var loadedSections = _mainWindowService.LoadSectionsExcel();
 
-            Sections.Clear();
 
             foreach (var section in loadedSections)
             {
