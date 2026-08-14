@@ -29,7 +29,6 @@ namespace AutoGala.Services.Helper
         private IntPtr _mainWindow;
         private IntPtr _spinHandle;
         private IntPtr _gridHandle;
-        private IntPtr _gridHandleLoads;
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern IntPtr SendMessage(
@@ -76,6 +75,15 @@ namespace AutoGala.Services.Helper
 
         [DllImport("user32.dll")]
         private static extern IntPtr SetFocus(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetFocus();
+
+        [DllImport("user32.dll")]
+        private static extern bool GetKeyboardState(byte[] lpKeyState);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetKeyboardState(byte[] lpKeyState);
+
 
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -97,7 +105,6 @@ namespace AutoGala.Services.Helper
             _mainWindow = (IntPtr)window.Current.NativeWindowHandle;
 
             _spinHandle = FindDescendantByClass(_mainWindow, "TRxSpinEdit");
-            _gridHandleLoads = FindDescendantByClass(_mainWindow, "TStringGrid");
 
             //Debug.WriteLine($"Main : 0x{_mainWindow:X}");
             //Debug.WriteLine($"Spin : 0x{_spinHandle:X}");
@@ -136,25 +143,32 @@ namespace AutoGala.Services.Helper
                 DumpRaw(child, depth + 1);
         }
 
-        /// <summary>
+        
         /// Pushes the ObservableCollection into Gala: sets the row count to
         /// match, waits for the row edits to appear, then writes each
-        /// LoadItem's N/Mx/My into the corresponding row's cells.
-        /// </summary>
-        /// 
+        /// item into the corresponding row's cells.
 
         private bool WriteItemsCore<T>(
             ObservableCollection<T> items,
-            IntPtr gridHandle,
             Func<T, IEnumerable<string>> fieldSelector)
         {
-            if (_spinHandle == IntPtr.Zero || gridHandle == IntPtr.Zero)
+            if (_spinHandle == IntPtr.Zero)
             {
                 return false;
             }
 
             SetRowCount(items.Count);
-            SetFocus(gridHandle);
+
+            _gridHandle = FindDescendantByClass(_mainWindow, "TStringGrid");
+
+            if (_gridHandle == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            int spinVlaue = GetCurrentSpinValue();
+
+            //FocusWindow(_gridHandle);
 
             GoToFirstCell();
 
@@ -175,9 +189,8 @@ namespace AutoGala.Services.Helper
             var spins = FindDescendantsByClass(_mainWindow, "TRxSpinEdit");
 
             _spinHandle = spins.Count > 1 ? spins[1] : IntPtr.Zero;
-            _gridHandle = FindDescendantByClass(_mainWindow, "TStringGrid");
-
-            return WriteItemsCore(sections, _gridHandle,
+           
+            return WriteItemsCore(sections,
                 s => new[] { s.X.ToString(), s.Y.ToString() });
         }
 
@@ -186,15 +199,14 @@ namespace AutoGala.Services.Helper
             var spins = FindDescendantsByClass(_mainWindow, "TRxSpinEdit");
 
             _spinHandle = spins.Count > 1 ? spins[1] : IntPtr.Zero;
-            _gridHandle = FindDescendantByClass(_mainWindow, "TStringGrid");
 
-            return WriteItemsCore(rebars, _gridHandle,
+            return WriteItemsCore(rebars,
                 r => new[] { r.Area.ToString(), r.X.ToString(), r.Y.ToString() });
         }
 
         public bool WriteItems(ObservableCollection<LoadItem> loads)
         {
-            return WriteItemsCore(loads, _gridHandleLoads,
+            return WriteItemsCore(loads,
                 l => new[] { l.N.ToString(), l.Mx.ToString(), l.My.ToString() });
         }
 
@@ -207,12 +219,15 @@ namespace AutoGala.Services.Helper
                 Debug.WriteLine("No inplace editor found");
                 return;
             }
+            
+            FocusWindow(edit);
 
             SendMessage(
                 edit,
                 WM_SETTEXT,
                 IntPtr.Zero,
                 value);
+
         }
 
         private void NextCell()
@@ -222,35 +237,66 @@ namespace AutoGala.Services.Helper
             if (edit == IntPtr.Zero)
                 return;
 
-            PostMessage(
+            SendMessage(
                 edit,
                 WM_KEYDOWN,
                 (IntPtr)Keys.Tab,
                 IntPtr.Zero);
 
-            PostMessage(
+            SendMessage(
                 edit,
                 WM_KEYUP,
                 (IntPtr)Keys.Tab,
                 IntPtr.Zero);
 
-            Thread.Sleep(10);
         }
 
         // row count management
 
-        private void FocusSpin()
+        private bool FocusWindow(IntPtr hwnd)
         {
-            uint targetThread = GetWindowThreadProcessId(_mainWindow, out _);
+            if (hwnd == IntPtr.Zero)
+                return false;
+
+            uint targetThread = GetWindowThreadProcessId(hwnd, out _);
             uint currentThread = GetCurrentThreadId();
 
-            if (targetThread != currentThread)
-                AttachThreadInput(currentThread, targetThread, true);
+            bool attached = false;
 
-            SetFocus(_spinHandle);
+            try
+            {
+                if (targetThread != currentThread)
+                {
+                    attached = AttachThreadInput(
+                        currentThread,
+                        targetThread,
+                        true);
 
-            if (targetThread != currentThread)
-                AttachThreadInput(currentThread, targetThread, false);
+                    Debug.WriteLine($"Attach: {attached}");
+
+                    if (!attached)
+                        return false;
+                }
+
+                SetForegroundWindow(_mainWindow);
+
+                IntPtr previous = SetFocus(hwnd);
+                IntPtr actual = GetFocus();
+
+                Debug.WriteLine($"Target:   0x{hwnd:X}");
+                Debug.WriteLine($"Previous: 0x{previous:X}");
+                Debug.WriteLine($"Actual:   0x{actual:X}");
+
+                return actual == hwnd;
+            }
+            finally
+            {
+                if (attached)
+                    AttachThreadInput(
+                        currentThread,
+                        targetThread,
+                        false);
+            }
         }
 
         private void SetRowCount(int target)
@@ -258,7 +304,7 @@ namespace AutoGala.Services.Helper
             if (_spinHandle == IntPtr.Zero)
                 return;
 
-            FocusSpin();
+            FocusWindow(_spinHandle);
 
             int current = GetCurrentSpinValue();
 
@@ -275,18 +321,36 @@ namespace AutoGala.Services.Helper
         }
 
         // internals
+
+        // uses keyboard state table to simulate ctrl + home so that it automatically sets the current cell to the first in the grid
         private void GoToFirstCell()
         {
-            var target = FindDescendantByClass(_mainWindow, "TInplaceEdit");
-            if (target == IntPtr.Zero) target = _gridHandle;
-            if (target == IntPtr.Zero) return;
+            if (_gridHandle == IntPtr.Zero) return;
 
-            PostMessage(target, WM_KEYDOWN, (IntPtr)VK_CONTROL, IntPtr.Zero);
-            PostMessage(target, WM_KEYDOWN, (IntPtr)VK_HOME, IntPtr.Zero);
-            PostMessage(target, WM_KEYUP, (IntPtr)VK_HOME, IntPtr.Zero);
-            PostMessage(target, WM_KEYUP, (IntPtr)VK_CONTROL, IntPtr.Zero);
+            uint targetThread = GetWindowThreadProcessId(_gridHandle, out _);
+            uint currentThread = GetCurrentThreadId();
+            bool attached = AttachThreadInput(currentThread, targetThread, true);
 
-            Thread.Sleep(50);
+            try
+            {
+                FocusWindow(_gridHandle);
+
+                byte[] keyState = new byte[256];
+                GetKeyboardState(keyState);
+                keyState[VK_CONTROL] = 0x80; // high bit = "down"
+                SetKeyboardState(keyState);
+
+                SendMessage(_gridHandle, WM_KEYDOWN, (IntPtr)VK_HOME, IntPtr.Zero);
+                SendMessage(_gridHandle, WM_KEYUP, (IntPtr)VK_HOME, IntPtr.Zero);
+
+                keyState[VK_CONTROL] = 0x00;
+                SetKeyboardState(keyState);
+            }
+            finally
+            {
+                if (attached)
+                    AttachThreadInput(currentThread, targetThread, false);
+            }
         }
 
         private int GetCurrentSpinValue()
