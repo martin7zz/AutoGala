@@ -65,6 +65,16 @@ namespace AutoGala.Services.Helper
             StringBuilder lpClassName,
             int nMaxCount);
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int GetWindowText(
+            IntPtr hWnd,
+            StringBuilder lpString,
+            int nMaxCount);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
 
         [DllImport("user32.dll")]
         private static extern bool PostMessage(
@@ -104,13 +114,37 @@ namespace AutoGala.Services.Helper
 
             _mainWindow = (IntPtr)window.Current.NativeWindowHandle;
 
-            _spinHandle = FindDescendantByClass(_mainWindow, "TRxSpinEdit");
-
             //Debug.WriteLine($"Main : 0x{_mainWindow:X}");
             //Debug.WriteLine($"Spin : 0x{_spinHandle:X}");
             //Debug.WriteLine($"Grid : 0x{_gridHandleLoads:X}");
 
-            return _spinHandle != IntPtr.Zero;
+            return _mainWindow != IntPtr.Zero;
+        }
+
+        private bool CheckCorrectPosition<T>(IntPtr mainWindow, ObservableCollection<T> items)
+        {
+            var rebar = FindDescendantByTextAndClassName(mainWindow, "Bar ratio", "TRadioGroup");
+
+            var section = FindDescendantByTextAndClassName(mainWindow, "TS_reinf_layout", "TTabSheet");
+
+            var load = FindDescendantByTextAndClassName(mainWindow, "TS_stability", "TTabSheet");
+
+            if (rebar != IntPtr.Zero && typeof(T) == typeof(RebarItem))
+            {
+                return true;
+            }
+
+            if (section != IntPtr.Zero && typeof(T) == typeof(SectionItem) && rebar == IntPtr.Zero)
+            {
+                return true;
+            }
+
+            if (load != IntPtr.Zero && typeof(T) == typeof(LoadItem))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         // FOR TESTING
@@ -155,6 +189,15 @@ namespace AutoGala.Services.Helper
             if (_spinHandle == IntPtr.Zero)
             {
                 return false;
+            }
+
+            if (!CheckCorrectPosition(_mainWindow, items))
+            {
+                throw new InvalidOperationException(
+                     $"Target page must be: {(typeof(T) == typeof(SectionItem) ? "Section"
+                         : typeof(T) == typeof(RebarItem) ? "Rebar"
+                         : typeof(T) == typeof(LoadItem) ? "Loads"
+                         : typeof(T).Name)}");
             }
 
             SetRowCount(items.Count);
@@ -206,6 +249,8 @@ namespace AutoGala.Services.Helper
 
         public bool WriteItems(ObservableCollection<LoadItem> loads)
         {
+            _spinHandle = FindDescendantByClass(_mainWindow, "TRxSpinEdit");
+
             return WriteItemsCore(loads,
                 l => new[] { l.N.ToString(), l.Mx.ToString(), l.My.ToString() });
         }
@@ -374,6 +419,36 @@ namespace AutoGala.Services.Helper
             }
 
             return current;
+        }
+
+        private static IntPtr FindDescendantByTextAndClassName(IntPtr parent, string text, string className)
+        {
+            IntPtr result = IntPtr.Zero;
+
+            EnumChildWindows(parent, (hwnd, _) =>
+            {
+                var textBuffer = new StringBuilder(256);
+                var classBuffer = new StringBuilder(128);
+
+                GetWindowText(hwnd, textBuffer, textBuffer.Capacity);
+                GetClassName(hwnd, classBuffer, classBuffer.Capacity);
+
+                string text1 = textBuffer.ToString();
+                string text2 = classBuffer.ToString();
+
+                Debug.WriteLine($"{text2} {text1}");
+
+                if (textBuffer.ToString().Equals(text, StringComparison.OrdinalIgnoreCase) &&
+                    classBuffer.ToString().Equals(className, StringComparison.OrdinalIgnoreCase) && IsWindowVisible(hwnd))
+                {
+                    result = hwnd;
+                    return false;
+                }
+
+                return true;
+            }, IntPtr.Zero);
+
+            return result;
         }
 
         private static IntPtr FindDescendantByClass(IntPtr parent, string className)

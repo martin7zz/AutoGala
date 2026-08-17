@@ -5,12 +5,13 @@ using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Forms;
-using MessageBox = System.Windows.Forms.MessageBox;
 using static AutoGala.Common.NotificationMessages;
+using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace AutoGala.Services
 {
@@ -90,17 +91,30 @@ namespace AutoGala.Services
 
         private string? AttachAndPush(Point screenPoint, Action<GalaNavigator> writeAction)
         {
-            var clicked = AutomationElement.FromPoint(screenPoint);
-            if (clicked == null)
-                return NoGalaElementFoundErrorMessage;
+            try
+            {
+                var clicked = AutomationElement.FromPoint(screenPoint);
+                if (clicked == null)
+                    return NoGalaElementFoundErrorMessage;
 
-            var navigator = new GalaNavigator();
+                var navigator = new GalaNavigator();
 
-            if (!navigator.Attach(clicked))
-                return NoGalaStructureFoundErrorMessage;
+                if (!navigator.Attach(clicked))
+                    return NoGalaStructureFoundErrorMessage;
 
-            writeAction(navigator);
-            return null;
+                writeAction(navigator);
+                return null;
+            }
+
+            catch (InvalidOperationException ex)
+            {
+                return ex.Message;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return $"Unexpected error while writing to Gala: {ex.Message}";
+            }
         }
     }
 }
