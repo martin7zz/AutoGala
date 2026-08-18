@@ -87,7 +87,12 @@ namespace AutoGala.ViewModels
 
         private void AddSection()
         {
-            Sections.Add(_sectionService.CreateSection());
+            var section = _sectionService.CreateSection();
+
+            section.Id = Sections.Count + 1;
+
+            Sections.Add(section);
+
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -129,7 +134,6 @@ namespace AutoGala.ViewModels
         public void ClearList()
         {
             Sections.Clear();
-            _sectionService.ResetCounter();
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -162,7 +166,11 @@ namespace AutoGala.ViewModels
                     continue;
                 }
 
-                Sections.Add(_sectionService.CreateSection(x, y));
+                var section = _sectionService.CreateSection(x, y);
+
+                section.Id = Sections.Count + 1;
+
+                Sections.Add(section);
                 added++;
             }
 
@@ -192,10 +200,12 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
-            ClearList();
-
             var loadedSections = _mainWindowService.LoadSectionsExcel();
 
+            if (loadedSections.Count > 0)
+            {
+                ClearList();
+            }
 
             foreach (var section in loadedSections)
             {

@@ -10,13 +10,10 @@ namespace Plugin.Core.Services
 {
     public class SectionService : ISectionService
     {
-        private int _nextId = 1;
-
         public SectionItem CreateSection()
         {
             return new SectionItem
             {
-                Id = _nextId++,
                 X = 0,
                 Y = 0
             };
@@ -26,15 +23,10 @@ namespace Plugin.Core.Services
         {
             return new SectionItem
             {
-                Id = _nextId++,
                 X = x,
                 Y = y
             };
         }
 
-        public void ResetCounter()
-        {
-            _nextId = 1;
-        }
     }
 }

@@ -234,7 +234,7 @@ namespace AutoGala.Services
             }
         }
 
-        private ObservableCollection<T> LoadExcel<T>(Func<IXLRow, T> rowFactory)
+        private ObservableCollection<T> LoadExcel<T>(Func<IXLRow, T> rowFactory, Action<T, int> setId)
         {
             var openDialogue = new OpenFileDialog
             {
@@ -265,6 +265,9 @@ namespace AutoGala.Services
                     }
 
                     var item = rowFactory(row);
+
+                    setId(item, result.Count + 1);
+
                     result.Add(item);
                 }
 
@@ -291,21 +294,21 @@ namespace AutoGala.Services
         public ObservableCollection<SectionItem> LoadSectionsExcel()
         {
             return LoadExcel(
-                row => _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>())
+                row => _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>()), (item, id) => item.Id = id
                 );
         }
 
         public ObservableCollection<RebarItem> LoadRebarsExcel()
         {
             return LoadExcel(
-                row => _rebarService.CreateRebar(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>())
+                row => _rebarService.CreateRebar(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()), (item, id) => item.Id = id
                 );
         }
 
         public ObservableCollection<LoadItem> LoadLoadsExcel()
         {
             return LoadExcel(
-                row => _loadService.CreateLoad(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>())
+                row => _loadService.CreateLoad(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()), (item, id) => item.Id = id
                 );
         }
 
@@ -343,7 +346,11 @@ namespace AutoGala.Services
                 {
                     if (!row.Cell(1).IsEmpty())
                     {
-                        sections.Add(_sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>()));
+                        var section = _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>());
+
+                        section.Id = sections.Count + 1;
+
+                        sections.Add(section);
                     }
                 }
 
@@ -352,7 +359,11 @@ namespace AutoGala.Services
                 {
                     if (!row.Cell(5).IsEmpty())
                     {
-                        rebars.Add(_rebarService.CreateRebar(row.Cell(6).GetValue<double>(), row.Cell(7).GetValue<double>(), row.Cell(8).GetValue<double>()));
+                        var rebar = _rebarService.CreateRebar(row.Cell(6).GetValue<double>(), row.Cell(7).GetValue<double>(), row.Cell(8).GetValue<double>());
+
+                        rebar.Id = rebars.Count + 1;
+
+                        rebars.Add(rebar);
                     }
                 }
 
@@ -361,7 +372,11 @@ namespace AutoGala.Services
                 {
                     if (!row.Cell(10).IsEmpty())
                     {
-                        loads.Add(_loadService.CreateLoad(row.Cell(11).GetValue<double>(), row.Cell(12).GetValue<double>(), row.Cell(13).GetValue<double>()));
+                        var load = _loadService.CreateLoad(row.Cell(11).GetValue<double>(), row.Cell(12).GetValue<double>(), row.Cell(13).GetValue<double>());
+
+                        load.Id = loads.Count + 1;
+
+                        loads.Add(load);
                     }
                 }
 

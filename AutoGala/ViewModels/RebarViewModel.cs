@@ -3,6 +3,7 @@ using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
+using Plugin.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -87,7 +88,12 @@ namespace AutoGala.ViewModels
 
         private void AddRebar()
         {
-            Rebars.Add(_rebarService.CreateRebar());
+            var rebar = _rebarService.CreateRebar();
+
+            rebar.Id = Rebars.Count + 1;
+
+            Rebars.Add(rebar);
+
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -133,7 +139,6 @@ namespace AutoGala.ViewModels
         public void ClearList()
         {
             Rebars.Clear();
-            _rebarService.ResetCounter();
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -166,8 +171,13 @@ namespace AutoGala.ViewModels
                     failedRows.Add(row);
                     continue;
                 }
-                
-                Rebars.Add(_rebarService.CreateRebar(area, x, y));
+
+                var rebar = _rebarService.CreateRebar(area, x, y);
+
+                rebar.Id = Rebars.Count + 1;
+
+                Rebars.Add(rebar);
+
                 added++;
             }
 
@@ -197,15 +207,18 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
-            ClearList();
-
             var loadedRebars = _mainWindowService.LoadRebarsExcel();
 
+            if (loadedRebars.Count > 0)
+            {
+                ClearList();
+            }
 
             foreach (var rebar in loadedRebars)
             {
                 Rebars.Add(rebar);
             }
+            
 
             CommandManager.InvalidateRequerySuggested();
 

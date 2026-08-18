@@ -10,13 +10,10 @@ namespace Plugin.Core.Services
 {
     public class RebarService : IRebarService
     {
-        private int _nextId = 1;
-
         public RebarItem CreateRebar()
         {
             return new RebarItem
             {
-                Id = _nextId++,
                 Area = 0,
                 X = 0,
                 Y = 0
@@ -27,16 +24,10 @@ namespace Plugin.Core.Services
         {
             return new RebarItem
             {
-                Id = _nextId++,
                 Area = area,
                 X = x,
                 Y = y
             };
-        }
-
-        public void ResetCounter()
-        {
-            _nextId = 1;
         }
     }
 }

@@ -11,7 +11,5 @@ namespace Plugin.Core.Contracts
     {
         LoadItem CreateLoad();
         LoadItem CreateLoad(double n, double mx, double my);
-        void ResetCounter();
-
     }
 }

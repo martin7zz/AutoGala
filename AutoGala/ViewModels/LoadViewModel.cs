@@ -5,6 +5,7 @@ using AutoGala.ViewModels.Base;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
+using Plugin.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -93,7 +94,12 @@ namespace AutoGala.ViewModels
 
         private void AddLoad()
         {
-            Loads.Add(_loadService.CreateLoad());
+            var load = _loadService.CreateLoad();
+
+            load.Id = Loads.Count + 1;
+
+            Loads.Add(load);
+
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -135,7 +141,6 @@ namespace AutoGala.ViewModels
         public void ClearList()
         {
             Loads.Clear();
-            _loadService.ResetCounter();
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -169,7 +174,12 @@ namespace AutoGala.ViewModels
                     continue;
                 }
 
-                Loads.Add(_loadService.CreateLoad(n, mx, my));
+                var load = _loadService.CreateLoad(n, mx, my);
+
+                load.Id = Loads.Count + 1;
+
+                Loads.Add(load);
+
                 added++;
             }
 
@@ -199,10 +209,12 @@ namespace AutoGala.ViewModels
 
         private void LoadFromExcel()
         {
-            ClearList();
-
             var loadedLoads = _mainWindowService.LoadLoadsExcel();
 
+            if (loadedLoads.Count > 0)
+            {
+                ClearList();
+            }
 
             foreach (var load in loadedLoads)
             {

@@ -11,6 +11,5 @@ namespace Plugin.Core.Contracts
     {
         SectionItem CreateSection();
         SectionItem CreateSection(double x, double y);
-        void ResetCounter();
     }
 }

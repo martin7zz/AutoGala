@@ -47,10 +47,15 @@ namespace AutoGala.ViewModels
 
         private void LoadAllFromExcel()
         {
-            ClearAll();
 
             var items = _mainWindowService.LoadAllExcel();
 
+            if (items == null || items.Count < 3)
+            {
+                return;
+            }
+            
+            ClearAll();
 
             foreach (var section in (ObservableCollection<SectionItem>)items[0])
             {

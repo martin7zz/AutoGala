@@ -10,13 +10,10 @@ namespace Plugin.Core.Services
 {
     public class LoadService : ILoadService
     {
-        private int _nextId = 1;
-
         public LoadItem CreateLoad()
         {
             return new LoadItem
             {
-                Id = _nextId++,
                 N = 0,
                 Mx = 0,
                 My = 0
@@ -27,16 +24,10 @@ namespace Plugin.Core.Services
         {
             return new LoadItem
             {
-                Id = _nextId++,
                 N = n,
                 Mx = mx,
                 My = my
             };
-        }
-
-        public void ResetCounter()
-        {
-            _nextId = 1;
         }
     }
 }

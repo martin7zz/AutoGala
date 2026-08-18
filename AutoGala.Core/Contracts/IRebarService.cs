@@ -11,6 +11,5 @@ namespace Plugin.Core.Contracts
     {
         RebarItem CreateRebar();
         RebarItem CreateRebar(double area, double x, double y);
-        void ResetCounter();
     }
 }
