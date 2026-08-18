@@ -97,11 +97,32 @@ namespace AutoGala.ViewModels
             CommandManager.InvalidateRequerySuggested();
         }
 
+        private void updateIds()
+        {
+            int id = 1;
+            foreach (var rebar in Rebars)
+            {
+                rebar.Id = id++;
+            }
+
+            var items = Rebars.ToList();
+
+            Rebars.Clear();
+
+            foreach (var section in items)
+            {
+                Rebars.Add(section);
+            }
+        }
+
         private void RemoveRebar()
         {
             if (_selectRebar != null)
             {
                 Rebars.Remove(SelectedRebar);
+
+                updateIds();
+
                 CommandManager.InvalidateRequerySuggested();
             }
         }
@@ -218,7 +239,6 @@ namespace AutoGala.ViewModels
             {
                 Rebars.Add(rebar);
             }
-            
 
             CommandManager.InvalidateRequerySuggested();
 

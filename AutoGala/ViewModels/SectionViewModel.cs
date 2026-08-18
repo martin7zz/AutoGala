@@ -96,11 +96,32 @@ namespace AutoGala.ViewModels
             CommandManager.InvalidateRequerySuggested();
         }
 
+        private void updateIds()
+        {
+            int id = 1;
+            foreach (var section in Sections)
+            {
+                section.Id = id++;
+            }
+
+            var items = Sections.ToList();
+
+            Sections.Clear();
+
+            foreach (var section in items)
+            {
+                Sections.Add(section);
+            }
+        }
+
         private void RemoveSection()
         {
             if (_selectSection != null)
             {
                 Sections.Remove(SelectedSection);
+
+                updateIds();
+
                 CommandManager.InvalidateRequerySuggested();
             }
         }
