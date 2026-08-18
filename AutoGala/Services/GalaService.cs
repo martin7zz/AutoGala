@@ -89,7 +89,7 @@ namespace AutoGala.Services
             return tcs.Task;
         }
 
-        private string? AttachAndPush(Point screenPoint, Action<GalaNavigator> writeAction)
+        private string? AttachAndPush(Point screenPoint, Func<GalaNavigator, bool> writeAction)
         {
             try
             {
@@ -102,7 +102,8 @@ namespace AutoGala.Services
                 if (!navigator.Attach(clicked))
                     return NoGalaStructureFoundErrorMessage;
 
-                writeAction(navigator);
+                if (!writeAction(navigator))
+                    return GalaError;
                 return null;
             }
 

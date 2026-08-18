@@ -8,6 +8,7 @@ namespace AutoGala.Common
 {
     public static class NotificationMessages
     {
+        public const string GalaError = "GalaNavigator couldn't complete its operations.";
         public const string DefaultErrorMessage = "Something went wrong, please try again later.";
 
         public const string ClipboardErrorMessage = "Could not paste data.";
