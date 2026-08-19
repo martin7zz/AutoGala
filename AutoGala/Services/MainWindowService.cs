@@ -109,7 +109,7 @@ namespace AutoGala.Services
             SaveExcel(items,
                 "Rebars",
                 ("Id", r => r.Id),
-                ("Area", r => r.Area),
+                ("As", r => r.Area),
                 ("X", r => r.X),
                 ("Y", r => r.Y));
 
@@ -178,7 +178,7 @@ namespace AutoGala.Services
                 if (rebars != null && rebars.Count > 0)
                 {
                     worksheet.Cell(1, 5).Value = "Id";
-                    worksheet.Cell(1, 6).Value = "Area";
+                    worksheet.Cell(1, 6).Value = "As";
                     worksheet.Cell(1, 7).Value = "X";
                     worksheet.Cell(1, 8).Value = "Y";
 
@@ -234,7 +234,8 @@ namespace AutoGala.Services
             }
         }
 
-        private ObservableCollection<T> LoadExcel<T>(Func<IXLRow, T> rowFactory, Action<T, int> setId)
+        private ObservableCollection<T> LoadExcel<T>(Func<IXLRow, T> rowFactory, Action<T, int> setId,
+            params string[] expectedHeaders)
         {
             var openDialogue = new OpenFileDialog
             {
@@ -255,6 +256,25 @@ namespace AutoGala.Services
 
                 var worksheet = workbook.Worksheets.First();
 
+                for (int i = 0; i < expectedHeaders.Length; i++)
+                {
+                    var actualHeaders = worksheet.Cell(1, i + 1).GetString().Trim();
+                    var expected = expectedHeaders[i];
+
+                    if (!string.Equals(actualHeaders, expected, StringComparison.Ordinal))
+                    {
+                        MessageBox.Show(
+                            $"Excel is in wrong format.\n\n" +
+                            $"Column {i + 1} should be '{expected}', " +
+                            $"but found '{actualHeaders}'.",
+                            "Load Excel",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+
+                        return new ObservableCollection<T>();
+                    }
+                }
+
                 var result = new ObservableCollection<T>();
 
                 foreach (var row in worksheet.RowsUsed().Skip(1))
@@ -271,11 +291,23 @@ namespace AutoGala.Services
                     result.Add(item);
                 }
 
-                MessageBox.Show(
-                    $"Loaded {result.Count} items successfully",
-                    "Load Excel",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                if (result.Count == 0)
+                {
+                    MessageBox.Show(
+                        $"No items were loaded",
+                        "Load Excel",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"Loaded {result.Count} items successfully",
+                        "Load Excel",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+
 
                 return result;
             }
@@ -294,25 +326,48 @@ namespace AutoGala.Services
         public ObservableCollection<SectionItem> LoadSectionsExcel()
         {
             return LoadExcel(
-                row => _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>()), (item, id) => item.Id = id
-                );
+                row => _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>()),
+                (item, id) => item.Id = id,
+                "Id", "X", "Y");
         }
 
         public ObservableCollection<RebarItem> LoadRebarsExcel()
         {
             return LoadExcel(
-                row => _rebarService.CreateRebar(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()), (item, id) => item.Id = id
+                row => _rebarService.CreateRebar(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()),
+                (item, id) => item.Id = id,
+                "Id", "As", "X", "Y"
                 );
         }
 
         public ObservableCollection<LoadItem> LoadLoadsExcel()
         {
             return LoadExcel(
-                row => _loadService.CreateLoad(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()), (item, id) => item.Id = id
+                row => _loadService.CreateLoad(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()),
+                (item, id) => item.Id = id,
+                "Id", "N", "Mx", "My"
                 );
         }
 
-        public List<Object> LoadAllExcel()
+        private bool HasHeaders(
+            IXLWorksheet worksheet,
+            int startColumn,
+            params string[] expected)
+        {
+            for (int i = 0; i < expected.Length; i++)
+            {
+                var actual = worksheet.Cell(1, startColumn + i).GetString().Trim();
+
+                if (!string.Equals(actual, expected[i], StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public List<object> LoadAllExcel()
         {
             var openDialog = new OpenFileDialog
             {
@@ -325,7 +380,7 @@ namespace AutoGala.Services
             if (openDialog.ShowDialog() != true)
             {
                 return (
-                    new List<Object>()
+                    new List<object>()
                 );
             }
 
@@ -335,48 +390,83 @@ namespace AutoGala.Services
 
                 var worksheet = workbook.Worksheets.First();
 
-                var items = new List<Object>();
+                var items = new List<object>();
 
                 var sections = new ObservableCollection<SectionItem>();
                 var rebars = new ObservableCollection<RebarItem>();
                 var loads = new ObservableCollection<LoadItem>();
 
-                // Sections
-                foreach (var row in worksheet.RowsUsed().Skip(1))
+                bool sectionsValid = HasHeaders(
+                    worksheet,
+                    1,
+                    "Id", "X", "Y");
+
+                bool rebarsValid = HasHeaders(
+                    worksheet,
+                    5,
+                    "Id", "As", "X", "Y");
+
+                bool loadsValid = HasHeaders(
+                    worksheet,
+                    10,
+                    "Id", "N", "Mx", "My");
+
+                if (!sectionsValid && !rebarsValid && loadsValid)
                 {
-                    if (!row.Cell(1).IsEmpty())
+                    MessageBox.Show(
+                        "The Excel file does not have a valid format.",
+                        "Load Excel",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+                    return new List<object>();
+                }
+
+                if (sectionsValid)
+                {
+                    // Sections
+                    foreach (var row in worksheet.RowsUsed().Skip(1))
                     {
-                        var section = _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>());
+                        if (!row.Cell(1).IsEmpty())
+                        {
+                            var section = _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>());
 
-                        section.Id = sections.Count + 1;
+                            section.Id = sections.Count + 1;
 
-                        sections.Add(section);
+                            sections.Add(section);
+                        }
                     }
                 }
 
-                // Rebars
-                foreach (var row in worksheet.RowsUsed().Skip(1))
+                if (rebarsValid)
                 {
-                    if (!row.Cell(5).IsEmpty())
+                    // Rebars
+                    foreach (var row in worksheet.RowsUsed().Skip(1))
                     {
-                        var rebar = _rebarService.CreateRebar(row.Cell(6).GetValue<double>(), row.Cell(7).GetValue<double>(), row.Cell(8).GetValue<double>());
+                        if (!row.Cell(5).IsEmpty())
+                        {
+                            var rebar = _rebarService.CreateRebar(row.Cell(6).GetValue<double>(), row.Cell(7).GetValue<double>(), row.Cell(8).GetValue<double>());
 
-                        rebar.Id = rebars.Count + 1;
+                            rebar.Id = rebars.Count + 1;
 
-                        rebars.Add(rebar);
+                            rebars.Add(rebar);
+                        }
                     }
                 }
 
-                // Loads
-                foreach (var row in worksheet.RowsUsed().Skip(1))
+                if (loadsValid)
                 {
-                    if (!row.Cell(10).IsEmpty())
+                    // Loads
+                    foreach (var row in worksheet.RowsUsed().Skip(1))
                     {
-                        var load = _loadService.CreateLoad(row.Cell(11).GetValue<double>(), row.Cell(12).GetValue<double>(), row.Cell(13).GetValue<double>());
+                        if (!row.Cell(10).IsEmpty())
+                        {
+                            var load = _loadService.CreateLoad(row.Cell(11).GetValue<double>(), row.Cell(12).GetValue<double>(), row.Cell(13).GetValue<double>());
 
-                        load.Id = loads.Count + 1;
+                            load.Id = loads.Count + 1;
 
-                        loads.Add(load);
+                            loads.Add(load);
+                        }
                     }
                 }
 
@@ -384,11 +474,26 @@ namespace AutoGala.Services
                 items.Add(rebars);
                 items.Add(loads);
 
-                MessageBox.Show(
+                if (sections.Count == 0 && rebars.Count == 0 && loads.Count == 0)
+                {
+                    MessageBox.Show(
+                        $"No items were loaded",
+                        "Load Excel",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    return (
+                       new List<object>()
+                   );
+                }
+                else
+                {
+                    MessageBox.Show(
                     $"Loaded successfully.",
                     "Load Excel",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+                }
 
                 return items;
             }
@@ -401,7 +506,7 @@ namespace AutoGala.Services
                     MessageBoxImage.Error);
 
                 return (
-                   new List<Object>()
+                   new List<object>()
                 );
             }
         }
