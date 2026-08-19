@@ -69,7 +69,7 @@
                                         Binding="{Binding Id}"
                                         IsReadOnly="True"/>
 
-                    <DataGridTextColumn Header="As [cm2]"
+                    <DataGridTextColumn Header="Asi [cm2]"
                                         Width="*"
                                         EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
 

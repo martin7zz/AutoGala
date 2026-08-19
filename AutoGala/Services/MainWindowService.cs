@@ -101,25 +101,25 @@ namespace AutoGala.Services
         public void SaveExcel(ObservableCollection<SectionItem> items) =>
             SaveExcel(items,
                 "Sections",
-                ("Id", s => s.Id),
-                ("X", s => s.X),
-                ("Y", s => s.Y));
+                ("Point", s => s.Id),
+                ("X [cm]", s => s.X),
+                ("Y [cm]", s => s.Y));
 
         public void SaveExcel(ObservableCollection<RebarItem> items) =>
             SaveExcel(items,
                 "Rebars",
-                ("Id", r => r.Id),
-                ("As", r => r.Area),
-                ("X", r => r.X),
-                ("Y", r => r.Y));
+                ("Bar", r => r.Id),
+                ("Asi [cm²]", r => r.Area),
+                ("X [cm]", r => r.X),
+                ("Y [cm]", r => r.Y));
 
         public void SaveExcel(ObservableCollection<LoadItem> items) =>
             SaveExcel(items,
                 "Loads",
-                ("Id", l => l.Id),
-                ("N", l => l.N),
-                ("Mx", l => l.Mx),
-                ("My", l => l.My));
+                ("Load", l => l.Id),
+                ("N [kN]", l => l.N),
+                ("Mx [kNm]", l => l.Mx),
+                ("My [kNm]", l => l.My));
 
         public void SaveAllToExcel(ObservableCollection<SectionItem> sections, ObservableCollection<RebarItem> rebars, ObservableCollection<LoadItem> loads)
         {
@@ -158,9 +158,9 @@ namespace AutoGala.Services
                 // Sections
                 if (sections != null && sections.Count > 0)
                 {
-                    worksheet.Cell(1, 1).Value = "Id";
-                    worksheet.Cell(1, 2).Value = "X";
-                    worksheet.Cell(1, 3).Value = "Y";
+                    worksheet.Cell(1, 1).Value = "Point";
+                    worksheet.Cell(1, 2).Value = "X [cm]";
+                    worksheet.Cell(1, 3).Value = "Y [cm]";
 
                     for (int row = 0; row < sections.Count; row++)
                     {
@@ -177,10 +177,10 @@ namespace AutoGala.Services
                 // Rebars
                 if (rebars != null && rebars.Count > 0)
                 {
-                    worksheet.Cell(1, 5).Value = "Id";
-                    worksheet.Cell(1, 6).Value = "As";
-                    worksheet.Cell(1, 7).Value = "X";
-                    worksheet.Cell(1, 8).Value = "Y";
+                    worksheet.Cell(1, 5).Value = "Bar";
+                    worksheet.Cell(1, 6).Value = "Asi [cm²]";
+                    worksheet.Cell(1, 7).Value = "X [cm]";
+                    worksheet.Cell(1, 8).Value = "Y [cm]";
 
                     for (int row = 0; row < rebars.Count; row++)
                     {
@@ -198,10 +198,10 @@ namespace AutoGala.Services
                 // Loads
                 if (loads != null && loads.Count > 0)
                 {
-                    worksheet.Cell(1, 10).Value = "Id";
-                    worksheet.Cell(1, 11).Value = "N";
-                    worksheet.Cell(1, 12).Value = "Mx";
-                    worksheet.Cell(1, 13).Value = "My";
+                    worksheet.Cell(1, 10).Value = "Load";
+                    worksheet.Cell(1, 11).Value = "N [kN]";
+                    worksheet.Cell(1, 12).Value = "Mx [kNm]";
+                    worksheet.Cell(1, 13).Value = "My [kNm]";
 
                     for (int row = 0; row < loads.Count; row++)
                     {
@@ -328,7 +328,7 @@ namespace AutoGala.Services
             return LoadExcel(
                 row => _sectionService.CreateSection(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>()),
                 (item, id) => item.Id = id,
-                "Id", "X", "Y");
+                "Point", "X [cm]", "Y [cm]");
         }
 
         public ObservableCollection<RebarItem> LoadRebarsExcel()
@@ -336,7 +336,7 @@ namespace AutoGala.Services
             return LoadExcel(
                 row => _rebarService.CreateRebar(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()),
                 (item, id) => item.Id = id,
-                "Id", "As", "X", "Y"
+                "Bar", "Asi [cm²]", "X [cm]", "Y [cm]"
                 );
         }
 
@@ -345,7 +345,7 @@ namespace AutoGala.Services
             return LoadExcel(
                 row => _loadService.CreateLoad(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()),
                 (item, id) => item.Id = id,
-                "Id", "N", "Mx", "My"
+                "Load", "N [kN]", "Mx [kNm]", "My [kNm]"
                 );
         }
 
@@ -399,17 +399,17 @@ namespace AutoGala.Services
                 bool sectionsValid = HasHeaders(
                     worksheet,
                     1,
-                    "Id", "X", "Y");
+                    "Point", "X [cm]", "Y [cm]");
 
                 bool rebarsValid = HasHeaders(
                     worksheet,
                     5,
-                    "Id", "As", "X", "Y");
+                    "Bar", "Asi [cm²]", "X [cm]", "Y [cm]");
 
                 bool loadsValid = HasHeaders(
                     worksheet,
                     10,
-                    "Id", "N", "Mx", "My");
+                    "Load", "N [kN]", "Mx [kNm]", "My [kNm]");
 
                 if (!sectionsValid && !rebarsValid && loadsValid)
                 {
