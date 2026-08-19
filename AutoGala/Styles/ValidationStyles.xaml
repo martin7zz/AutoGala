@@ -5,7 +5,7 @@
         <Style.Triggers>
             <Trigger Property="Validation.HasError" Value="True">
                 <Setter Property="BorderBrush" Value="Red"/>
-                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Background" Value="#FFEEEE"/>
                 <Setter Property="ToolTip"
                         Value="{Binding RelativeSource={RelativeSource Self},

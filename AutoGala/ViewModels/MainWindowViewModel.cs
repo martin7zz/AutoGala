@@ -1,4 +1,5 @@
 ﻿using AutoGala.Common;
+using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
 using AutoGala.views;
 using Plugin.Core.Contracts;
@@ -19,22 +20,25 @@ namespace AutoGala.ViewModels
 
 
         private IMainWindowService _mainWindowService;
+        private IEditStateService _editStateService;
 
         public ICommand SaveAllToExcelCommand { get; }
         public ICommand LoadAllFromExcelCommand { get; }
         public ICommand ClearAllCommand { get; }
 
-        public MainWindowViewModel(SectionViewModel sectionView, RebarViewModel rebarView, LoadViewModel loadView, IMainWindowService mainWindowService) 
+        public MainWindowViewModel(SectionViewModel sectionView, RebarViewModel rebarView, LoadViewModel loadView,
+            IMainWindowService mainWindowService, IEditStateService editStateService) 
         {
             SectionView = sectionView;
             RebarView = rebarView;
             LoadView = loadView;
 
             _mainWindowService = mainWindowService;
+            _editStateService = editStateService;
 
-            SaveAllToExcelCommand = new RelayCommand(param => SaveAllToExcel(), param => HasAll());
-            LoadAllFromExcelCommand = new RelayCommand(param => LoadAllFromExcel());
-            ClearAllCommand = new RelayCommand(param => ClearAll(), param => HasData());
+            SaveAllToExcelCommand = new RelayCommand(param => SaveAllToExcel(), param => HasAll() && !_editStateService.IsEditing);
+            LoadAllFromExcelCommand = new RelayCommand(param => LoadAllFromExcel(), param => !_editStateService.IsEditing);
+            ClearAllCommand = new RelayCommand(param => ClearAll(), param => HasData() && !_editStateService.IsEditing);
         }
 
         private void SaveAllToExcel()

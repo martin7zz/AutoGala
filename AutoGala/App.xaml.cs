@@ -47,6 +47,7 @@ namespace AutoGala
             services.AddSingleton<IWindowService, WindowService>();
             services.AddSingleton<IGalaService, GalaService>();
             services.AddSingleton<IMainWindowService, MainWindowService>();
+            services.AddSingleton<IEditStateService, EditStateService>();
 
             services.AddTransient<SectionViewModel>();
             services.AddTransient<RebarViewModel>();
