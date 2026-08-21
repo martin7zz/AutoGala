@@ -15,9 +15,9 @@
         <DockPanel>
 
             <Grid DockPanel.Dock="Bottom"
-                  Margin="5,8,5,5">
+                  Margin="5,8,5,5"
+                  HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -31,36 +31,33 @@
 
                 <Button Content="Delete"
                         Grid.Column="1"
-                        Command="{Binding RemoveLoadCommand}"
+                        Command="{Binding RemoveLoadsCommand}"
                         Style="{StaticResource DangerButtonStyle}"/>
 
-                <Button Content="{Binding EditButtonText}"
-                        Grid.Column="2"
-                        Command="{Binding EditLoadCommand}"
-                        Style="{StaticResource SecondaryButtonStyle}"/>
-
                 <Button Content="Paste"
-                        Grid.Column="3"
+                        Grid.Column="2"
                         Command="{Binding PasteLoadCommand}"
                         Style="{StaticResource SecondaryButtonStyle}"/>
 
                 <Button Content="Gala"
-                        Grid.Column="4"
+                        Grid.Column="3"
                         Command="{Binding HookToGalaCommand}"
                         Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
 
             <DataGrid x:Name="LoadGrid"
-          SelectedItem="{Binding SelectedLoad}"
-          ItemsSource="{Binding Loads}"
-          CanUserSortColumns="False"
-          CopyingRowClipboardContent="CopyingRowClipboardContent"
-          BeginningEdit="LoadGrid_BeginningEdit"
-          Validation.Error="LoadGrid_ValidationError"
-          AutoGenerateColumns="False"
-          HeadersVisibility="Column"
-          CanUserAddRows="False"
-          GridLinesVisibility="All">
+                      SelectedItem="{Binding SelectedLoad}"
+                      ItemsSource="{Binding Loads}"
+                      SelectionMode="Extended"
+                      SelectionUnit="FullRow"
+                      CanUserSortColumns="False"
+                      CopyingRowClipboardContent="CopyingRowClipboardContent"
+                      SelectionChanged="LoadGrid_SelectionChanged"
+                      Validation.Error="LoadGrid_ValidationError"
+                      AutoGenerateColumns="False"
+                      HeadersVisibility="Column"
+                      CanUserAddRows="False"
+                      GridLinesVisibility="All">
 
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="#" Width="30" Binding="{Binding Id}" IsReadOnly="True"/>

@@ -5,8 +5,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AutoGala.views"
              xmlns:common="clr-namespace:AutoGala.Common"
+             xmlns:converters="clr-namespace:AutoGala.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <converters:IsInCollectionConverter x:Key="IsInCollectionConverter"/>
+    </UserControl.Resources>
 
     <GroupBox Header="Rebar List Data"
       Grid.Column="2"
@@ -15,9 +20,9 @@
         <DockPanel>
 
             <Grid DockPanel.Dock="Bottom"
-                  Margin="5,8,5,5">
+                  Margin="5,8,5,5"
+                  HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -31,21 +36,16 @@
 
                 <Button Content="Delete"
                     Grid.Column="1"
-                    Command="{Binding RemoveRebarCommand}"
+                    Command="{Binding RemoveRebarsCommand}"
                     Style="{StaticResource DangerButtonStyle}"/>
 
-                <Button Content="{Binding EditButtonText}"
-                    Grid.Column="2"
-                    Command="{Binding EditRebarCommand}"
-                    Style="{StaticResource SecondaryButtonStyle}"/>
-
                 <Button Content="Paste"
-                    Grid.Column="3"
+                    Grid.Column="2"
                     Command="{Binding PasteRebarCommand}"
                     Style="{StaticResource SecondaryButtonStyle}"/>
 
                 <Button Content="Gala"
-                    Grid.Column="4"
+                    Grid.Column="3"
                     Command="{Binding HookToGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
@@ -53,10 +53,13 @@
             <DataGrid x:Name="RebarGrid"
                   SelectedItem="{Binding SelectedRebar}"
                   ItemsSource="{Binding Rebars}"
+                  SelectionMode="Extended"
+                  SelectionUnit="FullRow"
                   CanUserSortColumns="False"
                   CopyingRowClipboardContent="CopyingRowClipboardContent"
-                  BeginningEdit="RebarGrid_BeginningEdit"
+                  SelectionChanged="RebarGrid_SelectionChanged"
                   Validation.Error="RebarGrid_ValidationError"
+                  CellEditEnding="RebarGrid_CellEditEnding"
                   AutoGenerateColumns="False"
                   HeadersVisibility="Column"
                   CanUserAddRows="False"
@@ -112,6 +115,23 @@
                     </DataGridTextColumn>
 
                 </DataGrid.Columns>
+
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Value="True">
+                                <DataTrigger.Binding>
+                                    <MultiBinding Converter="{StaticResource IsInCollectionConverter}">
+                                        <Binding/>
+                                        <Binding Path="DataContext.DuplicateRebars"
+                                 RelativeSource="{RelativeSource AncestorType=DataGrid}"/>
+                                    </MultiBinding>
+                                </DataTrigger.Binding>
+                                <Setter Property="Background" Value="#ffa8a8"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
 
             </DataGrid>
 

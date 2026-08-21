@@ -15,9 +15,9 @@
         <DockPanel>
 
             <Grid DockPanel.Dock="Bottom"
-                  Margin="5,8,5,5">
+                  Margin="5,8,5,5"
+                  HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -31,21 +31,16 @@
 
                 <Button Content="Delete"
                     Grid.Column="1"
-                    Command="{Binding RemoveSectionCommand}"
+                    Command="{Binding RemoveSectionsCommand}"
                     Style="{StaticResource DangerButtonStyle}"/>
 
-                <Button Content="{Binding EditButtonText}"
-                    Grid.Column="2"
-                    Command="{Binding EditSectionCommand}"
-                    Style="{StaticResource SecondaryButtonStyle}"/>
-
                 <Button Content="Paste"
-                    Grid.Column="3"
+                    Grid.Column="2"
                     Command="{Binding PasteSectionCommand}"
                     Style="{StaticResource SecondaryButtonStyle}"/>
 
                 <Button Content="Gala"
-                    Grid.Column="4"
+                    Grid.Column="3"
                     Command="{Binding HookToGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
@@ -53,10 +48,12 @@
             <DataGrid x:Name="SectionGrid"
                   SelectedItem="{Binding SelectedSection}"
                   ItemsSource="{Binding Sections}"
+                  SelectionMode="Extended"
+                  SelectionUnit="FullRow"
                   CanUserSortColumns="False"
                   CopyingRowClipboardContent="CopyingRowClipboardContent"
-                  BeginningEdit="SectionGrid_BeginningEdit"
                   Validation.Error="SectionGrid_ValidationError"
+                  SelectionChanged="SectionGrid_SelectionChanged"
                   AutoGenerateColumns="False"
                   HeadersVisibility="Column"
                   CanUserAddRows="False"

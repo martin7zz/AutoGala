@@ -30,13 +30,13 @@
                     <Separator/>
                     <MenuItem Header="_Clear List"
                               Command="{Binding SectionView.ClearSectionCommand}"/>
-                    <MenuItem Header="_Edit List" 
-                              Command="{Binding SectionView.MenuEditSectionCommand}"/>
                     <MenuItem Header="_Delete Selected" 
-                              Command="{Binding SectionView.RemoveSectionCommand}"/>
+                              Command="{Binding SectionView.RemoveSectionsCommand}"/>
                     <MenuItem Header="_Paste from Clipboard" 
                               Command="{Binding SectionView.PasteSectionCommand}"/>
-                    <!--<MenuItem Header="_Select All"/> <Separator/> <MenuItem Header="_Set to Gala"/> <MenuItem Header="_Get from Gala"/> <MenuItem Header="_Get from AutoCAD"/>-->
+                    <Separator/>
+                    <MenuItem Header="_Get from Gala"/>
+                    <MenuItem Header="_Get from AutoCAD"/>
                 </MenuItem>
                 
                 <MenuItem Header="_Rebar" Padding="10,6">
@@ -47,15 +47,15 @@
                     <Separator/>
                     <MenuItem Header="_Clear List"
                               Command="{Binding RebarView.ClearRebarCommand}"/>
-                    <MenuItem Header="_Edit List" 
-                              Command="{Binding RebarView.MenuEditRebarCommand}"/>
                     <MenuItem Header="_Delete Selected" 
-                              Command="{Binding RebarView.RemoveRebarCommand}"/>
-                    <!--<MenuItem Header="_Check for Duplicate Rebars"/>-->
+                              Command="{Binding RebarView.RemoveRebarsCommand}"/>
+                    <MenuItem Header="_Check for Duplicate Rebars"
+                              Command="{Binding RebarView.CheckForDuplicatesCommand}"/>
                     <MenuItem Header="_Paste from Clipboard" 
                               Command="{Binding RebarView.PasteRebarCommand}"/>
-                    <!--<MenuItem Header="_Select All"/>-->
-                    <!--<Separator/> <MenuItem Header="_Set to Gala"/> <MenuItem Header="_Get from Gala"/> <MenuItem Header="_Get from AutoCAD"/>-->
+                    <Separator/>
+                    <MenuItem Header="_Get from Gala"/>
+                    <MenuItem Header="_Get from AutoCAD"/>
                 </MenuItem>
                 
                 <MenuItem Header="_Loads" Padding="10,6">
@@ -64,28 +64,28 @@
                     <MenuItem Header="_Load"
                               Command="{Binding LoadView.LoadFromExcelCommand}"/>
                     <Separator/>
-                    <!--<MenuItem Header="_Simple Bending"/>-->
-                    <!--<MenuItem Header="_Append On Paste"/> <Separator/>-->
+                    <MenuItem Header="_Simple Bending"/>
+                    <Separator/>
                     <MenuItem Header="_Clear List" 
-                              Command="{Binding LoadView.ClearListCommand}"/>
-                    <MenuItem Header="_Edit List" 
-                              Command="{Binding LoadView.MenuEditLoadCommand}"/>
+                              Command="{Binding LoadView.ClearLoadCommand}"/>
                     <MenuItem Header="_Delete Selected" 
-                              Command="{Binding LoadView.RemoveLoadCommand}"/>
-                    <!--<MenuItem Header="_Delete Zero Load Cases"/>-->
+                              Command="{Binding LoadView.RemoveLoadsCommand}"/>
+                    <MenuItem Header="_Delete Zero Load Cases"/>
                     <MenuItem Header="_Paste from Clipboard" 
                               Command="{Binding LoadView.PasteLoadCommand}"/>
-                    <!--<MenuItem Header="_Reverse Mx sign"/>-->
-                    <!--<MenuItem Header="_Reverse My sign"/>-->
-                    <!--<MenuItem Header="_Swap Mx and My"/>-->
-                    <!--<MenuItem Header="_Select All"/>-->
-                    <!--<Separator/>-->
-                    <!--<MenuItem Header="_Set to Gala"/>-->
-                    <!--<MenuItem Header="_Get from Gala"/>-->
+                    <MenuItem Header="_Reverse Mx sign"/>
+                    <MenuItem Header="_Reverse My sign"/>
+                    <MenuItem Header="_Swap Mx and My"/>
+                    <Separator/>
+                    <MenuItem Header="_Set to Gala"/>
+                    <MenuItem Header="_Get from Gala"/>
                 
                 </MenuItem>
 
                 <MenuItem Header="_More" Padding="10,6">
+                    <MenuItem Header="_Edit Toggle"
+                              Command="{Binding MenuEditLoadCommand}"/>
+                    <Separator/>
                     <MenuItem Header="_Save All"
                               Command="{Binding SaveAllToExcelCommand}"/>
                     <MenuItem Header="_Load All"

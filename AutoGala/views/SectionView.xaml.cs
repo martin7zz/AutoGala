@@ -33,21 +33,27 @@ namespace AutoGala.views
                 e.ClipboardRowContent.RemoveAt(0);
         }
 
-        private void SectionGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
-        {
-            if (DataContext is not SectionViewModel vm) return;
-
-            if (vm.EditingSection == null || !ReferenceEquals(e.Row.Item, vm.EditingSection))
-            {
-                e.Cancel = true;
-            }
-        }
-
         private void SectionGrid_ValidationError(object sender, ValidationErrorEventArgs e)
         {
             if (DataContext is SectionViewModel vm)
             {
                 vm.RegisterValidationError(e.Action == ValidationErrorEventAction.Added);
+            }
+        }
+
+        private void SectionGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is SectionViewModel vm)
+            {
+                foreach (SectionItem item in e.RemovedItems)
+                {
+                    vm.SelectedSections.Remove(item);
+                }
+
+                foreach (SectionItem item in e.AddedItems)
+                {
+                    vm.SelectedSections.Add(item);
+                }
             }
         }
     }

@@ -36,21 +36,27 @@ namespace AutoGala.views
                 e.ClipboardRowContent.RemoveAt(0);
         }
 
-        private void LoadGrid_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
-        {
-            if (DataContext is not LoadViewModel vm) return;
-
-            if (vm.EditingLoad == null || !ReferenceEquals(e.Row.Item, vm.EditingLoad))
-            {
-                e.Cancel = true;
-            }
-        }
-
         private void LoadGrid_ValidationError(object sender, ValidationErrorEventArgs e)
         {
             if (DataContext is LoadViewModel vm)
             {
                 vm.RegisterValidationError(e.Action == ValidationErrorEventAction.Added);
+            }
+        }
+
+        private void LoadGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is LoadViewModel vm)
+            {
+                foreach (LoadItem item in e.RemovedItems)
+                {
+                    vm.SelectedLoads.Remove(item);
+                }
+
+                foreach(LoadItem item in e.AddedItems)
+                {
+                    vm.SelectedLoads.Add(item);
+                }
             }
         }
     }
