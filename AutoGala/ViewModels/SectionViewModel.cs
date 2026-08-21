@@ -30,21 +30,18 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private SectionItem? _editingSection;
-        public SectionItem? EditingSection
+        private ObservableCollection<SectionItem> _selectedSections = new();
+
+        public ObservableCollection<SectionItem> SelectedSections
         {
-            get => _editingSection;
-            private set
+            get => _selectedSections;
+            set
             {
-                _editingSection = value;
+                _selectedSections = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(EditButtonText));
                 CommandManager.InvalidateRequerySuggested();
             }
         }
-
-        public string EditButtonText =>
-            EditingSection == null ? "Edit" : "Save";
 
         private int _validationErrorCount;
         private bool HasValidationError => _validationErrorCount > 0;
@@ -54,13 +51,9 @@ namespace AutoGala.ViewModels
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
         private readonly IMainWindowService _mainWindowService;
-        private readonly IEditStateService _editStateService;
-
         public ICommand AddSectionCommand { get; }
-        public ICommand RemoveSectionCommand { get; }
+        public ICommand RemoveSectionsCommand { get; }
         public ICommand PasteSectionCommand { get; }
-        public ICommand EditSectionCommand { get; }
-        public ICommand MenuEditSectionCommand { get; }
         public ICommand ClearSectionCommand { get; }
         public ICommand HookToGalaCommand { get; }
         public ICommand SaveToExcelCommand { get; }
@@ -71,25 +64,21 @@ namespace AutoGala.ViewModels
             IClipboardService clipboardService,
             IGalaService galaService,
             IWindowService windowService,
-            IMainWindowService mainWindowService,
-            IEditStateService editStateService)
+            IMainWindowService mainWindowService)
         {
             _sectionService = sectionService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
-            _editStateService = editStateService;
 
-            AddSectionCommand = new RelayCommand(param => AddSection(), param => EditingSection == null && !HasValidationError && !_editStateService.IsEditing);
-            RemoveSectionCommand = new RelayCommand(param => RemoveSection(), param => SelectedSection != null && EditingSection == null && !HasValidationError && !_editStateService.IsEditing);
-            PasteSectionCommand = new RelayCommand(param => Paste(), param => EditingSection == null && !HasValidationError && !_editStateService.IsEditing);
-            EditSectionCommand = new RelayCommand(param => ToggleEdit(), param => SelectedSection != null && !HasValidationError && (_editStateService.EditOwner == this || !_editStateService.IsEditing));
-            MenuEditSectionCommand = new RelayCommand(param => ToggleEdit(), param => SelectedSection != null && EditingSection == null && !HasValidationError && !_editStateService.IsEditing);
-            ClearSectionCommand = new RelayCommand(param => ClearList(), param => Sections.Count > 0 && EditingSection == null && !HasValidationError);
-            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => EditingSection == null && !HasValidationError && !_editStateService.IsEditing);
-            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Sections.Count > 0 && EditingSection == null && !HasValidationError && !_editStateService.IsEditing);
-            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(),param => EditingSection == null && !HasValidationError && !_editStateService.IsEditing);
+            AddSectionCommand = new RelayCommand(param => AddSection(), param => !HasValidationError);
+            RemoveSectionsCommand = new RelayCommand(param => RemoveSections(), param => SelectedSections.Count > 0 && !HasValidationError);
+            PasteSectionCommand = new RelayCommand(param => Paste(), param => !HasValidationError);
+            ClearSectionCommand = new RelayCommand(param => ClearList(), param => Sections.Count > 0 && !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Sections.Count > 0 && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(),param => !HasValidationError);
         }
 
         private void AddSection()
@@ -121,44 +110,18 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private void RemoveSection()
+        private void RemoveSections()
         {
-            if (_selectSection != null)
+            foreach (var section in SelectedSections.ToList())
             {
-                Sections.Remove(SelectedSection);
-
-                updateIds();
-
-                CommandManager.InvalidateRequerySuggested();
-            }
-        }
-
-        private void ToggleEdit()
-        {
-            if (EditingSection == null)
-            {
-                EditingSection = SelectedSection;
-                _editStateService.StartEditing(this);
-            }
-            else
-            {
-                SaveSection();
-            }
-        }
-
-        private void SaveSection()
-        {
-            if (HasValidationError) return;
-
-            if (EditingSection == null || EditingSection.X == null || EditingSection.Y == null)
-            {
-                _windowService.ShowClipboardError(UnfilledSectionErrorMessage);
-
-                return;
+                Sections.Remove(section);
             }
 
-            EditingSection = null;
-            _editStateService.StopEditing(this);
+            updateIds();
+
+            SelectedSections.Clear();
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         public void ClearList()

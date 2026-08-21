@@ -36,21 +36,18 @@ namespace AutoGala.ViewModels
             }
         }
 
-        public LoadItem? _editingLoad;
+        private ObservableCollection<LoadItem> _selectedLoads = new ();
 
-        public LoadItem? EditingLoad
+        public ObservableCollection<LoadItem> SelectedLoads
         {
-            get => _editingLoad;
-            private set
+            get => _selectedLoads;
+            set
             {
-                _editingLoad = value;
+                _selectedLoads = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(EditButtonText));
                 CommandManager.InvalidateRequerySuggested();
             }
         }
-
-        public string EditButtonText => EditingLoad == null ? "Edit" : "Save";
 
         private int _validationErrorCount;
         public bool HasValidationError => _validationErrorCount > 0;
@@ -60,43 +57,34 @@ namespace AutoGala.ViewModels
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
         private readonly IMainWindowService _mainWindowService;
-        private readonly IEditStateService _editStateService;
 
         public ICommand AddLoadCommand { get; }
-        public ICommand RemoveLoadCommand { get; }
+        public ICommand RemoveLoadsCommand { get; }
         public ICommand PasteLoadCommand { get; }
-        public ICommand EditLoadCommand { get; }
-        public ICommand MenuEditLoadCommand { get; }
-        public ICommand ClearListCommand { get; }
+        public ICommand ClearLoadCommand { get; }
         public ICommand HookToGalaCommand { get; }
         public ICommand SaveToExcelCommand { get; }
         public ICommand LoadFromExcelCommand { get; }
-
-
 
         public LoadViewModel(ILoadService loadService,
             IClipboardService clipboardService, 
             IGalaService galaService, 
             IWindowService windowService, 
-            IMainWindowService mainWindowService,
-            IEditStateService editStateService)
+            IMainWindowService mainWindowService)
         {
             _loadService = loadService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
-            _editStateService = editStateService;
 
-            AddLoadCommand = new RelayCommand(param => AddLoad(), param => EditingLoad == null && !HasValidationError && !_editStateService.IsEditing);
-            RemoveLoadCommand = new RelayCommand(param => RemoveLoad(), param => SelectedLoad != null && EditingLoad == null && !HasValidationError && !_editStateService.IsEditing);
-            PasteLoadCommand = new RelayCommand(param => Paste(), param => EditingLoad == null && !HasValidationError && !_editStateService.IsEditing);
-            EditLoadCommand = new RelayCommand(param => ToggleEdit(), param => SelectedLoad != null && !HasValidationError && (_editStateService.EditOwner == this || !_editStateService.IsEditing));
-            ClearListCommand = new RelayCommand(param => ClearList(), param => Loads.Count > 0 && EditingLoad == null && !HasValidationError && !_editStateService.IsEditing);
-            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => EditingLoad == null && !HasValidationError && !_editStateService.IsEditing);
-            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Loads.Count > 0 && EditingLoad == null && !HasValidationError && !_editStateService.IsEditing);
-            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => EditingLoad == null && !HasValidationError && !_editStateService.IsEditing);
-            MenuEditLoadCommand = new RelayCommand(param => ToggleEdit(), param => SelectedLoad != null && EditingLoad == null && !HasValidationError && !_editStateService.IsEditing);
+            AddLoadCommand = new RelayCommand(param => AddLoad(), param => !HasValidationError);
+            RemoveLoadsCommand = new RelayCommand(param => RemoveLoad(), param => SelectedLoad != null && !HasValidationError);
+            PasteLoadCommand = new RelayCommand(param => Paste(), param => !HasValidationError);
+            ClearLoadCommand = new RelayCommand(param => ClearList(), param => Loads.Count > 0 && !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Loads.Count > 0 && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
         }
 
         private void AddLoad()
@@ -130,42 +118,16 @@ namespace AutoGala.ViewModels
 
         private void RemoveLoad()
         {
-            if (_selectLoad != null)
+            foreach (var load in SelectedLoads.ToList())
             {
-                Loads.Remove(SelectedLoad);
-
-                updateIds();
-
-                CommandManager.InvalidateRequerySuggested();
-            }
-        }
-
-        private void ToggleEdit()
-        {
-            if (EditingLoad == null)
-            {
-                EditingLoad = SelectedLoad;
-                _editStateService.StartEditing(this);
-            }
-            else
-            {
-                SaveLoad();
-            }
-        }
-
-        private void SaveLoad()
-        {
-            if (HasValidationError) return;
-
-            if (EditingLoad == null ||
-            EditingLoad.N == null || EditingLoad.Mx == null || EditingLoad.My == null)
-            {
-                _windowService.ShowClipboardError(UnfilledLoadErrorMessage);
-                return;
+                Loads.Remove(load);
             }
 
-            EditingLoad = null;
-            _editStateService.StartEditing(this);
+            updateIds();
+
+            SelectedLoads.Clear();
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         public void ClearList()

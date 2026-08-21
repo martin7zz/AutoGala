@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
+using System.Windows.Data;
 using System.Windows.Input;
 using static AutoGala.Common.NotificationMessages;
 
@@ -30,22 +31,31 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private RebarItem? _editingRebar;
+        private ObservableCollection<RebarItem> _selectedRebars = new();
 
-        public RebarItem? EditingRebar
+        public ObservableCollection<RebarItem> SelectedRebars
         {
-            get => _editingRebar;
-            private set
-            {
-                _editingRebar = value;
+            get => _selectedRebars;
+            set
+            { 
+                _selectedRebars = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(EditButtonText));
                 CommandManager.InvalidateRequerySuggested();
             }
         }
 
-        public string EditButtonText =>
-            EditingRebar == null ? "Edit" : "Save";
+        private ObservableCollection<RebarItem> _duplicateRebars = new();
+
+        public ObservableCollection<RebarItem> DuplicateRebars
+        {
+            get => _duplicateRebars;
+            set
+            {
+                _duplicateRebars = value;
+                OnPropertyChanged();
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
 
         private int _validationErrorCount;
         public bool HasValidationError => _validationErrorCount > 0;
@@ -55,42 +65,36 @@ namespace AutoGala.ViewModels
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
         private readonly IMainWindowService _mainWindowService;
-        private readonly IEditStateService _editStateService;
 
         public ICommand AddRebarCommand { get; }
-        public ICommand RemoveRebarCommand { get; }
+        public ICommand RemoveRebarsCommand { get; }
         public ICommand PasteRebarCommand { get; }
-        public ICommand EditRebarCommand { get; }
-        public ICommand MenuEditRebarCommand { get; }
         public ICommand ClearRebarCommand { get; }
+        public ICommand CheckForDuplicatesCommand {  get; }
         public ICommand HookToGalaCommand { get; }
         public ICommand SaveToExcelCommand { get; }
         public ICommand LoadFromExcelCommand { get; }
-
 
         public RebarViewModel(IRebarService rebarService,
             IClipboardService clipboardService,
             IGalaService galaService,
             IWindowService windowService,
-            IMainWindowService mainWindowService,
-            IEditStateService editStateService)
+            IMainWindowService mainWindowService)
         {
             _rebarService = rebarService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
-            _editStateService = editStateService;
 
-            AddRebarCommand = new RelayCommand(param => AddRebar(), param => EditingRebar == null && !HasValidationError && !_editStateService.IsEditing);
-            RemoveRebarCommand = new RelayCommand(param => RemoveRebar(), param => SelectedRebar != null && EditingRebar == null && !HasValidationError && !_editStateService.IsEditing);
-            PasteRebarCommand = new RelayCommand(param => Paste(), param => EditingRebar == null && !HasValidationError && !_editStateService.IsEditing);
-            EditRebarCommand = new RelayCommand(param => ToggleEdit(), param => SelectedRebar != null && !HasValidationError && (_editStateService.EditOwner == this || !_editStateService.IsEditing));
-            MenuEditRebarCommand = new RelayCommand(param => ToggleEdit(), param => SelectedRebar != null && EditingRebar == null && !HasValidationError && !_editStateService.IsEditing);
-            ClearRebarCommand = new RelayCommand(param => ClearList(), param => Rebars.Count > 0 && EditingRebar == null && !HasValidationError && !_editStateService.IsEditing);
-            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => EditingRebar == null && !HasValidationError && !_editStateService.IsEditing);
-            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Rebars.Count > 0 && EditingRebar == null && !HasValidationError && !_editStateService.IsEditing);
-            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => EditingRebar == null && !HasValidationError && !_editStateService.IsEditing);
+            AddRebarCommand = new RelayCommand(param => AddRebar(), param => !HasValidationError);
+            RemoveRebarsCommand = new RelayCommand(param => RemoveRebar(), param => SelectedRebars.Count > 0 && !HasValidationError);
+            PasteRebarCommand = new RelayCommand(param => Paste(), param => !HasValidationError);
+            ClearRebarCommand = new RelayCommand(param => ClearList(), param => Rebars.Count > 0 && !HasValidationError);
+            CheckForDuplicatesCommand = new RelayCommand(param =>  CheckForDuplicates(), param => Rebars.Count > 0);
+            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => !HasValidationError);
+            SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Rebars.Count > 0 && !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
         }
 
         private void AddRebar()
@@ -100,6 +104,8 @@ namespace AutoGala.ViewModels
             rebar.Id = Rebars.Count + 1;
 
             Rebars.Add(rebar);
+
+            CheckForDuplicates();
 
             CommandManager.InvalidateRequerySuggested();
         }
@@ -124,52 +130,35 @@ namespace AutoGala.ViewModels
 
         private void RemoveRebar()
         {
-            if (_selectRebar != null)
+            foreach (var rebar in SelectedRebars.ToList())
             {
-                Rebars.Remove(SelectedRebar);
-
-                updateIds();
-
-                CommandManager.InvalidateRequerySuggested();
-            }
-        }
-
-        private void ToggleEdit()
-        {
-            if (EditingRebar == null)
-            {
-                EditingRebar = SelectedRebar;
-                _editStateService.StartEditing(this);
-            }
-            else
-            {
-                SaveRebar();
-            }
-        }
-
-        private void SaveRebar()
-        {
-            if (HasValidationError)
-            {
-                return;
+                Rebars.Remove(rebar);
             }
 
-            if (EditingRebar == null ||
-            EditingRebar.Area == null || EditingRebar.X == null || EditingRebar.Y == null)
-            {
-                _windowService.ShowClipboardError(UnfilledRebarErrorMessage);
+            updateIds();
 
-                return;
-            }
+            SelectedRebars.Clear();
 
-            EditingRebar = null;
-            _editStateService.StopEditing(this);
+            CheckForDuplicates();
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         public void ClearList()
         {
             Rebars.Clear();
             CommandManager.InvalidateRequerySuggested();
+        }
+
+        public void CheckForDuplicates()
+        {
+            var duplicateGroups = Rebars
+                .GroupBy(r => (r.Area, r.X, r.Y))
+                .Where(g => g.Count() > 1);
+
+            DuplicateRebars = new ObservableCollection<RebarItem>(
+                duplicateGroups.SelectMany(g => g.Skip(1))
+            );
         }
 
         private void Paste()
@@ -223,6 +212,8 @@ namespace AutoGala.ViewModels
                     $"{added} row(s) added, but {failedRows.Count} row(s) couldn't be parsed.",
                     failedRows);
             }
+
+            CheckForDuplicates();
         }
 
         private async Task GetGala()
