@@ -182,7 +182,7 @@ namespace AutoGala.ViewModels
             {
                 var cells = row.Split('\t');
 
-                if (cells.Length < 3 ||
+                if (cells.Length != 3 ||
                     !double.TryParse(cells[0], out var area) ||
                     !double.TryParse(cells[1], out var x) ||
                     !double.TryParse(cells[2], out var y))

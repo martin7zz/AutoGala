@@ -17,28 +17,40 @@ namespace AutoGala.ViewModels
         public SectionViewModel SectionView { get; }
         public RebarViewModel RebarView { get; }
         public LoadViewModel LoadView { get; }
+        public EditJobInfoViewModel EditJobInfoView { get; }
 
 
         private IMainWindowService _mainWindowService;
         private IEditStateService _editStateService;
+        private IWindowService _windowService;
 
         public ICommand SaveAllToExcelCommand { get; }
         public ICommand LoadAllFromExcelCommand { get; }
         public ICommand ClearAllCommand { get; }
+        public ICommand EditJobInfoCommand { get; }
 
-        public MainWindowViewModel(SectionViewModel sectionView, RebarViewModel rebarView, LoadViewModel loadView,
-            IMainWindowService mainWindowService, IEditStateService editStateService) 
+        public MainWindowViewModel(SectionViewModel sectionViewModel, RebarViewModel rebarViewModel, LoadViewModel loadViewModel, EditJobInfoViewModel editJobInfoViewModel,
+            IMainWindowService mainWindowService, IEditStateService editStateService, IWindowService windowService) 
         {
-            SectionView = sectionView;
-            RebarView = rebarView;
-            LoadView = loadView;
+            SectionView = sectionViewModel;
+            RebarView = rebarViewModel;
+            LoadView = loadViewModel;
+            EditJobInfoView = editJobInfoViewModel;
 
             _mainWindowService = mainWindowService;
             _editStateService = editStateService;
+            _windowService = windowService;
 
             SaveAllToExcelCommand = new RelayCommand(param => SaveAllToExcel(), param => HasAll() && !_editStateService.IsEditing);
             LoadAllFromExcelCommand = new RelayCommand(param => LoadAllFromExcel(), param => !_editStateService.IsEditing);
             ClearAllCommand = new RelayCommand(param => ClearAll(), param => HasData() && !_editStateService.IsEditing);
+            EditJobInfoCommand = new RelayCommand(param => EditJobInfo());
+        }
+
+        private void EditJobInfo()
+        {
+            _windowService.ShowEditJobInfo(EditJobInfoView.JobInfo);
+            EditJobInfoView.RefreshFromModel();
         }
 
         private void SaveAllToExcel()
@@ -46,13 +58,14 @@ namespace AutoGala.ViewModels
             _mainWindowService.SaveAllToExcel(
                 SectionView.Sections,
                 RebarView.Rebars,
-                LoadView.Loads);
+                LoadView.Loads,
+                LoadView.IsSimpleBending);
         }
 
         private void LoadAllFromExcel()
         {
 
-            var items = _mainWindowService.LoadAllExcel();
+            var items = _mainWindowService.LoadAllExcel(LoadView.IsSimpleBending);
 
             if (items == null || items.Count < 3)
             {

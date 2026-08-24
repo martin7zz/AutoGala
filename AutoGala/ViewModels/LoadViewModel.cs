@@ -49,6 +49,21 @@ namespace AutoGala.ViewModels
             }
         }
 
+        private bool _isSimpleBending = false;
+
+        public bool IsSimpleBending
+        {
+            get => _isSimpleBending;
+            set
+            {
+                if (_isSimpleBending != value)
+                {
+                    _isSimpleBending = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private int _validationErrorCount;
         public bool HasValidationError => _validationErrorCount > 0;
 
@@ -65,6 +80,10 @@ namespace AutoGala.ViewModels
         public ICommand HookToGalaCommand { get; }
         public ICommand SaveToExcelCommand { get; }
         public ICommand LoadFromExcelCommand { get; }
+        public ICommand ReverseMxSignCommand { get; }
+        public ICommand ReverseMySignCommand { get; }
+        public ICommand ReverseMxAndMyCommand { get; }
+        public ICommand SimpleBendingCommand { get; }
 
         public LoadViewModel(ILoadService loadService,
             IClipboardService clipboardService, 
@@ -85,6 +104,10 @@ namespace AutoGala.ViewModels
             HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => !HasValidationError);
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Loads.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
+            ReverseMxSignCommand = new RelayCommand(param => ReverseMxSign(), param => Loads.Count > 0 && !HasValidationError);
+            ReverseMySignCommand = new RelayCommand(param => ReverseMySign(), param => Loads.Count > 0 && !HasValidationError && !IsSimpleBending);
+            ReverseMxAndMyCommand = new RelayCommand(param => ReverseMxAndMy(), param => Loads.Count > 0 && !HasValidationError && !IsSimpleBending);
+            SimpleBendingCommand = new RelayCommand(param => SetIsSimpleBending(), param => !HasValidationError);
         }
 
         private void AddLoad()
@@ -106,14 +129,7 @@ namespace AutoGala.ViewModels
                 load.Id = id++;
             }
 
-            var items = Loads.ToList();
-
-            Loads.Clear();
-
-            foreach (var section in items)
-            {
-                Loads.Add(section);
-            }
+            updateLoadsTable();
         }
 
         private void RemoveLoad()
@@ -134,6 +150,56 @@ namespace AutoGala.ViewModels
         {
             Loads.Clear();
             CommandManager.InvalidateRequerySuggested();
+        }
+
+        private void ReverseMxSign()
+        {
+            foreach (var load in Loads)
+            {
+                load.Mx *= -1;
+            }
+
+            updateLoadsTable();
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        private void ReverseMySign()
+        {
+            foreach (var load in Loads)
+            {
+                load.My *= -1;
+            }
+
+            updateLoadsTable();
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        private void ReverseMxAndMy()
+        {
+            foreach (var load in Loads)
+            {
+                (load.Mx, load.My) = (load.My, load.Mx);
+            }
+
+            updateLoadsTable();
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        private void updateLoadsTable()
+        {
+            var items = Loads.ToList();
+
+            Loads.Clear();
+
+            foreach (var load in items)
+            {
+                Loads.Add(load);
+            }
+        }
+
+        private void SetIsSimpleBending()
+        {
+            IsSimpleBending = !IsSimpleBending;
         }
 
         private void Paste()
@@ -157,10 +223,19 @@ namespace AutoGala.ViewModels
             {
                 var cells = row.Split('\t');
 
-                if (cells.Length < 3 ||
-                    !double.TryParse(cells[0], out var n) ||
+                if (!double.TryParse(cells[0], out var n) ||
                     !double.TryParse(cells[1], out var mx) ||
-                    !double.TryParse(cells[2], out var my))
+                    (IsSimpleBending
+                        ? cells.Length != 2
+                        : cells.Length != 3))
+                {
+                    failedRows.Add(row);
+                    continue;
+                }
+
+                double my = 0;
+
+                if (!IsSimpleBending && !double.TryParse(cells[2], out my))
                 {
                     failedRows.Add(row);
                     continue;
@@ -177,8 +252,11 @@ namespace AutoGala.ViewModels
 
             if (added == 0)
             {
+                var message = IsSimpleBending ?
+                    NotificationMessages.LoadSimpleBendingPasteErrorMessage : NotificationMessages.LoadPasteErrorMessage;
+
                 _windowService.ShowClipboardError(
-                    NotificationMessages.LoadPasteErrorMessage,
+                    message,
                     failedRows);
             }
             else if (failedRows.Count > 0)
@@ -191,17 +269,17 @@ namespace AutoGala.ViewModels
 
         private async Task GetGala()
         {
-            await _galaService.HookToGalaAsync(Loads);
+            await _galaService.HookToGalaAsync(Loads, IsSimpleBending);
         }
 
         private void SaveToExcel()
         {
-            _mainWindowService.SaveExcel(Loads);
+            _mainWindowService.SaveExcel(Loads, IsSimpleBending);
         }
 
         private void LoadFromExcel()
         {
-            var loadedLoads = _mainWindowService.LoadLoadsExcel();
+            var loadedLoads = _mainWindowService.LoadLoadsExcel(IsSimpleBending);
 
             if (loadedLoads.Count > 0)
             {
