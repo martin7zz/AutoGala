@@ -1,6 +1,7 @@
 ﻿using AutoGala.Contracts;
 using AutoGala.ViewModels;
 using AutoGala.views;
+using Plugin.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
@@ -11,6 +12,22 @@ namespace AutoGala.Services
 {
     public class WindowService : IWindowService
     {
+        public EditJobInfoView ShowEditJobInfo(JobInfo jobInfo)
+        {
+            var viewModel = new EditJobInfoViewModel(jobInfo);
+            
+            var window = new EditJobInfoView
+            {
+                Owner = Application.Current.MainWindow,
+                DataContext = viewModel
+            };
+
+            viewModel.SaveRequested += () => window.Close();
+            window.ShowDialog();
+
+            return window;
+        }
+
         public ClipboardErrorView ShowClipboardError(string data, IEnumerable<string>? failedRows = null)
         {
             var window = new ClipboardErrorView

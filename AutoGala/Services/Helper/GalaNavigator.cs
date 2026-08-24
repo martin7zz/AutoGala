@@ -304,16 +304,24 @@ namespace AutoGala.Services.Helper
                 );
         }
 
-        public bool WriteItems(ObservableCollection<LoadItem> loads)
+        public bool WriteItems(ObservableCollection<LoadItem> loads, bool isSimpleBending)
         {
             _spinHandle = FindRowCountSpin(_mainWindow);
 
             return WriteItemsCore(loads,
-                l => new[] { 
+                l => isSimpleBending 
+                ? new[] 
+                { 
+                    l.N?.ToString(CultureInfo.InvariantCulture) ?? "",
+                    l.Mx?.ToString(CultureInfo.InvariantCulture) ?? "" 
+                }
+                : new[] 
+                {
                     l.N?.ToString(CultureInfo.InvariantCulture) ?? "",
                     l.Mx?.ToString(CultureInfo.InvariantCulture) ?? "",
-                    l.My?.ToString(CultureInfo.InvariantCulture) ?? "" }
-                );
+                    l.My?.ToString(CultureInfo.InvariantCulture) ?? ""
+                }
+            );
         }
 
         private bool WriteCurrentCell(string value)

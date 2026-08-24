@@ -11,9 +11,13 @@ namespace AutoGala.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            System.Diagnostics.Debug.WriteLine($"Convert called: value={value}, parameter={parameter}");
             if (value is bool enabled)
             {
-                return enabled == true ? Visibility.Visible : Visibility.Collapsed;
+                if (parameter?.ToString() == "Invert")
+                    enabled = !enabled;
+
+                return enabled ? Visibility.Visible : Visibility.Collapsed;
             }
 
             throw new Exception("Value is not of type bool");
@@ -23,7 +27,12 @@ namespace AutoGala.Converters
         {
             if (value is Visibility visible)
             {
-                return visible == Visibility.Visible ? true : false;
+                var result = visible == Visibility.Visible;
+
+                if (parameter?.ToString() == "Invert")
+                    result = !result;
+
+                return result;
             }
 
             throw new Exception("Value is not of type Visibility");

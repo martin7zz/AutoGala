@@ -113,15 +113,28 @@ namespace AutoGala.Services
                 ("X [cm]", r => r.X),
                 ("Y [cm]", r => r.Y));
 
-        public void SaveExcel(ObservableCollection<LoadItem> items) =>
-            SaveExcel(items,
-                "Loads",
+        public void SaveExcel(ObservableCollection<LoadItem> items, bool isSimpleBending)
+        {
+            var columns = new List<(string Header, Func<LoadItem, object?> Value)>
+            {
                 ("Load", l => l.Id),
                 ("N [kN]", l => l.N),
-                ("Mx [kNm]", l => l.Mx),
-                ("My [kNm]", l => l.My));
+                ("Mx [kNm]", l => l.Mx)
+            };
 
-        public void SaveAllToExcel(ObservableCollection<SectionItem> sections, ObservableCollection<RebarItem> rebars, ObservableCollection<LoadItem> loads)
+            if (!isSimpleBending)
+            {
+                columns.Add(("My [kNm]", l => l.My));
+            }
+
+            SaveExcel(items, "Loads", columns.ToArray());
+        }
+
+        public void SaveAllToExcel(
+            ObservableCollection<SectionItem> sections,
+            ObservableCollection<RebarItem> rebars,
+            ObservableCollection<LoadItem> loads,
+            bool isSimpleBending)
         {
             if ((sections == null || sections.Count == 0) &&
         (rebars == null || rebars.Count == 0) &&
@@ -201,7 +214,10 @@ namespace AutoGala.Services
                     worksheet.Cell(1, 10).Value = "Load";
                     worksheet.Cell(1, 11).Value = "N [kN]";
                     worksheet.Cell(1, 12).Value = "Mx [kNm]";
-                    worksheet.Cell(1, 13).Value = "My [kNm]";
+                    if (!isSimpleBending)
+                    {
+                        worksheet.Cell(1, 13).Value = "My [kNm]";
+                    }
 
                     for (int row = 0; row < loads.Count; row++)
                     {
@@ -210,7 +226,10 @@ namespace AutoGala.Services
                         worksheet.Cell(row + 2, 10).Value = item.Id;
                         worksheet.Cell(row + 2, 11).Value = item.N;
                         worksheet.Cell(row + 2, 12).Value = item.Mx;
-                        worksheet.Cell(row + 2, 13).Value = item.My;
+                        if (!isSimpleBending)
+                        {
+                            worksheet.Cell(row + 2, 13).Value = item.My;
+                        }
                     }
 
                     worksheet.Columns();
@@ -340,13 +359,27 @@ namespace AutoGala.Services
                 );
         }
 
-        public ObservableCollection<LoadItem> LoadLoadsExcel()
+        public ObservableCollection<LoadItem> LoadLoadsExcel(bool isSimpleBending)
         {
+            var expectedHeaders = new List<string>
+            {
+                "Load",
+                "N [kN]",
+                "Mx [kNm]"
+            };
+
+            if (!isSimpleBending)
+            {
+                expectedHeaders.Add("My [kNm]");
+            }
+
             return LoadExcel(
-                row => _loadService.CreateLoad(row.Cell(2).GetValue<double>(), row.Cell(3).GetValue<double>(), row.Cell(4).GetValue<double>()),
+                row => _loadService.CreateLoad(
+                    row.Cell(2).GetValue<double>(),
+                    row.Cell(3).GetValue<double>(),
+                    isSimpleBending ? 0 : row.Cell(4).GetValue<double>()),
                 (item, id) => item.Id = id,
-                "Load", "N [kN]", "Mx [kNm]", "My [kNm]"
-                );
+                expectedHeaders.ToArray());
         }
 
         private bool HasHeaders(
@@ -367,7 +400,7 @@ namespace AutoGala.Services
             return true;
         }
 
-        public List<object> LoadAllExcel()
+        public List<object> LoadAllExcel(bool isSimpleBending)
         {
             var openDialog = new OpenFileDialog
             {
@@ -406,10 +439,22 @@ namespace AutoGala.Services
                     5,
                     "Bar", "Asi [cm²]", "X [cm]", "Y [cm]");
 
+                var expectedLoads = new List<string>
+                {
+                    "Load",
+                    "N [kN]",
+                    "Mx [kNm]"
+                };
+
+                if (!isSimpleBending)
+                {
+                    expectedLoads.Add("My [kNm]");
+                }
+
                 bool loadsValid = HasHeaders(
                     worksheet,
                     10,
-                    "Load", "N [kN]", "Mx [kNm]", "My [kNm]");
+                    expectedLoads.ToArray());
 
                 if (!sectionsValid && !rebarsValid && loadsValid)
                 {
@@ -461,7 +506,9 @@ namespace AutoGala.Services
                     {
                         if (!row.Cell(10).IsEmpty())
                         {
-                            var load = _loadService.CreateLoad(row.Cell(11).GetValue<double>(), row.Cell(12).GetValue<double>(), row.Cell(13).GetValue<double>());
+                            double my = 0;
+
+                            var load = _loadService.CreateLoad(row.Cell(11).GetValue<double>(), row.Cell(12).GetValue<double>(), isSimpleBending ? my : row.Cell(13).GetValue<double>());
 
                             load.Id = loads.Count + 1;
 
@@ -474,22 +521,46 @@ namespace AutoGala.Services
                 items.Add(rebars);
                 items.Add(loads);
 
-                if (sections.Count == 0 && rebars.Count == 0 && loads.Count == 0)
+                var loaded = new List<string>();
+                var notLoaded = new List<string>();
+
+                if (sectionsValid)
+                    loaded.Add("Sections");
+                else
+                    notLoaded.Add("Sections");
+
+                if (rebarsValid)
+                    loaded.Add("Rebars");
+                else
+                    notLoaded.Add("Rebars");
+
+                if (loadsValid)
+                    loaded.Add("Loads");
+                else
+                    notLoaded.Add("Loads");
+
+                if (loaded.Count == 0)
                 {
                     MessageBox.Show(
-                        $"No items were loaded",
+                        "No items were loaded.\n\n" +
+                        $"Could not load: {string.Join(", ", notLoaded)}.",
                         "Load Excel",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
 
-                    return (
-                       new List<object>()
-                   );
+                    return new List<object>();
                 }
                 else
                 {
+                    var message = $"Loaded successfully: {string.Join(", ", loaded)}.";
+
+                    if (notLoaded.Count > 0)
+                    {
+                        message += $"\nCould not load: {string.Join(", ", notLoaded)}.";
+                    }
+
                     MessageBox.Show(
-                    $"Loaded successfully.",
+                    message,
                     "Load Excel",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);

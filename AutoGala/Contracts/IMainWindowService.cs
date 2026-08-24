@@ -15,17 +15,18 @@ namespace Plugin.Core.Contracts
         void SaveExcel(
             ObservableCollection<RebarItem> items);
         void SaveExcel(
-            ObservableCollection<LoadItem> items);
+            ObservableCollection<LoadItem> items, bool isSimpleBending);
 
         ObservableCollection<SectionItem> LoadSectionsExcel();
         ObservableCollection<RebarItem> LoadRebarsExcel();
-        ObservableCollection<LoadItem> LoadLoadsExcel();
+        ObservableCollection<LoadItem> LoadLoadsExcel(bool isSimpleBending);
 
         void SaveAllToExcel(
             ObservableCollection<SectionItem> sections,
             ObservableCollection<RebarItem> rebars,
-            ObservableCollection<LoadItem> loads);
+            ObservableCollection<LoadItem> loads,
+            bool isSimpleBending);
 
-        List<Object> LoadAllExcel();
+        List<Object> LoadAllExcel(bool isSimpleBending);
     }
 }

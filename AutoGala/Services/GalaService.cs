@@ -63,8 +63,8 @@ namespace AutoGala.Services
         public Task HookToGalaAsync(ObservableCollection<RebarItem> items) =>
             HookToGalaAsync(items, (nav, i) => nav.WriteItems(i));
 
-        public Task HookToGalaAsync(ObservableCollection<LoadItem> items) =>
-            HookToGalaAsync(items, (nav, i) => nav.WriteItems(i));
+        public Task HookToGalaAsync(ObservableCollection<LoadItem> items, bool isSimpleBending) =>
+            HookToGalaAsync(items, (nav, i) => nav.WriteItems(i, isSimpleBending));
 
         private Task<Point> WaitForUserClickAsync()
         {
