@@ -58,7 +58,7 @@
             
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             
@@ -82,6 +82,9 @@
                      ItemsSource="{Binding FailedRows}"
                      Visibility="{Binding HasFailedRows, Converter={StaticResource BoolToVisibleConverter}}"
                      Style="{StaticResource FailedRowsListStyle}"
+                     MaxHeight="85"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
                      Margin="0,0,0,10"/>
             
             <Button Grid.Row="2"

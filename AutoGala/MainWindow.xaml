@@ -11,17 +11,17 @@
 
     <!-- Main window grid -->
     <Grid Background="#F4F6F8">
-        
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
+
         <!-- Menu -->
         <Border Grid.Row="0" Background="White" BorderBrush="#D9DEE5" BorderThickness="0,0,0,1">
-            
+
             <Menu Padding="6,3" Background="Transparent" BorderThickness="0" FontSize="13">
-               
+
                 <MenuItem Header="_Section" Padding="10,6">
                     <MenuItem Header="_Save"
                               Command="{Binding SectionView.SaveToExcelCommand}"/>
@@ -38,7 +38,7 @@
                     <MenuItem Header="_Get from Gala"/>
                     <MenuItem Header="_Get from AutoCAD"/>
                 </MenuItem>
-                
+
                 <MenuItem Header="_Rebar" Padding="10,6">
                     <MenuItem Header="_Save"
                               Command="{Binding RebarView.SaveToExcelCommand}"/>
@@ -57,14 +57,17 @@
                     <MenuItem Header="_Get from Gala"/>
                     <MenuItem Header="_Get from AutoCAD"/>
                 </MenuItem>
-                
+
                 <MenuItem Header="_Loads" Padding="10,6">
                     <MenuItem Header="_Save"
                               Command="{Binding LoadView.SaveToExcelCommand}"/>
                     <MenuItem Header="_Load"
                               Command="{Binding LoadView.LoadFromExcelCommand}"/>
                     <Separator/>
-                    <MenuItem Header="_Simple Bending"/>
+                    <MenuItem Header="_Simple Bending"
+                              IsCheckable="True"
+                              IsChecked="{Binding LoadView.IsSimpleBending}"
+                              Command="{Binding LoadView.IsSimpleBendingCommand}"/>
                     <Separator/>
                     <MenuItem Header="_Clear List" 
                               Command="{Binding LoadView.ClearLoadCommand}"/>
@@ -73,19 +76,18 @@
                     <MenuItem Header="_Delete Zero Load Cases"/>
                     <MenuItem Header="_Paste from Clipboard" 
                               Command="{Binding LoadView.PasteLoadCommand}"/>
-                    <MenuItem Header="_Reverse Mx sign"/>
-                    <MenuItem Header="_Reverse My sign"/>
-                    <MenuItem Header="_Swap Mx and My"/>
+                    <MenuItem Header="_Reverse Mx sign"
+                              Command="{Binding LoadView.ReverseMxSignCommand}"/>
+                    <MenuItem Header="_Reverse My sign"
+                              Command="{Binding LoadView.ReverseMySignCommand}"/>
+                    <MenuItem Header="_Swap Mx and My"
+                              Command="{Binding LoadView.ReverseMxAndMyCommand}"/>
                     <Separator/>
-                    <MenuItem Header="_Set to Gala"/>
                     <MenuItem Header="_Get from Gala"/>
-                
+
                 </MenuItem>
 
                 <MenuItem Header="_More" Padding="10,6">
-                    <MenuItem Header="_Edit Toggle"
-                              Command="{Binding MenuEditLoadCommand}"/>
-                    <Separator/>
                     <MenuItem Header="_Save All"
                               Command="{Binding SaveAllToExcelCommand}"/>
                     <MenuItem Header="_Load All"
@@ -96,17 +98,99 @@
                 </MenuItem>
 
             </Menu>
-        
+
         </Border>
-        
+
+        <!--Job information-->
+        <Grid Grid.Row="1">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0"
+               Text="Job Title:"
+               FontWeight="Bold"
+               Margin="5"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="1"
+               Text="{Binding EditJobInfoView.JobTitle}"
+               Margin="5"/>
+
+            <!-- Job Number -->
+            <TextBlock Grid.Row="0" Grid.Column="2"
+               Text="Job Number:"
+               FontWeight="Bold"
+               Margin="15,5,5,5"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="3"
+               Text="{Binding EditJobInfoView.JobNumber}"
+               Margin="5"/>
+
+            <!-- Client -->
+            <TextBlock Grid.Row="0" Grid.Column="4"
+               Text="Client:"
+               FontWeight="Bold"
+               Margin="15,5,5,5"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="5"
+               Text="{Binding EditJobInfoView.Client}"
+               Margin="5"/>
+
+            <!-- Calcs by -->
+            <TextBlock Grid.Row="0" Grid.Column="6"
+               Text="Calcs by:"
+               FontWeight="Bold"
+               Margin="15,5,5,5"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="7"
+               Text="{Binding EditJobInfoView.CalcsBy}"
+               Margin="5"/>
+
+            <!-- Checked by -->
+            <TextBlock Grid.Row="1" Grid.Column="0"
+               Text="Checked by:"
+               FontWeight="Bold"
+               Margin="5"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="1"
+               Text="{Binding EditJobInfoView.CheckedBy}"
+               Margin="5"/>
+
+            <!-- Edit button -->
+            <Button Grid.Row="0"
+                Grid.Column="8"
+                Grid.RowSpan="2"
+                Content="Edit"
+                Width="70"
+                Height="30"
+                Margin="15,5,5,5"
+                Command="{Binding EditJobInfoCommand}"/>
+
+        </Grid>
+
         <!-- Main content -->
-        <Grid Grid.Row="1" Margin="12">
+        <Grid Grid.Row="2" Margin="12,68,12,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            
+
             <!-- Section -->
             <Border Grid.Column="0" Margin="0,0,6,0" Background="White" BorderBrush="#D9DEE5" BorderThickness="1" CornerRadius="5">
                 <Grid>
@@ -120,7 +204,7 @@
                     <ContentControl Grid.Row="1" Content="{Binding SectionView}" Margin="6"/>
                 </Grid>
             </Border>
-            
+
             <!-- Rebar -->
             <Border Grid.Column="1" Margin="6,0" Background="White" BorderBrush="#D9DEE5" BorderThickness="1" CornerRadius="5">
                 <Grid>
@@ -134,7 +218,7 @@
                     <ContentControl Grid.Row="1" Content="{Binding RebarView}" Margin="6"/>
                 </Grid>
             </Border>
-            
+
             <!-- Loads -->
             <Border Grid.Column="2" Margin="6,0,0,0" Background="White" BorderBrush="#D9DEE5" BorderThickness="1" CornerRadius="5">
                 <Grid>
@@ -148,13 +232,13 @@
                     <ContentControl Grid.Row="1" Content="{Binding LoadView}" Margin="6"/>
                 </Grid>
             </Border>
-            
+
         </Grid>
-        
+
     </Grid>
-    
+
     <Window.Resources>
-        
+
         <!-- View models -->
         <DataTemplate DataType="{x:Type vm:SectionViewModel}">
             <view:SectionView/>
@@ -165,7 +249,6 @@
         <DataTemplate DataType="{x:Type vm:LoadViewModel}">
             <view:LoadView/>
         </DataTemplate>
-        
     </Window.Resources>
-    
+
 </Window>

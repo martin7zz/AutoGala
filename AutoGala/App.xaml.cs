@@ -7,6 +7,7 @@ using AutoGala.ViewModels;
 using AutoGala.views;
 using Microsoft.Extensions.DependencyInjection;
 using Plugin.Core.Contracts;
+using Plugin.Core.Models;
 using Plugin.Core.Services;
 
 namespace AutoGala
@@ -37,6 +38,8 @@ namespace AutoGala
 
         private void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<JobInfo>();
+
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();
 
@@ -54,12 +57,14 @@ namespace AutoGala
             services.AddTransient<LoadViewModel>();
             services.AddTransient<ClipboardErrorViewModel>();
             services.AddTransient<GalaPromptViewModel>();
+            services.AddTransient<EditJobInfoViewModel>();
 
             services.AddTransient<SectionView>();
             services.AddTransient<RebarView>();
             services.AddTransient<LoadView>();
             services.AddTransient<GalaPromptView>();
             services.AddTransient<ClipboardErrorView>();
+            services.AddTransient<EditJobInfoView>();
         }
     }
 }

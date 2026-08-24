@@ -44,6 +44,9 @@
                         Command="{Binding HookToGalaCommand}"
                         Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
+            
+            <!--Visbility element-->
+            <FrameworkElement x:Name="checkBoxElement" Visibility="Collapsed"/>
 
             <DataGrid x:Name="LoadGrid"
                       SelectedItem="{Binding SelectedLoad}"
@@ -72,9 +75,10 @@
                             </Binding>
                         </DataGridTextColumn.Binding>
                     </DataGridTextColumn>
-
-                    <DataGridTextColumn Header="Mx [kN.m]" Width="*"
-                         EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
+                    
+                    <DataGridTextColumn Header="Mx [kN.m]"
+                                        Width="*"
+                                        EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
                         <DataGridTextColumn.Binding>
                             <Binding Path="Mx" NotifyOnValidationError="True">
                                 <Binding.ValidationRules>
@@ -84,7 +88,12 @@
                         </DataGridTextColumn.Binding>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="My [kN.m]" Width="*"
+                    <DataGridTextColumn Header="My [kN.m]" 
+                                        Width="*"
+                                        Visibility="{Binding DataContext.IsSimpleBending,
+                                        Source={x:Reference checkBoxElement},
+                                        Converter={StaticResource BoolToVisibleConverter}
+                                       ,ConverterParameter=Invert}"
                          EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
                         <DataGridTextColumn.Binding>
                             <Binding Path="My" NotifyOnValidationError="True">

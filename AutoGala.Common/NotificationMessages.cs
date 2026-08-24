@@ -20,6 +20,7 @@ namespace AutoGala.Common
         public const string RebarPasteErrorMessage = "Data not in correct format - (Area, X, Y) columns.";
 
         public const string LoadPasteErrorMessage = "Data not in correct format - (N, Mx, My) columns.";
+        public const string LoadSimpleBendingPasteErrorMessage = "Data not in correct format - (N, Mx) columns.";
 
         public const string WaitingGalaClickMessage = "Please click anywhere on Gala window.";
 
