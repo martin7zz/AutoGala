@@ -24,6 +24,8 @@ namespace AutoGala.Common
 
         public const string WaitingGalaClickMessage = "Please click anywhere on Gala window.";
 
+        public const string WaitingGalaJobInfoClickMessage = "Please click on the gala jobs window.";
+
         public const string TransferingToGalaMessage = "Transfering data to Gala.";
 
         public const string NoDataErrorMessage = "There is nothing to transfer.";
@@ -37,5 +39,7 @@ namespace AutoGala.Common
         public const string UnfilledRebarErrorMessage = "Fill in Area/X/Y for every rebar.";
 
         public const string UnfilledLoadErrorMessage = "Fill in N/Mx/My for every load.";
+
+        public const string JobInfoNullErrorMessage = "Job information is empty";
     }
 }

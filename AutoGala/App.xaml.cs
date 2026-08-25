@@ -39,6 +39,7 @@ namespace AutoGala
         private void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<JobInfo>();
+            services.AddSingleton<IJobInfoChangedNotifier, JobInfoChangedNotifier>();
 
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();

@@ -14,6 +14,7 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -102,89 +103,157 @@
         </Border>
 
         <!--Job information-->
-        <Grid Grid.Row="1">
+        <Border
+        Margin="0,38,0,153"
+        Padding="18"
+        Background="White"
+        BorderBrush="#E5E7EB"
+        BorderThickness="1"
+        CornerRadius="12" Grid.RowSpan="2">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <Grid>
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0"
-               Text="Job Title:"
-               FontWeight="Bold"
-               Margin="5"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="1"
-               Text="{Binding EditJobInfoView.JobTitle}"
-               Margin="5"/>
 
-            <!-- Job Number -->
-            <TextBlock Grid.Row="0" Grid.Column="2"
-               Text="Job Number:"
-               FontWeight="Bold"
-               Margin="15,5,5,5"/>
+                <!-- Job Title -->
+                <StackPanel Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="0,0,20,12">
 
-            <TextBlock Grid.Row="0" Grid.Column="3"
-               Text="{Binding EditJobInfoView.JobNumber}"
-               Margin="5"/>
+                    <TextBlock Text="JOB TITLE"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="#9CA3AF"/>
 
-            <!-- Client -->
-            <TextBlock Grid.Row="0" Grid.Column="4"
-               Text="Client:"
-               FontWeight="Bold"
-               Margin="15,5,5,5"/>
+                    <TextBlock Text="{Binding EditJobInfoView.JobTitle}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#1F2937"
+                       Margin="0,3,0,0"/>
 
-            <TextBlock Grid.Row="0" Grid.Column="5"
-               Text="{Binding EditJobInfoView.Client}"
-               Margin="5"/>
+                </StackPanel>
 
-            <!-- Calcs by -->
-            <TextBlock Grid.Row="0" Grid.Column="6"
-               Text="Calcs by:"
-               FontWeight="Bold"
-               Margin="15,5,5,5"/>
 
-            <TextBlock Grid.Row="0" Grid.Column="7"
-               Text="{Binding EditJobInfoView.CalcsBy}"
-               Margin="5"/>
+                <!-- Job Number -->
+                <StackPanel Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,20,12">
 
-            <!-- Checked by -->
-            <TextBlock Grid.Row="1" Grid.Column="0"
-               Text="Checked by:"
-               FontWeight="Bold"
-               Margin="5"/>
+                    <TextBlock Text="JOB NUMBER"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="#9CA3AF"/>
 
-            <TextBlock Grid.Row="1" Grid.Column="1"
-               Text="{Binding EditJobInfoView.CheckedBy}"
-               Margin="5"/>
+                    <TextBlock Text="{Binding EditJobInfoView.JobNumber}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#1F2937"
+                       Margin="0,3,0,0"/>
 
-            <!-- Edit button -->
-            <Button Grid.Row="0"
-                Grid.Column="8"
+                </StackPanel>
+
+
+                <!-- Client -->
+                <StackPanel Grid.Row="0"
+                    Grid.Column="2"
+                    Margin="0,0,20,12">
+
+                    <TextBlock Text="CLIENT"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="#9CA3AF"/>
+
+                    <TextBlock Text="{Binding EditJobInfoView.Client}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#1F2937"
+                       Margin="0,3,0,0"/>
+
+                </StackPanel>
+
+
+                <!-- Edit -->
+                <Button Grid.Row="0"
+                Grid.Column="3"
                 Grid.RowSpan="2"
                 Content="Edit"
-                Width="70"
-                Height="30"
-                Margin="15,5,5,5"
+                Width="75"
+                Height="34"
+                Margin="5,0,10,0"
+                Background="#EFF6FF"
+                Foreground="#2563EB"
+                BorderThickness="0"
+                FontWeight="SemiBold"
+                Cursor="Hand"
                 Command="{Binding EditJobInfoCommand}"/>
 
-        </Grid>
+
+                <!-- Set Gala -->
+                <Button Grid.Row="0"
+                Grid.Column="4"
+                Grid.RowSpan="2"
+                Content="Set Gala"
+                Width="95"
+                Height="34"
+                Background="#2563EB"
+                Foreground="White"
+                BorderThickness="0"
+                FontWeight="SemiBold"
+                Cursor="Hand"
+                Command="{Binding SetJobInfoCommand}"/>
+
+
+                <!-- Calcs By -->
+                <StackPanel Grid.Row="1"
+                    Grid.Column="0">
+
+                    <TextBlock Text="CALCULATED BY"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="#9CA3AF"/>
+
+                    <TextBlock Text="{Binding EditJobInfoView.CalcsBy}"
+                       FontSize="14"
+                       Foreground="#374151"
+                       Margin="0,3,0,0"/>
+
+                </StackPanel>
+
+
+                <!-- Checked By -->
+                <StackPanel Grid.Row="1"
+                    Grid.Column="1">
+
+                    <TextBlock Text="CHECKED BY"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="#9CA3AF"/>
+
+                    <TextBlock Text="{Binding EditJobInfoView.CheckedBy}"
+                       FontSize="14"
+                       Foreground="#374151"
+                       Margin="0,3,0,0"/>
+
+                </StackPanel>
+
+            </Grid>
+
+        </Border>
 
         <!-- Main content -->
-        <Grid Grid.Row="2" Margin="12,68,12,12">
+        <Grid Margin="12,166,12,12" Grid.RowSpan="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>

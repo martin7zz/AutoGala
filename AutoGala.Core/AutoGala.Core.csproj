@@ -46,7 +46,7 @@
     <Compile Include="Contracts\ILoadService.cs" />
     <Compile Include="Contracts\IRebarService.cs" />
     <Compile Include="Contracts\ISectionService.cs" />
-    <Compile Include="Services\JobInfo.cs" />
+    <Compile Include="Models\JobInfo.cs" />
     <Compile Include="Models\LoadItem.cs" />
     <Compile Include="Models\RebarItem.cs" />
     <Compile Include="Models\SectionItem.cs" />
