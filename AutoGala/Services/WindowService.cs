@@ -12,9 +12,9 @@ namespace AutoGala.Services
 {
     public class WindowService : IWindowService
     {
-        public EditJobInfoView ShowEditJobInfo(JobInfo jobInfo)
+        public EditJobInfoView ShowEditJobInfo(JobInfo jobInfo, IJobInfoChangedNotifier notifier)
         {
-            var viewModel = new EditJobInfoViewModel(jobInfo);
+            var viewModel = new EditJobInfoViewModel(jobInfo, notifier);
             
             var window = new EditJobInfoView
             {
