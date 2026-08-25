@@ -12,217 +12,15 @@ using System.Threading;
 using System.Windows.Automation;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using static AutoGala.Common.UiNavigation;
 
 namespace AutoGala.Services.Helper
 {
-    internal sealed class GalaNavigator
+    internal sealed class GalaNavigator : NavigatorBase
     {
-        private const uint WM_SETTEXT = 0x000C;
-        private const uint WM_GETTEXT = 0x000D;
-        private const uint WM_GETTEXTLENGTH = 0x000E;
-
-        private const uint GW_CHILD = 5;
-        private const uint GW_HWNDNEXT = 2;
-
-        const int WM_KEYDOWN = 0x0100;
-        const int WM_KEYUP = 0x0101;
-        private const int VK_UP = 0x26;
-        private const int VK_DOWN = 0x28;
-        private const int VK_HOME = 0x24;
-        private const int VK_CONTROL = 0x11;
-
-        private IntPtr _mainWindow;
         private IntPtr _spinHandle;
         private IntPtr _gridHandle;
 
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern IntPtr SendMessage(
-            IntPtr hWnd,
-            uint Msg,
-            IntPtr wParam,
-            string lParam);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr SendMessage(
-            IntPtr hWnd,
-            uint Msg,
-            IntPtr wParam,
-            IntPtr lParam);
-        
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int SendMessage(
-            IntPtr hWnd,
-            uint Msg,
-            int wParam,
-            StringBuilder lParam);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr GetWindow(
-            IntPtr hWnd,
-            uint uCmd);
-
-        [DllImport("user32.dll")]
-        private static extern bool EnumChildWindows(
-            IntPtr hWndParent,
-            EnumChildProc lpEnumFunc,
-            IntPtr lParam);
-
-        private delegate bool EnumChildProc(IntPtr hwnd, IntPtr lParam);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern int GetClassName(
-            IntPtr hWnd,
-            StringBuilder lpClassName,
-            int nMaxCount);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern int GetWindowText(
-            IntPtr hWnd,
-            StringBuilder lpString,
-            int nMaxCount);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool IsWindowVisible(IntPtr hWnd);
-
-
-        [DllImport("user32.dll")]
-        private static extern bool PostMessage(
-            IntPtr hWnd,
-            uint Msg,
-            IntPtr wParam,
-            IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr SetFocus(IntPtr hWnd);
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetFocus();
-
-        [DllImport("user32.dll")]
-        private static extern bool GetKeyboardState(byte[] lpKeyState);
-
-        [DllImport("user32.dll")]
-        private static extern bool SetKeyboardState(byte[] lpKeyState);
-
-
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("kernel32.dll")]
-        private static extern uint GetCurrentThreadId();
-
-        public bool Attach(AutomationElement clickedElement)
-        {
-            var window = GetTopLevelWindow(clickedElement);
-            if (window == null) return false;
-
-            _mainWindow = (IntPtr)window.Current.NativeWindowHandle;
-
-            //Debug.WriteLine($"Main : 0x{_mainWindow:X}");
-            //Debug.WriteLine($"Spin : 0x{_spinHandle:X}");
-            //Debug.WriteLine($"Grid : 0x{_gridHandleLoads:X}");
-
-            return _mainWindow != IntPtr.Zero;
-        }
-
-        private bool CheckCorrectPosition<T>(IntPtr mainWindow, ObservableCollection<T> items)
-        {
-            var rebar = IntPtr.Zero;
-            //var rebar = FindDescendantByTextAndClassName(mainWindow, "Bar ratio", "TRadioGroup");
-            var reinfLayout = FindDescendantByTextAndClassName(mainWindow, "TS_reinf_layout", "TTabSheet");
-
-            int reinfLayoutCount = GetDescendantsCount(reinfLayout);
-
-            if (reinfLayout != IntPtr.Zero && reinfLayoutCount >= 5)
-            {
-                var panels = FindDescendantsByClass(
-                    reinfLayout,
-                    "TPanel");
-
-                if (panels.Count > 1)
-                {
-                    rebar = panels[1];
-                }
-            }
-
-            var load = FindDescendantByTextAndClassName(mainWindow, "TS_stability", "TTabSheet");
-
-            var slsDataButton = FindDescendantByTextAndClassName(mainWindow, "SLS data", "TBitBtn");
-
-            if (reinfLayout != IntPtr.Zero && typeof(T) == typeof(SectionItem) && rebar == IntPtr.Zero && reinfLayoutCount < 5)
-            {
-                return true;
-            }
-
-            if (rebar != IntPtr.Zero && typeof(T) == typeof(RebarItem) && reinfLayout != IntPtr.Zero && IsWindowVisible(rebar))
-            {
-                return true;
-            }
-
-            if (slsDataButton != IntPtr.Zero && typeof(T) == typeof(LoadItem) && IsWindowVisible(slsDataButton) && rebar == IntPtr.Zero && reinfLayout == IntPtr.Zero)
-            {
-                var pageControls = FindDescendantsByClass(
-                    _mainWindow,
-                    "TPageControl");
-
-                if (pageControls.Count > 3)
-                {
-                    load = pageControls[3];
-                }
-
-                if (load != IntPtr.Zero)
-                {
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (load != IntPtr.Zero && typeof(T) == typeof(LoadItem))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        // FOR TESTING
-        private static void DumpWindows(IntPtr parent, int depth = 0)
-        {
-            EnumChildWindows(parent, (hwnd, _) =>
-            {
-                var sb = new StringBuilder(128);
-                GetClassName(hwnd, sb, sb.Capacity);
-
-                Debug.WriteLine($"{new string(' ', depth * 2)}0x{hwnd:X}  {sb}");
-
-                DumpWindows(hwnd, depth + 1);
-
-                return true;
-            }, IntPtr.Zero);
-        }
-
-        // FOR TESTING
-        void DumpRaw(AutomationElement element, int depth = 0)
-        {
-            var rect = element.Current.BoundingRectangle;
-            Debug.WriteLine(
-                $"{new string(' ', depth * 2)}" +
-                $"{element.Current.ControlType.ProgrammaticName} - '{element.Current.Name}'" +
-                $" offscreen={element.Current.IsOffscreen} rect={rect}");
-
-            var children = element.FindAll(TreeScope.Children, Condition.TrueCondition);
-            foreach (AutomationElement child in children)
-                DumpRaw(child, depth + 1);
-        }
-
-        
         /// Pushes the ObservableCollection into Gala: sets the row count to
         /// match, waits for the row edits to appear, then writes each
         /// item into the corresponding row's cells.
@@ -236,7 +34,7 @@ namespace AutoGala.Services.Helper
                 return false;
             }
 
-            if (!CheckCorrectPosition(_mainWindow, items))
+            if (!CheckCorrectPosition(MainWindow, items))
             {
                 throw new InvalidOperationException(
                      $"Target page must be: {(typeof(T) == typeof(SectionItem) ? "Section"
@@ -250,7 +48,7 @@ namespace AutoGala.Services.Helper
                 return false;
             }
 
-            _gridHandle = FindDescendantByClass(_mainWindow, "TStringGrid");
+            _gridHandle = FindDescendantByClass(MainWindow, "TStringGrid");
 
             if (_gridHandle == IntPtr.Zero)
             {
@@ -283,7 +81,7 @@ namespace AutoGala.Services.Helper
 
         public bool WriteItems(ObservableCollection<SectionItem> sections)
         {
-            _spinHandle = FindRowCountSpin(_mainWindow);
+            _spinHandle = FindRowCountSpin(MainWindow);
 
             return WriteItemsCore(sections,
                 s => new[] { 
@@ -294,7 +92,7 @@ namespace AutoGala.Services.Helper
 
         public bool WriteItems(ObservableCollection<RebarItem> rebars)
         {
-            _spinHandle = FindRowCountSpin(_mainWindow);
+            _spinHandle = FindRowCountSpin(MainWindow);
 
             return WriteItemsCore(rebars,
                 r => new[] {
@@ -306,7 +104,7 @@ namespace AutoGala.Services.Helper
 
         public bool WriteItems(ObservableCollection<LoadItem> loads, bool isSimpleBending)
         {
-            _spinHandle = FindRowCountSpin(_mainWindow);
+            _spinHandle = FindRowCountSpin(MainWindow);
 
             return WriteItemsCore(loads,
                 l => isSimpleBending 
@@ -326,7 +124,7 @@ namespace AutoGala.Services.Helper
 
         private bool WriteCurrentCell(string value)
         {
-            var edit = FindDescendantByClass(_mainWindow, "TInplaceEdit");
+            var edit = FindDescendantByClass(MainWindow, "TInplaceEdit");
 
             if (edit == IntPtr.Zero)
             {
@@ -334,7 +132,7 @@ namespace AutoGala.Services.Helper
                 return false;
             }
 
-            if (!FocusWindow(edit))
+            if (!FocusWindow(edit, MainWindow))
             {
                 Debug.WriteLine("Failed to focus inplace editor.");
                 return false;
@@ -359,7 +157,7 @@ namespace AutoGala.Services.Helper
 
         private bool NextCell()
         {
-            var edit = FindDescendantByClass(_mainWindow, "TInplaceEdit");
+            var edit = FindDescendantByClass(MainWindow, "TInplaceEdit");
 
             if (edit == IntPtr.Zero)
             {
@@ -383,59 +181,12 @@ namespace AutoGala.Services.Helper
         }
 
         // row count management
-
-        private bool FocusWindow(IntPtr hwnd)
-        {
-            if (hwnd == IntPtr.Zero)
-                return false;
-
-            uint targetThread = GetWindowThreadProcessId(hwnd, out _);
-            uint currentThread = GetCurrentThreadId();
-
-            bool attached = false;
-
-            try
-            {
-                if (targetThread != currentThread)
-                {
-                    attached = AttachThreadInput(
-                        currentThread,
-                        targetThread,
-                        true);
-
-                    //Debug.WriteLine($"Attach: {attached}");
-
-                    if (!attached)
-                        return false;
-                }
-
-                SetForegroundWindow(_mainWindow);
-
-                IntPtr previous = SetFocus(hwnd);
-                IntPtr actual = GetFocus();
-
-                //Debug.WriteLine($"Target:   0x{hwnd:X}");
-                //Debug.WriteLine($"Previous: 0x{previous:X}");
-                //Debug.WriteLine($"Actual:   0x{actual:X}");
-
-                return actual == hwnd;
-            }
-            finally
-            {
-                if (attached)
-                    AttachThreadInput(
-                        currentThread,
-                        targetThread,
-                        false);
-            }
-        }
-
         private bool SetRowCount(int target)
         {
             if (_spinHandle == IntPtr.Zero)
                 return false;
 
-            if (!FocusWindow(_spinHandle))
+            if (!FocusWindow(_spinHandle, MainWindow))
             {
                 Debug.WriteLine("SetRowCount: failed to focus spin.");
                 return false;
@@ -479,7 +230,24 @@ namespace AutoGala.Services.Helper
             return true;
         }
 
-        // internals
+        private static IntPtr FindRowCountSpin(IntPtr mainWindow)
+        {
+            var spins = FindDescendantsByClass(
+                mainWindow,
+                "TRxSpinEdit");
+
+            if (spins.Count == 0)
+            {
+                Debug.WriteLine("No TRxSpinEdit controls found.");
+                return IntPtr.Zero;
+            }
+
+            if (spins.Count == 1)
+                return spins[0];
+
+            // Gala-specific assumption:
+            return spins[1];
+        }
 
         // uses keyboard state table to simulate ctrl + home so that it automatically sets the current cell to the first in the grid
         private void GoToFirstCell()
@@ -492,7 +260,7 @@ namespace AutoGala.Services.Helper
 
             try
             {
-                FocusWindow(_gridHandle);
+                FocusWindow(_gridHandle, MainWindow);
 
                 byte[] keyState = new byte[256];
                 GetKeyboardState(keyState);
@@ -520,127 +288,66 @@ namespace AutoGala.Services.Helper
             return int.TryParse(sb.ToString(), out var v) ? v : 0;
         }
 
-        private static AutomationElement? GetTopLevelWindow(AutomationElement el)
+        // looks for ui elements to figure out which ui window is currently active
+        private bool CheckCorrectPosition<T>(IntPtr mainWindow, ObservableCollection<T> items)
         {
-            var walker = TreeWalker.ControlViewWalker;
-            var current = el;
+            var rebar = IntPtr.Zero;
+            //var rebar = FindDescendantByTextAndClassName(mainWindow, "Bar ratio", "TRadioGroup");
+            var reinfLayout = FindDescendantByTextAndClassName(mainWindow, "TS_reinf_layout", "TTabSheet");
 
-            while (current != null && current.Current.ControlType != ControlType.Window)
+            int reinfLayoutCount = GetDescendantsCount(reinfLayout);
+
+            if (reinfLayout != IntPtr.Zero && reinfLayoutCount >= 5)
             {
-                var parent = walker.GetParent(current);
-                if (parent == null) break;
-                current = parent;
-            }
+                var panels = FindDescendantsByClass(
+                    reinfLayout,
+                    "TPanel");
 
-            return current;
-        }
-
-        private static IntPtr FindDescendantByTextAndClassName(IntPtr parent, string text, string className)
-        {
-            IntPtr result = IntPtr.Zero;
-
-            EnumChildWindows(parent, (hwnd, _) =>
-            {
-                var textBuffer = new StringBuilder(256);
-                var classBuffer = new StringBuilder(128);
-
-                GetWindowText(hwnd, textBuffer, textBuffer.Capacity);
-                GetClassName(hwnd, classBuffer, classBuffer.Capacity);
-
-                string text1 = textBuffer.ToString();
-                string text2 = classBuffer.ToString();
-
-                //Debug.WriteLine($"{text2} {text1}");
-
-                if (textBuffer.ToString().Equals(text, StringComparison.OrdinalIgnoreCase) &&
-                    classBuffer.ToString().Equals(className, StringComparison.OrdinalIgnoreCase) && IsWindowVisible(hwnd))
+                if (panels.Count > 1)
                 {
-                    result = hwnd;
-                    return false;
-                }
-
-                return true;
-            }, IntPtr.Zero);
-
-            return result;
-        }
-
-        private static IntPtr FindDescendantByClass(IntPtr parent, string className)
-        {
-            IntPtr result = IntPtr.Zero;
-
-            EnumChildWindows(parent, (hwnd, _) =>
-            {
-                var sb = new StringBuilder(128);
-                GetClassName(hwnd, sb, sb.Capacity);
-
-                if (sb.ToString().Equals(className, StringComparison.OrdinalIgnoreCase) && IsWindowVisible(hwnd))
-                {
-                    result = hwnd;
-                    return false; // stop enumeration
-                }
-
-                return true;
-            }, IntPtr.Zero);
-
-            return result;
-        }
-
-        private static List<IntPtr> FindDescendantsByClass(IntPtr parent, string className)
-        {
-            var results = new List<IntPtr>();
-
-            EnumChildWindows(parent, (hwnd, _) =>
-            {
-                var sb = new StringBuilder(128);
-                GetClassName(hwnd, sb, sb.Capacity);
-
-                if (sb.ToString().Equals(className, StringComparison.OrdinalIgnoreCase) && IsWindowVisible(hwnd))
-                {
-                    results.Add(hwnd);
-                }
-
-                return true;
-            }, IntPtr.Zero);
-
-            return results;
-        }
-
-        private static int GetDescendantsCount(IntPtr parent)
-        {
-            int count = 0;
-
-            for (IntPtr hwnd = GetWindow(parent, GW_CHILD);
-                 hwnd != IntPtr.Zero;
-                 hwnd = GetWindow(hwnd, GW_HWNDNEXT))
-            {
-                if (IsWindowVisible(hwnd))
-                {
-                    count++;
+                    rebar = panels[1];
                 }
             }
 
-            return count;
-        }
+            var load = FindDescendantByTextAndClassName(mainWindow, "TS_stability", "TTabSheet");
 
-        private static IntPtr FindRowCountSpin(IntPtr mainWindow)
-        {
-            var spins = FindDescendantsByClass(
-                mainWindow,
-                "TRxSpinEdit");
+            var slsDataButton = FindDescendantByTextAndClassName(mainWindow, "SLS data", "TBitBtn");
 
-            if (spins.Count == 0)
+            if (reinfLayout != IntPtr.Zero && typeof(T) == typeof(SectionItem) && rebar == IntPtr.Zero && reinfLayoutCount < 5)
             {
-                Debug.WriteLine("No TRxSpinEdit controls found.");
-                return IntPtr.Zero;
+                return true;
             }
 
-            if (spins.Count == 1)
-                return spins[0];
+            if (rebar != IntPtr.Zero && typeof(T) == typeof(RebarItem) && reinfLayout != IntPtr.Zero && IsWindowVisible(rebar))
+            {
+                return true;
+            }
 
-            // Gala-specific assumption:
-            // second TRxSpinEdit is the row-count control.
-            return spins[1];
+            if (slsDataButton != IntPtr.Zero && typeof(T) == typeof(LoadItem) && IsWindowVisible(slsDataButton) && rebar == IntPtr.Zero && reinfLayout == IntPtr.Zero)
+            {
+                var pageControls = FindDescendantsByClass(
+                    MainWindow,
+                    "TPageControl");
+
+                if (pageControls.Count > 3)
+                {
+                    load = pageControls[3];
+                }
+
+                if (load != IntPtr.Zero)
+                {
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if (load != IntPtr.Zero && typeof(T) == typeof(LoadItem))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
