@@ -1,4 +1,5 @@
 ﻿using AutoGala.Common;
+using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Models;
 using System.Runtime;
@@ -17,13 +18,14 @@ namespace AutoGala.ViewModels
         private string? _checkedBy;
 
         public ICommand SaveButtonCommand { get; }
+        public ICommand ClearAllCommand { get; }
 
-        public event Action? CloseRequested;
         public event Action? SaveRequested;
 
-        public EditJobInfoViewModel(JobInfo jobInfo)
+        public EditJobInfoViewModel(JobInfo jobInfo, IJobInfoChangedNotifier notifier)
         {
             _jobInfo = jobInfo;
+            notifier.JobInfoChanged += RefreshFromModel;
 
             JobTitle = jobInfo.JobTitle;
             JobNumber = jobInfo.JobNumber;
@@ -32,6 +34,7 @@ namespace AutoGala.ViewModels
             CheckedBy = jobInfo.CheckedBy;
 
             SaveButtonCommand = new RelayCommand(param => SaveJobInfo());
+            ClearAllCommand = new RelayCommand(param => ClearAll());
         }
 
         public JobInfo JobInfo => _jobInfo;
@@ -99,6 +102,15 @@ namespace AutoGala.ViewModels
                     OnPropertyChanged();
                 }
             }
+        }
+
+        private void ClearAll()
+        {
+            JobTitle = null;
+            JobNumber = null;
+            Client = null;
+            CalcsBy = null;
+            CheckedBy = null;
         }
 
         private void SaveJobInfo()

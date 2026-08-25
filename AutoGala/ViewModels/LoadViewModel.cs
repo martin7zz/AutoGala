@@ -67,11 +67,14 @@ namespace AutoGala.ViewModels
         private int _validationErrorCount;
         public bool HasValidationError => _validationErrorCount > 0;
 
+        private readonly JobInfo _jobInfo;
+
         private readonly ILoadService _loadService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
         private readonly IMainWindowService _mainWindowService;
+        private readonly IJobInfoChangedNotifier _notifier;
 
         public ICommand AddLoadCommand { get; }
         public ICommand RemoveLoadsCommand { get; }
@@ -89,13 +92,17 @@ namespace AutoGala.ViewModels
             IClipboardService clipboardService, 
             IGalaService galaService, 
             IWindowService windowService, 
-            IMainWindowService mainWindowService)
+            IMainWindowService mainWindowService,
+            JobInfo jobInfo,
+            IJobInfoChangedNotifier notifier)
         {
             _loadService = loadService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
+            _jobInfo = jobInfo;
+            _notifier = notifier;
 
             AddLoadCommand = new RelayCommand(param => AddLoad(), param => !HasValidationError);
             RemoveLoadsCommand = new RelayCommand(param => RemoveLoad(), param => SelectedLoad != null && !HasValidationError);
@@ -274,12 +281,12 @@ namespace AutoGala.ViewModels
 
         private void SaveToExcel()
         {
-            _mainWindowService.SaveExcel(Loads, IsSimpleBending);
+            _mainWindowService.SaveExcel(Loads, IsSimpleBending, _jobInfo);
         }
 
         private void LoadFromExcel()
         {
-            var loadedLoads = _mainWindowService.LoadLoadsExcel(IsSimpleBending);
+            var loadedLoads = _mainWindowService.LoadLoadsExcel(IsSimpleBending, _jobInfo);
 
             if (loadedLoads.Count > 0)
             {
@@ -290,6 +297,8 @@ namespace AutoGala.ViewModels
             {
                 Loads.Add(load);
             }
+
+            _notifier.NotifyJobInfoChanged();
 
             CommandManager.InvalidateRequerySuggested();
 

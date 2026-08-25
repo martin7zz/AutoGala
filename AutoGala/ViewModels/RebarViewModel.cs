@@ -60,11 +60,14 @@ namespace AutoGala.ViewModels
         private int _validationErrorCount;
         public bool HasValidationError => _validationErrorCount > 0;
 
+        private readonly JobInfo _jobInfo;
+
         private readonly IRebarService _rebarService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
         private readonly IMainWindowService _mainWindowService;
+        private readonly IJobInfoChangedNotifier _notifier;
 
         public ICommand AddRebarCommand { get; }
         public ICommand RemoveRebarsCommand { get; }
@@ -79,13 +82,17 @@ namespace AutoGala.ViewModels
             IClipboardService clipboardService,
             IGalaService galaService,
             IWindowService windowService,
-            IMainWindowService mainWindowService)
+            IMainWindowService mainWindowService,
+            JobInfo jobInfo,
+            IJobInfoChangedNotifier notifier)
         {
             _rebarService = rebarService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
+            _jobInfo = jobInfo;
+            _notifier = notifier;
 
             AddRebarCommand = new RelayCommand(param => AddRebar(), param => !HasValidationError);
             RemoveRebarsCommand = new RelayCommand(param => RemoveRebar(), param => SelectedRebars.Count > 0 && !HasValidationError);
@@ -223,12 +230,12 @@ namespace AutoGala.ViewModels
 
         private void SaveToExcel()
         {
-            _mainWindowService.SaveExcel(Rebars);
+            _mainWindowService.SaveExcel(Rebars, _jobInfo);
         }
 
         private void LoadFromExcel()
         {
-            var loadedRebars = _mainWindowService.LoadRebarsExcel();
+            var loadedRebars = _mainWindowService.LoadRebarsExcel(_jobInfo);
 
             if (loadedRebars.Count > 0)
             {
@@ -239,6 +246,8 @@ namespace AutoGala.ViewModels
             {
                 Rebars.Add(rebar);
             }
+
+            _notifier.NotifyJobInfoChanged();
 
             CommandManager.InvalidateRequerySuggested();
 

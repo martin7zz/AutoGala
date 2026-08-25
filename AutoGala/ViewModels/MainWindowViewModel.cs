@@ -23,14 +23,18 @@ namespace AutoGala.ViewModels
         private IMainWindowService _mainWindowService;
         private IEditStateService _editStateService;
         private IWindowService _windowService;
+        private IGalaService _galaService;
+        private IJobInfoChangedNotifier _notifier;
 
         public ICommand SaveAllToExcelCommand { get; }
         public ICommand LoadAllFromExcelCommand { get; }
         public ICommand ClearAllCommand { get; }
         public ICommand EditJobInfoCommand { get; }
+        public ICommand SetJobInfoCommand { get; }
 
         public MainWindowViewModel(SectionViewModel sectionViewModel, RebarViewModel rebarViewModel, LoadViewModel loadViewModel, EditJobInfoViewModel editJobInfoViewModel,
-            IMainWindowService mainWindowService, IEditStateService editStateService, IWindowService windowService) 
+            IMainWindowService mainWindowService, IEditStateService editStateService, IWindowService windowService, IGalaService galaService,
+            IJobInfoChangedNotifier notifier) 
         {
             SectionView = sectionViewModel;
             RebarView = rebarViewModel;
@@ -40,17 +44,25 @@ namespace AutoGala.ViewModels
             _mainWindowService = mainWindowService;
             _editStateService = editStateService;
             _windowService = windowService;
+            _galaService = galaService;
+            _notifier = notifier;
 
             SaveAllToExcelCommand = new RelayCommand(param => SaveAllToExcel(), param => HasAll() && !_editStateService.IsEditing);
             LoadAllFromExcelCommand = new RelayCommand(param => LoadAllFromExcel(), param => !_editStateService.IsEditing);
             ClearAllCommand = new RelayCommand(param => ClearAll(), param => HasData() && !_editStateService.IsEditing);
             EditJobInfoCommand = new RelayCommand(param => EditJobInfo());
+            SetJobInfoCommand = new RelayCommand(async param => await SetJobInfo());
         }
 
         private void EditJobInfo()
         {
-            _windowService.ShowEditJobInfo(EditJobInfoView.JobInfo);
+            _windowService.ShowEditJobInfo(EditJobInfoView.JobInfo, _notifier);
             EditJobInfoView.RefreshFromModel();
+        }
+
+        private async Task SetJobInfo()
+        {
+           await _galaService.HookToGalaJobAsync(EditJobInfoView.JobInfo);
         }
 
         private void SaveAllToExcel()
@@ -59,7 +71,8 @@ namespace AutoGala.ViewModels
                 SectionView.Sections,
                 RebarView.Rebars,
                 LoadView.Loads,
-                LoadView.IsSimpleBending);
+                LoadView.IsSimpleBending,
+                EditJobInfoView.JobInfo);
         }
 
         private void LoadAllFromExcel()
@@ -86,6 +99,17 @@ namespace AutoGala.ViewModels
             {
                 LoadView.Loads.Add(load);
             }
+
+            var loadedJobInfo = (JobInfo)items[3];
+            var jobInfo = EditJobInfoView.JobInfo;
+
+            jobInfo.JobTitle = loadedJobInfo.JobTitle;
+            jobInfo.JobNumber = loadedJobInfo.JobNumber;
+            jobInfo.Client = loadedJobInfo.Client;
+            jobInfo.CalcsBy = loadedJobInfo.CalcsBy;
+            jobInfo.CheckedBy = loadedJobInfo.CheckedBy;
+
+            EditJobInfoView.RefreshFromModel();
 
             CommandManager.InvalidateRequerySuggested();
         }

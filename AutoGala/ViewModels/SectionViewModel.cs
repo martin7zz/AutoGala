@@ -1,6 +1,7 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
+using AutoGala.views;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System;
@@ -46,11 +47,14 @@ namespace AutoGala.ViewModels
         private int _validationErrorCount;
         private bool HasValidationError => _validationErrorCount > 0;
 
+        private readonly JobInfo _jobInfo;
         private readonly ISectionService _sectionService;
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
         private readonly IMainWindowService _mainWindowService;
+        private readonly IJobInfoChangedNotifier _notifier;
+
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionsCommand { get; }
         public ICommand PasteSectionCommand { get; }
@@ -64,13 +68,19 @@ namespace AutoGala.ViewModels
             IClipboardService clipboardService,
             IGalaService galaService,
             IWindowService windowService,
-            IMainWindowService mainWindowService)
+            IMainWindowService mainWindowService,
+            JobInfo jobInfo,
+            IJobInfoChangedNotifier notifier
+            )
         {
             _sectionService = sectionService;
             _clipboardService = clipboardService;
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
+
+            _jobInfo = jobInfo;
+            _notifier = notifier;
 
             AddSectionCommand = new RelayCommand(param => AddSection(), param => !HasValidationError);
             RemoveSectionsCommand = new RelayCommand(param => RemoveSections(), param => SelectedSections.Count > 0 && !HasValidationError);
@@ -188,12 +198,12 @@ namespace AutoGala.ViewModels
 
         private void SaveToExcel()
         {
-            _mainWindowService.SaveExcel(Sections);
+            _mainWindowService.SaveExcel(Sections, _jobInfo);
         }
 
         private void LoadFromExcel()
         {
-            var loadedSections = _mainWindowService.LoadSectionsExcel();
+            var loadedSections = _mainWindowService.LoadSectionsExcel(_jobInfo);
 
             if (loadedSections.Count > 0)
             {
@@ -204,6 +214,8 @@ namespace AutoGala.ViewModels
             {
                 Sections.Add(section);
             }
+
+            _notifier.NotifyJobInfoChanged();
 
             CommandManager.InvalidateRequerySuggested();
         }
