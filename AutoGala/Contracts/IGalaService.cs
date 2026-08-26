@@ -14,5 +14,9 @@ namespace Plugin.Core.Contracts
         Task HookToGalaAsync(ObservableCollection<RebarItem> items);
         Task HookToGalaAsync(ObservableCollection<LoadItem> items, bool isSimpleBending);
         Task HookToGalaJobAsync(JobInfo jobInfo);
+
+        Task<ObservableCollection<SectionItem>> GetSectionsFromGalaAsync();
+        Task<ObservableCollection<RebarItem>> GetRebarsFromGalaAsync();
+        Task<ObservableCollection<LoadItem>> GetLoadsFromGalaAsync(bool isSimpleBending);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoGala.Contracts;
 using AutoGala.Services.Helper;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Gma.System.MouseKeyHook;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
@@ -22,43 +23,16 @@ namespace AutoGala.Services
     {
 
         private readonly IWindowService _windowService;
+        private readonly ISectionService _sectionService;
+        private readonly IRebarService _rebarService;
+        private readonly ILoadService _loadService;
 
-        public GalaService(IWindowService windowService)
+        public GalaService(IWindowService windowService, ISectionService sectionService, IRebarService rebarService, ILoadService loadService)
         {
             _windowService = windowService;
-        }
-
-        private string? AttachAndPush<TNavigator>(
-            Point screenPoint,
-            Func<TNavigator, bool> writeAction)
-            where TNavigator : NavigatorBase, new()
-        {
-            try
-            {
-                var clicked = AutomationElement.FromPoint(screenPoint);
-
-                if (clicked == null)
-                    return NoGalaElementFoundErrorMessage;
-
-                var navigator = new TNavigator();
-
-                if (!navigator.Attach(clicked))
-                    return NoGalaStructureFoundErrorMessage;
-
-                if (!writeAction(navigator))
-                    return GalaError;
-
-                return null;
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ex.Message;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-                return $"Unexpected error while writing to Gala: {ex.Message}";
-            }
+            _sectionService = sectionService;
+            _rebarService = rebarService;
+            _loadService = loadService;
         }
 
         private async Task HookToGalaJobAsync(
@@ -146,18 +120,126 @@ namespace AutoGala.Services
         public Task HookToGalaAsync(ObservableCollection<LoadItem> items, bool isSimpleBending) =>
             HookToGalaAsync(items, (nav, i) => nav.WriteItems(i, isSimpleBending));
 
+        private async Task<ObservableCollection<T>> GetFromGalaAsync<T>(Func<GalaNavigator, ObservableCollection<T>?> readItems)
+        {
+            var prompt = _windowService.ShowGalaPrompt(WaitingGalaClickMessage);
+            string? errorMessage = null;
+            ObservableCollection<T>? items;
+
+            try
+            {
+                var clickPoint = await WaitForUserClickAsync();
+
+                _windowService.UpdateGalaPrompt(TransferingToGalaMessage, prompt);
+
+                (errorMessage, items) = await Task.Run(() => AttachAndPullGeneral(clickPoint, readItems));
+            }
+            finally
+            {
+                prompt.Close();
+            }
+
+            if (errorMessage != null || items == null)
+            {
+                MessageBox.Show(errorMessage);
+                return [];
+            }
+
+            return items;
+        }
+
+        public Task<ObservableCollection<SectionItem>> GetSectionsFromGalaAsync() =>
+            GetFromGalaAsync<SectionItem>(nav => nav.ReadItems(_sectionService, out ObservableCollection<SectionItem> sections) ? sections : null);
+
+        public Task<ObservableCollection<RebarItem>> GetRebarsFromGalaAsync() =>
+            GetFromGalaAsync<RebarItem>(nav => nav.ReadItems(_rebarService, out ObservableCollection<RebarItem> rebars) ? rebars : null);
+
+        public Task<ObservableCollection<LoadItem>> GetLoadsFromGalaAsync(bool isSimpleBending) =>
+            GetFromGalaAsync<LoadItem>(nav => nav.ReadItems(_loadService, isSimpleBending, out ObservableCollection<LoadItem> loads) ? loads : null);
+
+        private string? AttachToGala<TNavigator>(
+            Point screenPoint,
+            Func<TNavigator, bool> galaAction)
+            where TNavigator : NavigatorBase, new()
+        {
+            try
+            {
+                var clicked = AutomationElement.FromPoint(screenPoint);
+
+                if (clicked == null)
+                    return NoGalaElementFoundErrorMessage;
+
+                var navigator = new TNavigator();
+
+                if (!navigator.Attach(clicked))
+                    return NoGalaStructureFoundErrorMessage;
+
+                if (!galaAction(navigator))
+                    return GalaError;
+
+                return null;
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ex.Message;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return $"Unexpected error while writing to Gala: {ex.Message}";
+            }
+        }
+
         private string? AttachAndPushJob(
             Point screenPoint,
             Func<JobNavigator, bool> writeAction)
         {
-            return AttachAndPush(screenPoint, writeAction);
+            return AttachToGala(screenPoint, writeAction);
         }
 
         private string? AttachAndPushGeneral(
             Point screenPoint,
             Func<GalaNavigator, bool> writeAction)
         {
-            return AttachAndPush(screenPoint, writeAction);
+            return AttachToGala(screenPoint, writeAction);
+        }
+
+        private (string? Error, ObservableCollection<T>? Items) AttachAndPullGeneral<T>(
+            Point screenPoint,
+            Func<GalaNavigator, ObservableCollection<T>?> readAction)
+        {
+            try
+            {
+                var clicked = AutomationElement.FromPoint(screenPoint);
+
+                if (clicked == null)
+                    return (NoGalaElementFoundErrorMessage, null);
+
+                var navigator = new GalaNavigator();
+
+                if (!navigator.Attach(clicked))
+                    return (NoGalaStructureFoundErrorMessage, null);
+
+                var items = readAction(navigator);
+
+                return items == null ? (GalaError, null) : (null, items);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return (ex.Message, null);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return ($"Unexpected error while reading from Gala: {ex.Message}", null);
+            }
+        }
+
+        private string? AttachAndPullGeneral(
+            Point screenPoint,
+            Func<GalaNavigator, bool> readAction)
+        {
+            return AttachAndPullGeneral(screenPoint, readAction);
         }
 
         private Task<Point> WaitForUserClickAsync()
