@@ -10,6 +10,6 @@ namespace Plugin.Core.Contracts
     public interface ISectionService
     {
         SectionItem CreateSection();
-        SectionItem CreateSection(double x, double y);
+        SectionItem CreateSection(double? x, double? y);
     }
 }

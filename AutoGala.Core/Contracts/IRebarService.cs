@@ -10,6 +10,6 @@ namespace Plugin.Core.Contracts
     public interface IRebarService
     {
         RebarItem CreateRebar();
-        RebarItem CreateRebar(double area, double x, double y);
+        RebarItem CreateRebar(double? area, double? x, double? y);
     }
 }

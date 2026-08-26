@@ -20,7 +20,7 @@ namespace Plugin.Core.Services
             };
         }
 
-        public LoadItem CreateLoad(double n, double mx, double my)
+        public LoadItem CreateLoad(double? n, double? mx, double? my)
         {
             return new LoadItem
             {

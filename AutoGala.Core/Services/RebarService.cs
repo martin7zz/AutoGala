@@ -20,7 +20,7 @@ namespace Plugin.Core.Services
             };
         }
 
-        public RebarItem CreateRebar(double area, double x, double y)
+        public RebarItem CreateRebar(double? area, double? x, double? y)
         {
             return new RebarItem
             {

@@ -19,7 +19,7 @@ namespace Plugin.Core.Services
             };
         }
 
-        public SectionItem CreateSection(double x, double y)
+        public SectionItem CreateSection(double? x, double? y)
         {
             return new SectionItem
             {

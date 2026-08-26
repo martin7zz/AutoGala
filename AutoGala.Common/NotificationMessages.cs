@@ -28,6 +28,8 @@ namespace AutoGala.Common
 
         public const string TransferingToGalaMessage = "Transfering data to Gala.";
 
+        public const string GettingFromGalaMessage = "Transfering data from Gala";
+
         public const string NoDataErrorMessage = "There is nothing to transfer.";
 
         public const string NoGalaElementFoundErrorMessage = "No element found at that point.";
