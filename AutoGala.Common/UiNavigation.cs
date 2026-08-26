@@ -23,7 +23,11 @@ namespace AutoGala.Common
         public const int VK_HOME = 0x24;
         public const int VK_CONTROL = 0x11;
 
+        public const int SW_HIDE = 0;
+        public const int SW_SHOW = 5;
 
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern IntPtr SendMessage(

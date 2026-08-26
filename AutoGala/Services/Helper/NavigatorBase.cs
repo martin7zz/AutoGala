@@ -134,6 +134,27 @@ namespace AutoGala.Services.Helper
             return result;
         }
 
+        protected static IntPtr FindInvisibleDescendantByClass(IntPtr parent, string className)
+        {
+            IntPtr result = IntPtr.Zero;
+
+            EnumChildWindows(parent, (hwnd, _) =>
+            {
+                var sb = new StringBuilder(128);
+                GetClassName(hwnd, sb, sb.Capacity);
+
+                if (sb.ToString().Equals(className, StringComparison.OrdinalIgnoreCase))
+                {
+                    result = hwnd;
+                    return false; // stop enumeration
+                }
+
+                return true;
+            }, IntPtr.Zero);
+
+            return result;
+        }
+
         protected static IntPtr FindDescendantByClass(IntPtr parent, string className)
         {
             IntPtr result = IntPtr.Zero;

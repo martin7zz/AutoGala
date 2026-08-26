@@ -29,7 +29,7 @@ namespace AutoGala.Services.Helper
             if (!forceRefresh && _editHandle != IntPtr.Zero && IsWindowVisible(_editHandle))
                 return _editHandle;
 
-            return _editHandle = FindDescendantByClass(MainWindow, "TInplaceEdit");
+            return _editHandle = FindInvisibleDescendantByClass(MainWindow, "TInplaceEdit");
         }
 
         /// Pushes the ObservableCollection into Gala: sets the row count to
@@ -70,26 +70,35 @@ namespace AutoGala.Services.Helper
 
             //FocusWindow(_gridHandle);
 
-            GoToFirstCell();
+            ShowWindow(_gridHandle, SW_HIDE);
 
-            GetEditHandle();
-
-            foreach (var item in items)
+            try
             {
-                foreach (var value in fieldSelector(item))
+                GoToFirstCell();
+                GetEditHandle();
+
+                foreach (var item in items)
                 {
-                    if (!WriteCurrentCell(value))
+                    foreach (var value in fieldSelector(item))
                     {
-                        return false;
-                    }
-                    if(!NextCell())
-                    {
-                        return false;
+                        if (!WriteCurrentCell(value))
+                        {
+                            return false;
+                        }
+
+                        if (!NextCell())
+                        {
+                            return false;
+                        }
                     }
                 }
-            }
 
-            return true;
+                return true;
+            }
+            finally
+            {
+                ShowWindow(_gridHandle, SW_SHOW);
+            }
         }
 
         public bool WriteItems(ObservableCollection<SectionItem> sections)
@@ -188,7 +197,7 @@ namespace AutoGala.Services.Helper
 
             _editHandle = GetEditHandle(forceRefresh: true);
 
-            return _editHandle != IntPtr.Zero;
+    return _editHandle != IntPtr.Zero;
         }
 
         private bool ReadItemsCore<T>(
@@ -215,35 +224,42 @@ namespace AutoGala.Services.Helper
                 return false;
             }
 
+            ShowWindow(_gridHandle, SW_HIDE);
 
-            GoToFirstCell();
-
-            GetEditHandle();
-
-            for (int row = 0; row < rowCount; row++)
+            try
             {
-                var values = new string[columnCount];
+                GoToFirstCell();
 
-                for (int column = 0; column < columnCount; column++)
+                GetEditHandle();
+
+                for (int row = 0; row < rowCount; row++)
                 {
-                    var value = ReadCurrentCell();
+                    var values = new string[columnCount];
 
-                    if (value == null)
-                        return false;
-
-                    values[column] = value;
-
-                    if (!(row == rowCount - 1 && column == columnCount - 1))
+                    for (int column = 0; column < columnCount; column++)
                     {
-                        if (!NextCell())
+                        var value = ReadCurrentCell();
+
+                        if (value == null)
                             return false;
+
+                        values[column] = value;
+
+                        if (!(row == rowCount - 1 && column == columnCount - 1))
+                        {
+                            if (!NextCell())
+                                return false;
+                        }
                     }
+
+                    items.Add(itemFactory(values));
                 }
-
-                items.Add(itemFactory(values));
+                return true;
             }
-
-            return true;
+            finally
+            {
+                ShowWindow(_gridHandle, SW_SHOW);
+            }
         }
 
         public bool ReadItems(ISectionService sectionService, out ObservableCollection<SectionItem> sections)
