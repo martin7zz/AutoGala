@@ -27,6 +27,7 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
+                    <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
                 <Button Content="Add"
@@ -44,10 +45,15 @@
                     Command="{Binding PasteRebarCommand}"
                     Style="{StaticResource SecondaryButtonStyle}"/>
 
-                <Button Content="Gala"
+                <Button Content="To Gala"
                     Grid.Column="3"
                     Command="{Binding HookToGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}"/>
+
+                <Button Content="From Gala"
+                        Grid.Column="4"
+                        Command="{Binding GetFromGalaCommand}"
+                        Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
 
             <DataGrid x:Name="RebarGrid"

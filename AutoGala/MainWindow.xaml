@@ -36,7 +36,8 @@
                     <MenuItem Header="_Paste from Clipboard" 
                               Command="{Binding SectionView.PasteSectionCommand}"/>
                     <Separator/>
-                    <MenuItem Header="_Get from Gala"/>
+                    <MenuItem Header="_Get from Gala"
+                              Command="{Binding SectionView.GetFromGalaCommand}"/>
                     <MenuItem Header="_Get from AutoCAD"/>
                 </MenuItem>
 
@@ -55,7 +56,8 @@
                     <MenuItem Header="_Paste from Clipboard" 
                               Command="{Binding RebarView.PasteRebarCommand}"/>
                     <Separator/>
-                    <MenuItem Header="_Get from Gala"/>
+                    <MenuItem Header="_Get from Gala"
+                              Command="{Binding RebarView.GetFromGalaCommand}"/>
                     <MenuItem Header="_Get from AutoCAD"/>
                 </MenuItem>
 
@@ -74,7 +76,8 @@
                               Command="{Binding LoadView.ClearLoadCommand}"/>
                     <MenuItem Header="_Delete Selected" 
                               Command="{Binding LoadView.RemoveLoadsCommand}"/>
-                    <MenuItem Header="_Delete Zero Load Cases"/>
+                    <MenuItem Header="_Delete Zero Load Cases"
+                              Command="{Binding LoadView.RemoveZeroLoadCasesCommand}"/>
                     <MenuItem Header="_Paste from Clipboard" 
                               Command="{Binding LoadView.PasteLoadCommand}"/>
                     <MenuItem Header="_Reverse Mx sign"
@@ -84,7 +87,8 @@
                     <MenuItem Header="_Swap Mx and My"
                               Command="{Binding LoadView.ReverseMxAndMyCommand}"/>
                     <Separator/>
-                    <MenuItem Header="_Get from Gala"/>
+                    <MenuItem Header="_Get from Gala"
+                              Command="{Binding LoadView.GetFromGalaCommand}"/>
 
                 </MenuItem>
 

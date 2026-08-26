@@ -87,6 +87,8 @@ namespace AutoGala.ViewModels
         public ICommand ReverseMySignCommand { get; }
         public ICommand ReverseMxAndMyCommand { get; }
         public ICommand SimpleBendingCommand { get; }
+        public ICommand RemoveZeroLoadCasesCommand { get; }
+        public ICommand GetFromGalaCommand { get; }
 
         public LoadViewModel(ILoadService loadService,
             IClipboardService clipboardService, 
@@ -108,13 +110,15 @@ namespace AutoGala.ViewModels
             RemoveLoadsCommand = new RelayCommand(param => RemoveLoad(), param => SelectedLoad != null && !HasValidationError);
             PasteLoadCommand = new RelayCommand(param => Paste(), param => !HasValidationError);
             ClearLoadCommand = new RelayCommand(param => ClearList(), param => Loads.Count > 0 && !HasValidationError);
-            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async param => await SetToGalaAsync(), param => !HasValidationError);
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Loads.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
             ReverseMxSignCommand = new RelayCommand(param => ReverseMxSign(), param => Loads.Count > 0 && !HasValidationError);
             ReverseMySignCommand = new RelayCommand(param => ReverseMySign(), param => Loads.Count > 0 && !HasValidationError && !IsSimpleBending);
             ReverseMxAndMyCommand = new RelayCommand(param => ReverseMxAndMy(), param => Loads.Count > 0 && !HasValidationError && !IsSimpleBending);
             SimpleBendingCommand = new RelayCommand(param => SetIsSimpleBending(), param => !HasValidationError);
+            RemoveZeroLoadCasesCommand = new RelayCommand(param => DeleteZeroLoads(), param => Loads.Count > 0 && !HasValidationError);
+            GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
         }
 
         private void AddLoad()
@@ -149,6 +153,21 @@ namespace AutoGala.ViewModels
             updateIds();
 
             SelectedLoads.Clear();
+
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        private void DeleteZeroLoads()
+        {
+            foreach (var load in Loads.ToList())
+            {
+                if (load.N == 0 && load.Mx == 0 && load.My == 0)
+                {
+                    Loads.Remove(load);
+                }
+            }
+
+            updateIds();
 
             CommandManager.InvalidateRequerySuggested();
         }
@@ -274,9 +293,28 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private async Task GetGala()
+        private async Task SetToGalaAsync()
         {
             await _galaService.HookToGalaAsync(Loads, IsSimpleBending);
+
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        private async Task GetFromGalaAsync()
+        {
+            var loads = await _galaService.GetLoadsFromGalaAsync(IsSimpleBending);
+
+            if (loads.Any())
+            {
+                Loads.Clear();
+            }
+
+            foreach (var load in loads)
+            {
+                Loads.Add(load);
+            }
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void SaveToExcel()

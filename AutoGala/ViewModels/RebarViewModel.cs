@@ -77,6 +77,7 @@ namespace AutoGala.ViewModels
         public ICommand HookToGalaCommand { get; }
         public ICommand SaveToExcelCommand { get; }
         public ICommand LoadFromExcelCommand { get; }
+        public ICommand GetFromGalaCommand { get; }
 
         public RebarViewModel(IRebarService rebarService,
             IClipboardService clipboardService,
@@ -99,9 +100,10 @@ namespace AutoGala.ViewModels
             PasteRebarCommand = new RelayCommand(param => Paste(), param => !HasValidationError);
             ClearRebarCommand = new RelayCommand(param => ClearList(), param => Rebars.Count > 0 && !HasValidationError);
             CheckForDuplicatesCommand = new RelayCommand(param =>  CheckForDuplicates(), param => Rebars.Count > 0);
-            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async param => await SetToGalaAsync(), param => !HasValidationError);
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Rebars.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
+            GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
         }
 
         private void AddRebar()
@@ -223,9 +225,28 @@ namespace AutoGala.ViewModels
             CheckForDuplicates();
         }
 
-        private async Task GetGala()
+        private async Task SetToGalaAsync()
         {
             await _galaService.HookToGalaAsync(Rebars);
+
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        private async Task GetFromGalaAsync()
+        {
+            var rebars = await _galaService.GetRebarsFromGalaAsync();
+
+            if (rebars.Any())
+            {
+                Rebars.Clear();
+            }
+
+            foreach (var rebar in rebars)
+            {
+                Rebars.Add(rebar);
+            }
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void SaveToExcel()
@@ -250,7 +271,6 @@ namespace AutoGala.ViewModels
             _notifier.NotifyJobInfoChanged();
 
             CommandManager.InvalidateRequerySuggested();
-
         }
 
         public void RegisterValidationError(bool errorAdded)

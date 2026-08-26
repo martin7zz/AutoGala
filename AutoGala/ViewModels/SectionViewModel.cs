@@ -62,7 +62,7 @@ namespace AutoGala.ViewModels
         public ICommand HookToGalaCommand { get; }
         public ICommand SaveToExcelCommand { get; }
         public ICommand LoadFromExcelCommand { get; }
-
+        public ICommand GetFromGalaCommand { get; }
 
         public SectionViewModel(ISectionService sectionService,
             IClipboardService clipboardService,
@@ -86,9 +86,10 @@ namespace AutoGala.ViewModels
             RemoveSectionsCommand = new RelayCommand(param => RemoveSections(), param => SelectedSections.Count > 0 && !HasValidationError);
             PasteSectionCommand = new RelayCommand(param => Paste(), param => !HasValidationError);
             ClearSectionCommand = new RelayCommand(param => ClearList(), param => Sections.Count > 0 && !HasValidationError);
-            HookToGalaCommand = new RelayCommand(async param => await GetGala(), param => !HasValidationError);
+            HookToGalaCommand = new RelayCommand(async param => await SetToGalaAsync(), param => !HasValidationError);
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Sections.Count > 0 && !HasValidationError);
-            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(),param => !HasValidationError);
+            LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
+            GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
         }
 
         private void AddSection()
@@ -191,9 +192,28 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private async Task GetGala()
+        private async Task SetToGalaAsync()
         {
             await _galaService.HookToGalaAsync(Sections);
+
+            CommandManager.InvalidateRequerySuggested();
+        }
+        private async Task GetFromGalaAsync()
+        {
+            var sections = await _galaService.GetSectionsFromGalaAsync();
+
+            if (sections.Any())
+            {
+                Sections.Clear();
+            }
+
+            foreach (var section in sections)
+            {
+                Sections.Add(section);
+            }
+
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void SaveToExcel()
