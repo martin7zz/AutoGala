@@ -1,6 +1,9 @@
 <Solution>
   <Project Path="AutoGala.Common/AutoGala.Common.csproj" Id="21561dca-e2e1-4b11-b6f7-090cc5a6cf87" />
-  <Project Path="AutoGala.Core/AutoGala.Core.csproj" Id="08bd69d9-a7b3-48e0-9e94-f60ce350c506" />
-  <Project Path="AutoGala.Plugin/Plugin.AutoCAD.csproj" Id="f598179c-8ffa-48b1-bafe-4a5f99408cf7" />
+  <Project Path="AutoGala.Core/AutoGala.Core.csproj" Id="c2b914e6-a19e-4ac1-b1ef-f5b56bd66e38" />
+  <Project Path="AutoGala.Ipc/AutoGala.Ipc.csproj" Id="14c0a008-17d0-4115-9189-515e8c486666" />
+  <Project Path="AutoGala.Plugin/AutoGala.Plugin.csproj" Id="72fc0fb3-6d90-45d3-86da-5bb2eeb1a940">
+    <Platform Solution="Release|*" Project="x64" />
+  </Project>
   <Project Path="AutoGala/AutoGala.csproj" />
 </Solution>
