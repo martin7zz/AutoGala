@@ -23,6 +23,7 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
+                    <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
                 <Button Content="Add"
@@ -40,15 +41,21 @@
                     Command="{Binding PasteSectionCommand}"
                     Style="{StaticResource SecondaryButtonStyle}"/>
 
-                <Button Content="To Gala"
+                <Button Content="From Gala"
                     Grid.Column="3"
+                    Command="{Binding GetFromGalaCommand}"
+                    Style="{StaticResource SuccessButtonStyle}"/>
+
+                <Button Content="AutoCAD"
+                    Grid.Column="4"
+                    Command="{Binding GetAutoCADCommand}"
+                    Style="{StaticResource SuccessButtonStyle}"/>
+
+                <Button Content="To Gala"
+                    Grid.Column="5"
                     Command="{Binding HookToGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}"/>
 
-                <Button Content="From Gala"
-                    Grid.Column="4"
-                    Command="{Binding GetFromGalaCommand}"
-                    Style="{StaticResource SuccessButtonStyle}"/>
             </Grid>
 
             <DataGrid x:Name="SectionGrid"

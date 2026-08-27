@@ -52,6 +52,7 @@ namespace AutoGala
             services.AddSingleton<IGalaService, GalaService>();
             services.AddSingleton<IMainWindowService, MainWindowService>();
             services.AddSingleton<IEditStateService, EditStateService>();
+            services.AddSingleton<IAutoGalaProcessService, AutoGalaProcessService>();
 
             services.AddTransient<SectionViewModel>();
             services.AddTransient<RebarViewModel>();
@@ -59,6 +60,7 @@ namespace AutoGala
             services.AddTransient<ClipboardErrorViewModel>();
             services.AddTransient<GalaPromptViewModel>();
             services.AddTransient<EditJobInfoViewModel>();
+            services.AddTransient<AutoGalaProcessSelectionViewModel>();
 
             services.AddTransient<SectionView>();
             services.AddTransient<RebarView>();
@@ -66,6 +68,7 @@ namespace AutoGala
             services.AddTransient<GalaPromptView>();
             services.AddTransient<ClipboardErrorView>();
             services.AddTransient<EditJobInfoView>();
+            services.AddTransient<AutoGalaProcessSelectionView>();
         }
     }
 }

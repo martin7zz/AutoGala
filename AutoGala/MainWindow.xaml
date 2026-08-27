@@ -38,7 +38,8 @@
                     <Separator/>
                     <MenuItem Header="_Get from Gala"
                               Command="{Binding SectionView.GetFromGalaCommand}"/>
-                    <MenuItem Header="_Get from AutoCAD"/>
+                    <MenuItem Header="_Get from AutoCAD"
+                              Command="{Binding GetAutoCADCommand}"/>
                 </MenuItem>
 
                 <MenuItem Header="_Rebar" Padding="10,6">
@@ -58,7 +59,8 @@
                     <Separator/>
                     <MenuItem Header="_Get from Gala"
                               Command="{Binding RebarView.GetFromGalaCommand}"/>
-                    <MenuItem Header="_Get from AutoCAD"/>
+                    <MenuItem Header="_Get from AutoCAD"
+                              Command="{Binding GetAutoCADCommand}"/>
                 </MenuItem>
 
                 <MenuItem Header="_Loads" Padding="10,6">

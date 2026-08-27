@@ -54,6 +54,7 @@ namespace AutoGala.ViewModels
         private readonly IWindowService _windowService;
         private readonly IMainWindowService _mainWindowService;
         private readonly IJobInfoChangedNotifier _notifier;
+        private readonly IAutoGalaProcessService _autoGalaProcessService;
 
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionsCommand { get; }
@@ -63,6 +64,7 @@ namespace AutoGala.ViewModels
         public ICommand SaveToExcelCommand { get; }
         public ICommand LoadFromExcelCommand { get; }
         public ICommand GetFromGalaCommand { get; }
+        public ICommand GetAutoCADCommand {  get; }
 
         public SectionViewModel(ISectionService sectionService,
             IClipboardService clipboardService,
@@ -70,7 +72,8 @@ namespace AutoGala.ViewModels
             IWindowService windowService,
             IMainWindowService mainWindowService,
             JobInfo jobInfo,
-            IJobInfoChangedNotifier notifier
+            IJobInfoChangedNotifier notifier,
+            IAutoGalaProcessService autoGalaProcessService
             )
         {
             _sectionService = sectionService;
@@ -78,6 +81,7 @@ namespace AutoGala.ViewModels
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
+            _autoGalaProcessService = autoGalaProcessService;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
@@ -90,6 +94,7 @@ namespace AutoGala.ViewModels
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Sections.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
             GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
+            GetAutoCADCommand = new RelayCommand(param => GetAutoCAD(), param => !HasValidationError);
         }
 
         private void AddSection()
@@ -214,6 +219,11 @@ namespace AutoGala.ViewModels
 
 
             CommandManager.InvalidateRequerySuggested();
+        }
+
+        private void GetAutoCAD()
+        {
+            _windowService.ShowProcessSelection(_autoGalaProcessService);
         }
 
         private void SaveToExcel()

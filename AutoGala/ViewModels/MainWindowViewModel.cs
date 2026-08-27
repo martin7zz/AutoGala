@@ -18,6 +18,7 @@ namespace AutoGala.ViewModels
         public RebarViewModel RebarView { get; }
         public LoadViewModel LoadView { get; }
         public EditJobInfoViewModel EditJobInfoView { get; }
+        public AutoGalaProcessSelectionViewModel AutoGalaProcessSelectionView { get; }
 
 
         private IMainWindowService _mainWindowService;
@@ -32,7 +33,11 @@ namespace AutoGala.ViewModels
         public ICommand EditJobInfoCommand { get; }
         public ICommand SetJobInfoCommand { get; }
 
-        public MainWindowViewModel(SectionViewModel sectionViewModel, RebarViewModel rebarViewModel, LoadViewModel loadViewModel, EditJobInfoViewModel editJobInfoViewModel,
+        public MainWindowViewModel(SectionViewModel sectionViewModel,
+            RebarViewModel rebarViewModel,
+            LoadViewModel loadViewModel,
+            EditJobInfoViewModel editJobInfoViewModel,
+            AutoGalaProcessSelectionViewModel autoGalaProcessSelectionViewModel,
             IMainWindowService mainWindowService, IEditStateService editStateService, IWindowService windowService, IGalaService galaService,
             IJobInfoChangedNotifier notifier) 
         {
@@ -40,6 +45,7 @@ namespace AutoGala.ViewModels
             RebarView = rebarViewModel;
             LoadView = loadViewModel;
             EditJobInfoView = editJobInfoViewModel;
+            AutoGalaProcessSelectionView = autoGalaProcessSelectionViewModel;
 
             _mainWindowService = mainWindowService;
             _editStateService = editStateService;
