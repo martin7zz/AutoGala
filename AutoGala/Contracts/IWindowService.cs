@@ -13,6 +13,7 @@ namespace AutoGala.Contracts
     {
         EditJobInfoView ShowEditJobInfo(JobInfo jobInfo, IJobInfoChangedNotifier notifier);
         GalaPromptView ShowGalaPrompt(string data);
+        AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService);
         ClipboardErrorView ShowClipboardError(string data, IEnumerable<string>? failedRows = null);
         void UpdateGalaPrompt(string data, GalaPromptView galaPromptView);
     }

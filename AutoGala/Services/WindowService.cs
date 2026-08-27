@@ -41,6 +41,19 @@ namespace AutoGala.Services
             return window;
         }
 
+        public AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService)
+        {
+            var window = new AutoGalaProcessSelectionView
+            {
+                Owner = Application.Current.MainWindow,
+                DataContext = new AutoGalaProcessSelectionViewModel(autoGalaProcessService)
+            };
+
+            window.Show();
+
+            return window;
+        }
+
         public GalaPromptView ShowGalaPrompt(string data)
         {
             var window = new GalaPromptView
