@@ -19,7 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AutoGala.Common\AutoGala.Common.csproj" />
     <ProjectReference Include="..\AutoGala.Core\AutoGala.Core.csproj" />
-    <ProjectReference Include="..\AutoGala.Ipc\AutoGala.Ipc.csproj" />
+    <ProjectReference Include="..\AutoGala.Plugin\AutoGala.Plugin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

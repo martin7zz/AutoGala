@@ -9,8 +9,6 @@ namespace AutoGala.Ipc
         private readonly string _pipeName;
         private CancellationTokenSource _cts;
 
-        public event Action<string, StreamWriter> MessageReceived;
-
         // Handler receives the raw request line, returns the raw response line.
         public Func<string, Task<string>>? RequestHandler { get; set; }
 
@@ -42,13 +40,13 @@ namespace AutoGala.Ipc
                 {
                     await pipe.WaitForConnectionAsync(token);
 
-                    using var reader = new StreamReader(pipe);
-                    using var writer = new StreamWriter(pipe) { AutoFlush = true };
+                    using var reader = new StreamReader(pipe, leaveOpen: true);
+                    using var writer = new StreamWriter(pipe, leaveOpen: true) { AutoFlush = true };
 
                     // keep connected for multiple messages or only one.
                     while (pipe.IsConnected)
                     {
-                        string line = await reader.ReadLineAsync();
+                        string? line = await reader.ReadLineAsync();
                         if (line == null)
                         {
                             break;
@@ -66,7 +64,7 @@ namespace AutoGala.Ipc
                 }
                 catch (IOException)
                 {
-                    Debug.WriteLine("Cliend dropped.");
+                    Debug.WriteLine("Client dropped.");
                 }
             }
         }

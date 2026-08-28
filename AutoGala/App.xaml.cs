@@ -40,6 +40,7 @@ namespace AutoGala
         {
             services.AddSingleton<JobInfo>();
             services.AddSingleton<IJobInfoChangedNotifier, JobInfoChangedNotifier>();
+            services.AddSingleton<ISectionsReceivedNotifier, SectionsReceivedNotifier>();
 
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();
@@ -53,6 +54,7 @@ namespace AutoGala
             services.AddSingleton<IMainWindowService, MainWindowService>();
             services.AddSingleton<IEditStateService, EditStateService>();
             services.AddSingleton<IAutoGalaProcessService, AutoGalaProcessService>();
+            services.AddSingleton<ISortingService, SortingService>();
 
             services.AddTransient<SectionViewModel>();
             services.AddTransient<RebarViewModel>();

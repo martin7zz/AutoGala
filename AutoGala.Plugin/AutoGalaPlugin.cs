@@ -1,7 +1,10 @@
 ﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using AutoGala.Ipc;
+using AutoGala.Plugin.models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -85,36 +88,203 @@ namespace AutoGala.Plugin
             return tcs.Task;
         }
 
+        // document needs to get locks every time
         private object? Dispatch(PluginRequest request, Document doc)
         {
-            switch (request.Action)
+            using (doc.LockDocument())
             {
-                case "GetActiveDocumentName":
-                    return doc.Name;
+                Database acDatabase = doc.Database;
 
-                case "AddLine":
-                    using (var tr = doc.Database.TransactionManager.StartTransaction())
-                    {
-                        var payload = JsonSerializer.Deserialize<AddLinePayload>(request.PayloadJson)!;
-                        var btr = (BlockTableRecord)tr.GetObject(
-                            doc.Database.CurrentSpaceId, OpenMode.ForWrite);
+                switch (request.Action)
+                {
+                    case "GetSections":
+                        List<LineData> lineCoordinates = new List<LineData>();
 
-                        var line = new Line(payload.Start, payload.End);
-                        btr.AppendEntity(line);
-                        tr.AddNewlyCreatedDBObject(line, true);
-                        tr.Commit();
+                        using (Transaction acTrans = acDatabase.TransactionManager.StartTransaction())
+                        {
+                            PromptSelectionResult acSSPrompt = doc.Editor.GetSelection();
 
-                        return line.ObjectId.Handle.ToString();
-                    }
-                default:
-                    throw new System.Exception($"Unknown action: {request.Action}");
+                            if (acSSPrompt.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSet = acSSPrompt.Value;
+
+                                foreach (SelectedObject acSSObj in acSSet)
+                                {
+                                    if (acSSObj == null)
+                                        continue;
+
+                                    Line? acEnt = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Line;
+
+                                    if (acEnt == null)
+                                        continue;
+                                    
+                                    lineCoordinates.Add(new LineData
+                                    {
+                                        Start = new PointData
+                                        {
+                                            X = acEnt.StartPoint.X,
+                                            Y = acEnt.StartPoint.Y
+                                        },
+                                        End = new PointData
+                                        {
+                                            X = acEnt.EndPoint.X,
+                                            Y = acEnt.EndPoint.Y
+                                        }
+                                    });
+                                }
+                            }
+                            acTrans.Commit();
+                        }
+
+                        return lineCoordinates;
+                    case "GetPoints":
+                        List<PointData> pointCoordinates = new List<PointData>();
+
+                        using (Transaction acTrans = acDatabase.TransactionManager.StartTransaction())
+                        {
+                            PromptSelectionResult acSSPrompt = doc.Editor.GetSelection();
+
+                            if (acSSPrompt.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSet = acSSPrompt.Value;
+
+                                foreach (SelectedObject acSSObj in acSSet)
+                                {
+                                    if (acSSObj == null)
+                                        continue;
+
+                                    DBPoint? acEnt = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as DBPoint;
+
+                                    if (acEnt == null)
+                                        continue;
+
+                                    Point3d point = acEnt.Position;
+
+                                    pointCoordinates.Add(new PointData
+                                    {
+                                        X = point.X,
+                                        Y = point.Y
+                                    });
+                                }
+                            }
+                            acTrans.Commit();
+                        }
+
+                        return pointCoordinates;
+                    case "GetCircles":
+                        List<CircleData> circleCoordinates = new List<CircleData>();
+
+                        using (Transaction acTrans = acDatabase.TransactionManager.StartTransaction())
+                        {
+                            PromptSelectionResult acSSPrompt = doc.Editor.GetSelection();
+
+                            if (acSSPrompt.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSet = acSSPrompt.Value;
+
+                                foreach (SelectedObject acSSObj in acSSet)
+                                {
+                                    if (acSSObj == null)
+                                        continue;
+
+                                    Circle? acEnt = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Circle;
+
+                                    if (acEnt == null)
+                                        continue;
+
+                                    circleCoordinates.Add(new CircleData
+                                    {
+                                        PositionData = new PointData
+                                        {
+                                            X = acEnt.Center.X,
+                                            Y = acEnt.Center.Y
+                                        },
+                                        Area = acEnt.Area
+                                    });
+
+                                }
+                            }
+                            acTrans.Commit();
+                        }
+                        return circleCoordinates;
+                    case "GetAll":
+                        List<LineData> lines = new List<LineData>();
+                        List<PointData> points = new List<PointData>();
+                        List<CircleData> circles = new List<CircleData>();
+
+                        using (Transaction acTrans = acDatabase.TransactionManager.StartTransaction())
+                        {
+                            PromptSelectionResult acSSPrompt = doc.Editor.GetSelection();
+
+                            if (acSSPrompt.Status == PromptStatus.OK)
+                            {
+                                SelectionSet acSSet = acSSPrompt.Value;
+
+                                foreach (SelectedObject acSSObj in acSSet)
+                                {
+                                    if (acSSObj == null)
+                                        continue;
+
+                                    Entity? acEnt = acTrans.GetObject(acSSObj.ObjectId, OpenMode.ForRead) as Entity;
+
+                                    if (acEnt == null)
+                                        continue;
+
+                                    if (acEnt is Line lineEnt)
+                                    {
+                                        lines.Add(new LineData
+                                        {
+                                            Start = new PointData
+                                            {
+                                                X = lineEnt.StartPoint.X,
+                                                Y = lineEnt.StartPoint.Y
+                                            },
+                                            End = new PointData
+                                            {
+                                                X = lineEnt.EndPoint.X,
+                                                Y = lineEnt.EndPoint.Y
+                                            }
+                                        });
+                                    }
+                                    else if (acEnt is DBPoint pointEnt)
+                                    {
+                                        Point3d point = pointEnt.Position;
+
+                                        points.Add(new PointData
+                                        {
+                                            X = point.X,
+                                            Y = point.Y
+                                        });
+                                    }
+                                    else if (acEnt is Circle circleEnt)
+                                    {
+                                        circles.Add(new CircleData
+                                        {
+                                            PositionData = new PointData
+                                            {
+                                                X = circleEnt.Center.X,
+                                                Y = circleEnt.Center.Y
+                                            },
+                                            Area = circleEnt.Area
+                                        });
+                                    }
+                                }
+                            }
+                            acTrans.Commit();
+                        }
+
+                        var result = new
+                        {
+                            Lines = lines,
+                            Points = points,
+                            Circles = circles
+                        };
+
+                        return result;
+                    default:
+                        throw new System.Exception($"Unknown action: {request.Action}");
+                }
             }
-        }
-
-        public class AddLinePayload
-        {
-            public Autodesk.AutoCAD.Geometry.Point3d Start { get; set; }
-            public Autodesk.AutoCAD.Geometry.Point3d End { get; set; }
         }
 
         // for debugging
