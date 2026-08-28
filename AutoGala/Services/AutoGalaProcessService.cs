@@ -15,35 +15,68 @@ namespace AutoGala.Services
             int hr = GetRunningObjectTable(0, out IRunningObjectTable rot);
             if (hr != 0) Marshal.ThrowExceptionForHR(hr);
 
-            rot.EnumRunning(out IEnumMoniker enumMoniker);
-            var monikers = new IMoniker[1];
+            IEnumMoniker enumMoniker;
+            rot.EnumRunning(out enumMoniker);
+            enumMoniker.Reset();
 
-            while (enumMoniker.Next(1, monikers, IntPtr.Zero) == 0)
+            CreateBindCtx(0, out IBindCtx bindCtx);
+
+            try
             {
-                CreateBindCtx(0, out IBindCtx bindCtx);
-                monikers[0].GetDisplayName(bindCtx, null, out string name);
+                IMoniker[] monikers = new IMoniker[1];
 
-                if (!name.EndsWith(".dwg", StringComparison.OrdinalIgnoreCase))
+                while (enumMoniker.Next(1, monikers, IntPtr.Zero) == 0)
                 {
-                    continue;
-                }
+                    IMoniker moniker = monikers[0];
 
-                if (rot.GetObject(monikers[0], out object obj) != 0)
-                {
-                    continue; // object may have gone away between enum and bind
-                }
-
-                if (obj is AcadDocument doc)
-                {
-                    AcadApplication app = (AcadApplication)doc.Application;
-
-                    GetWindowThreadProcessId((IntPtr)app.HWND, out uint appPid);
-                    if (appPid == pid)
+                    try
                     {
-                        return app;
+                        moniker.GetDisplayName(
+                            bindCtx,
+                            null,
+                            out string displayName);
+
+                        Debug.WriteLine($"ROT: {displayName}");
+
+                        if (rot.GetObject(moniker, out object obj) != 0)
+                            continue;
+
+                        if (obj is AcadDocument doc)
+                        {
+                            AcadApplication app = doc.Application;
+
+                            GetWindowThreadProcessId(
+                                (IntPtr)app.HWND,
+                                out uint appPid);
+
+                            Debug.WriteLine(
+                                $"  AcadDocument: {doc.Name}, PID: {appPid}");
+
+                            if (appPid == pid)
+                                return app;
+                        }
+                        else if (obj != null)
+                        {
+                            Marshal.ReleaseComObject(obj); // release bound but unused monikers
+                        }
+                    }
+                    catch (COMException)
+                    {
+                        // ROT entries can disappear between enumeration and binding.
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(moniker);
                     }
                 }
             }
+            finally 
+            {
+                Marshal.ReleaseComObject(bindCtx);
+                Marshal.ReleaseComObject(enumMoniker);
+                Marshal.ReleaseComObject(rot);
+            }
+            
 
             return null;
         }

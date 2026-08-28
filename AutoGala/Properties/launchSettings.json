@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "AutoGala": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "D:\\Programs\\AutoCAD\\AutoCAD 2027\\acad.exe"
+    }
+  }
+}

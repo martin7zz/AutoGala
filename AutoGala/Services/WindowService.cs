@@ -4,6 +4,7 @@ using AutoGala.views;
 using Plugin.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows;
@@ -41,12 +42,12 @@ namespace AutoGala.Services
             return window;
         }
 
-        public AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService)
+        public AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService, ISortingService sortingService, ISectionsReceivedNotifier sectionsReceivedNotifier)
         {
             var window = new AutoGalaProcessSelectionView
             {
                 Owner = Application.Current.MainWindow,
-                DataContext = new AutoGalaProcessSelectionViewModel(autoGalaProcessService)
+                DataContext = new AutoGalaProcessSelectionViewModel(autoGalaProcessService, sortingService, sectionsReceivedNotifier)
             };
 
             window.Show();
