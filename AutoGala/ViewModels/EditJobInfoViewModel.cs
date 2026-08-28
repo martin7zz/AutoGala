@@ -11,11 +11,11 @@ namespace AutoGala.ViewModels
     {
         private readonly JobInfo _jobInfo;
 
-        private string? _jobTitle;
-        private string? _jobNumber;
-        private string? _client;
-        private string? _calcsBy;
-        private string? _checkedBy;
+        private string _jobTitle = "";
+        private string _jobNumber = "";
+        private string _client = "";
+        private string _calcsBy = "";
+        private string _checkedBy = "";
 
         public ICommand SaveButtonCommand { get; }
         public ICommand ClearAllCommand { get; }
@@ -39,7 +39,7 @@ namespace AutoGala.ViewModels
 
         public JobInfo JobInfo => _jobInfo;
 
-        public string? JobTitle
+        public string JobTitle
         {
             get => _jobTitle;
             set
@@ -52,7 +52,7 @@ namespace AutoGala.ViewModels
             }
         }
 
-        public string? JobNumber
+        public string JobNumber
         {
             get => _jobNumber;
             set
@@ -65,7 +65,7 @@ namespace AutoGala.ViewModels
             }
         }
 
-        public string? Client
+        public string Client
         {
             get => _client;
             set
@@ -78,7 +78,7 @@ namespace AutoGala.ViewModels
             }
         }
 
-        public string? CalcsBy
+        public string CalcsBy
         {
             get => _calcsBy;
             set
@@ -91,7 +91,7 @@ namespace AutoGala.ViewModels
             }
         }
 
-        public string? CheckedBy
+        public string CheckedBy
         {
             get => _checkedBy;
             set
@@ -106,11 +106,11 @@ namespace AutoGala.ViewModels
 
         private void ClearAll()
         {
-            JobTitle = null;
-            JobNumber = null;
-            Client = null;
-            CalcsBy = null;
-            CheckedBy = null;
+            JobTitle = "";
+            JobNumber = "";
+            Client = "";
+            CalcsBy = "";
+            CheckedBy = "";
         }
 
         private void SaveJobInfo()

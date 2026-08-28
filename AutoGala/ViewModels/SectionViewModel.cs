@@ -1,5 +1,6 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
+using AutoGala.Services;
 using AutoGala.ViewModels.Base;
 using AutoGala.views;
 using Plugin.Core.Contracts;
@@ -55,6 +56,8 @@ namespace AutoGala.ViewModels
         private readonly IMainWindowService _mainWindowService;
         private readonly IJobInfoChangedNotifier _notifier;
         private readonly IAutoGalaProcessService _autoGalaProcessService;
+        private readonly ISortingService _sortingService;
+        private readonly ISectionsReceivedNotifier _sectionsRecievedNotifier;
 
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionsCommand { get; }
@@ -73,7 +76,9 @@ namespace AutoGala.ViewModels
             IMainWindowService mainWindowService,
             JobInfo jobInfo,
             IJobInfoChangedNotifier notifier,
-            IAutoGalaProcessService autoGalaProcessService
+            IAutoGalaProcessService autoGalaProcessService,
+            ISortingService sortingService,
+            ISectionsReceivedNotifier sectionsNotifier
             )
         {
             _sectionService = sectionService;
@@ -82,6 +87,10 @@ namespace AutoGala.ViewModels
             _windowService = windowService;
             _mainWindowService = mainWindowService;
             _autoGalaProcessService = autoGalaProcessService;
+            _sortingService = sortingService;
+            _sectionsRecievedNotifier = sectionsNotifier;
+
+            sectionsNotifier.SectionsReceived += OnSectionsReceived;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
@@ -223,7 +232,14 @@ namespace AutoGala.ViewModels
 
         private void GetAutoCAD()
         {
-            _windowService.ShowProcessSelection(_autoGalaProcessService);
+            _windowService.ShowProcessSelection(_autoGalaProcessService, _sortingService, _sectionsRecievedNotifier);
+        }
+
+        private void OnSectionsReceived(List<SectionItem> sections)
+        {
+            Sections.Clear();
+            foreach (var s in sections)
+                Sections.Add(s);
         }
 
         private void SaveToExcel()

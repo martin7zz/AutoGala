@@ -1,4 +1,5 @@
-﻿using Autodesk.AutoCAD.Interop;
+﻿using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.Interop;
 using AutoGala.Common;
 using AutoGala.Contracts;
 using AutoGala.Ipc;
@@ -14,6 +15,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 using System.Windows.Input;
+using System.Windows.Media.Media3D;
 
 namespace AutoGala.ViewModels
 {
@@ -37,11 +39,16 @@ namespace AutoGala.ViewModels
         }
 
         private readonly IAutoGalaProcessService _autoGalaProcessService;
+        private readonly ISortingService _sortingService;
+        private readonly ISectionsReceivedNotifier _sectionsReceivedNotifier;
+
         public ICommand SelectCommand { get; }
 
-        public AutoGalaProcessSelectionViewModel(IAutoGalaProcessService autoGalaProcessService) 
+        public AutoGalaProcessSelectionViewModel(IAutoGalaProcessService autoGalaProcessService, ISortingService sortingService, ISectionsReceivedNotifier sectionsReceivedNotifier) 
         {
             _autoGalaProcessService = autoGalaProcessService;
+            _sortingService = sortingService;
+            _sectionsReceivedNotifier = sectionsReceivedNotifier;
 
             SelectCommand = new RelayCommand(async param => await Select(), param => SelectedInstance != null);
 
@@ -73,6 +80,8 @@ namespace AutoGala.ViewModels
             }
         }
 
+        private AcadApplication? acadApp;
+
         private async Task Select()
         {
             if (SelectedInstance == null)
@@ -82,7 +91,10 @@ namespace AutoGala.ViewModels
 
             int pid = SelectedInstance.ProcessId;
 
-            AcadApplication acadApp = _autoGalaProcessService.GetAcadApplicationByProcessId(pid);
+            if (acadApp == null)
+            {
+                acadApp = _autoGalaProcessService.GetAcadApplicationByProcessId(pid);
+            }
 
             if (acadApp == null)
             {
@@ -99,31 +111,53 @@ namespace AutoGala.ViewModels
                 $"NETLOAD \"{pluginPath}\"\n" +
                 "(setvar \"FILEDIA\" 1)\n");
 
-            var client = new NamedPipeClientStream(".", $"AutoGala_{pid}", PipeDirection.InOut);
-            await client.ConnectAsync(3000);
+            using var client = new NamedPipeClientStream(".", $"AutoGala_{pid}", PipeDirection.InOut);
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                try { await client.ConnectAsync(1000); break; }
+                catch (TimeoutException) when (attempt < 4) { await Task.Delay(300); }
+            }
 
-            using var writer = new StreamWriter(client) { AutoFlush = true };
-            using var reader = new StreamReader(client);
+            using var writer = new StreamWriter(client, leaveOpen: true) { AutoFlush = true };
+            using var reader = new StreamReader(client, leaveOpen: true);
 
             var request = new PluginRequest
             {
-                Action = "AddLine",
-                PayloadJson = """
-                {
-                    "Start": { "X": 71, "Y": 0, "Z": 0 },
-                    "End":   { "X": 63, "Y": 0, "Z": 0 }
-                }
-                """
+                Action = "GetSections",
+                PayloadJson = { }
             };
+
+            //var request2 = new PluginRequest
+            //{
+            //    Action = "GetPoints",
+            //    PayloadJson = { }
+            //};
+
+            //var request3 = new PluginRequest
+            //{
+            //    Action = "GetCircles",
+            //    PayloadJson = { }
+            //};
+
+            //var request4 = new PluginRequest
+            //{
+            //    Action = "GetAll",
+            //    PayloadJson = { }
+            //};
 
             await writer.WriteLineAsync(JsonSerializer.Serialize(request));
             string? responseLine = await reader.ReadLineAsync();
 
             var response = JsonSerializer.Deserialize<PluginResponse>(responseLine!);
-
             if (response!.Success)
             {
+                //var list = JsonSerializer.Deserialize<List<LineData>>(response.ResultJson);
 
+                //if (list != null)
+                //{
+                //    var sections = _sortingService.SortLines(list);
+                //    _sectionsReceivedNotifier.NotifySectionsRecieved(sections);
+                //}
             }
             else
             {
