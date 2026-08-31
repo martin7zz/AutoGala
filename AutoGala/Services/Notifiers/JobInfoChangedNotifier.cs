@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AutoGala.Services
+namespace AutoGala.Services.Notifiers
 {
     public class JobInfoChangedNotifier : IJobInfoChangedNotifier
     {

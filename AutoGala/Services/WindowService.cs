@@ -42,13 +42,19 @@ namespace AutoGala.Services
             return window;
         }
 
-        public AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService, ISortingService sortingService, ISectionsReceivedNotifier sectionsReceivedNotifier)
+        public AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService, IAutoGalaPipeClientService autoGalaPipeClientService)
         {
+            var viewModel = new AutoGalaProcessSelectionViewModel(autoGalaProcessService, autoGalaPipeClientService);
+
             var window = new AutoGalaProcessSelectionView
             {
                 Owner = Application.Current.MainWindow,
-                DataContext = new AutoGalaProcessSelectionViewModel(autoGalaProcessService, sortingService, sectionsReceivedNotifier)
+                DataContext = viewModel
             };
+
+            viewModel.ConnectionSucceeded += () => window.Close();
+            viewModel.ConnectionFailed += message =>
+                MessageBox.Show(window, message, "Connection Failed", MessageBoxButton.OK, MessageBoxImage.Error);
 
             window.Show();
 

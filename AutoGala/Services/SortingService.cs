@@ -1,18 +1,22 @@
 ﻿using Autodesk.AutoCAD.Geometry;
 using AutoGala.Contracts;
 using AutoGala.Plugin.models;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using Plugin.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text;
 
 namespace AutoGala.Services
 {
     public class SortingService : ISortingService
     {
+        private const double Tolerance = 1e-8;
+
         private readonly ISectionService _sectionService;
 
         public SortingService(
@@ -23,104 +27,158 @@ namespace AutoGala.Services
 
         public List<SectionItem> SortLines(List<LineData> lines)
         {
-            List<SectionItem> sectionItems = new List<SectionItem>();
+            var sections = new List<SectionItem>();
 
-            if (lines == null || lines.Count < 3)
-                throw new ArgumentException("At least 3 lines are required.");
-
-            var ordered = new List<(PointData Start, PointData End)>();
-            var used = new bool[lines.Count];
-
-            // Start with the first line
-            var currentStart = lines[0].Start;
-            var currentEnd = lines[0].End;
-
-            used[0] = true;
-            ordered.Add((currentStart, currentEnd));
-
-            // Follow the connected loop
-            for (int i = 1; i < lines.Count; i++)
+            if (lines == null || lines.Count == 0)
             {
-                bool found = false;
+                return sections;
+            }
 
-                for (int j = 0; j < lines.Count; j++)
+            var adj = BuildAdjacency(lines);
+            var visited = new bool[lines.Count];
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (visited[i])
                 {
-                    if (used[j])
-                        continue;
-
-                    var line = lines[j];
-
-                    // Same direction
-                    if (AreEqual(line.Start, currentEnd))
-                    {
-                        currentStart = line.Start;
-                        currentEnd = line.End;
-
-                        ordered.Add((currentStart, currentEnd));
-                        used[j] = true;
-
-                        found = true;
-                        break;
-                    }
-
-                    // Opposite direction -> reverse it
-                    if (AreEqual(line.End, currentEnd))
-                    {
-                        currentStart = line.End;
-                        currentEnd = line.Start;
-
-                        ordered.Add((currentStart, currentEnd));
-                        used[j] = true;
-
-                        found = true;
-                        break;
-                    }
+                    continue;
                 }
 
-                if (!found)
-                    throw new InvalidOperationException(
-                        "Could not find the next connected line.");
-            }
+                var componentIndices = new List<int>();
+                DfsComponent(adj, visited, i, componentIndices);
 
-            // Calculate signed area
-            double area = 0;
+                var componentLines = componentIndices.Select(idx => lines[idx]).ToList();
+                var orderedPoints = BuildOrderedPoints(componentLines);
 
-            foreach (var line in ordered)
-            {
-                area += line.Start.X * line.End.Y;
-                area -= line.End.X * line.Start.Y;
-            }
-
-            // If clockwise, reverse the traversal
-            if (area < 0)
-            {
-                ordered.Reverse();
-
-                for (int i = 0; i < ordered.Count; i++)
+                // not a closable/usable section — skip or flag as needed
+                if (orderedPoints.Count < 3)
                 {
-                    var line = ordered[i];
+                    Debug.WriteLine("The section is open.");
+                    continue;
+                }
 
-                    ordered[i] = (
-                        line.End,
-                        line.Start
-                    );
+                if (SignedArea(orderedPoints) < 0)
+                {
+                    orderedPoints.Reverse();
+                }
+
+                int id = 1;
+                foreach (var point in orderedPoints)
+                {
+                    var section = _sectionService.CreateSection(point.X, point.Y);
+
+                    section.Id = id++; 
+                    sections.Add(section);
                 }
             }
 
-            foreach (var item in ordered)
-            {
-                sectionItems.Add(_sectionService.CreateSection(item.Start.X, item.Start.Y));
-            }
-
-            return sectionItems;
+            return sections;
         }
 
-        private bool AreEqual(PointData a, PointData b)
+        // Groups lines into connected components. Order of the returned
+        // indices is NOT the geometric order — just membership.
+        private void DfsComponent(List<List<int>> adj, bool[] visited, int s, List<int> res)
         {
-            const double tolerance = 1e-8;
+            visited[s] = true;
+            res.Add(s);
 
-            return Math.Abs(a.X - b.X) < tolerance &&
-                   Math.Abs(a.Y - b.Y) < tolerance;
+            foreach (var i in adj[s])
+            {
+                if (!visited[i])
+                {
+                    DfsComponent(adj, visited, i, res);
+                }
+            }
+        }
+
+        private List<List<int>> BuildAdjacency(List<LineData> lines)
+        {
+            var adj = new List<List<int>>();
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                adj.Add(new List<int>());
+            }
+
+            for (int i = 0; i < adj.Count; i++)
+            {
+                for (int j = i + 1; j < lines.Count; j++)
+                {
+                    if (AreEqual(lines[i].Start, lines[j].Start) ||
+                        AreEqual(lines[i].Start, lines[j].End) ||
+                        AreEqual(lines[i].End, lines[j].Start) ||
+                        AreEqual(lines[i].End, lines[j].End))
+                    {
+                        adj[i].Add(j);
+                        adj[j].Add(i);
+                    }
+                }
+            }
+
+            return adj;
+        }
+
+        // Walks a component's lines by matching shared endpoints, producing
+        // an ordered vertex list. Assumes each line touches at most 2 others
+        // (a simple open chain or closed loop) — no branching.
+        private List<PointData> BuildOrderedPoints(List<LineData> component)
+        {
+            var remaining = new List<LineData>(component);
+            var points = new List<PointData>();
+
+            var current = remaining[0];
+            remaining.RemoveAt(0);
+
+            points.Add(current.Start);
+            var currentPoint = current.End;
+            points.Add(currentPoint);
+
+            while (remaining.Count > 0)
+            {
+                var nextIndex = remaining.FindIndex(l =>
+                    AreEqual(l.Start, currentPoint) || AreEqual(l.End, currentPoint));
+                
+                // gap in the chain — shouldn't happen for a clean section
+                if (nextIndex < 0)
+                {
+                    break;
+                }
+
+                var next = remaining[nextIndex];
+                remaining.RemoveAt(nextIndex);
+
+                currentPoint = AreEqual(next.Start, currentPoint) ? next.End : next.Start;
+                points.Add(currentPoint);
+            }
+
+            // closed loop — drop the duplicated closing point
+            if (points.Count > 1 && AreEqual(points[0], points[^1]))
+            {
+                points.RemoveAt(points.Count - 1);
+            }
+
+            return points;
+        }
+
+        private double SignedArea(List<PointData> points)
+        {
+            double sum = 0;
+            int n = points.Count;
+
+            for (int i = 0; i < n; i++)
+            {
+                var p1 = points[i];
+                var p2 = points[(i + 1) % n];
+                sum += (p1.X * p2.Y) - (p2.X * p1.Y);
+            }
+
+            return sum / 2.0;
+        }
+
+        private bool AreEqual(PointData? a, PointData? b)
+        {
+            return Math.Abs(a.X - b.X) < Tolerance &&
+                   Math.Abs(a.Y - b.Y) < Tolerance;
         }
     }
 }

@@ -10,24 +10,23 @@ namespace AutoGala.Services
 {
     public class AutoGalaProcessService : IAutoGalaProcessService
     {
-        public AcadApplication GetAcadApplicationByProcessId(int pid)
+        public AcadApplication? GetAcadApplicationByProcessId(int pid)
         {
             int hr = GetRunningObjectTable(0, out IRunningObjectTable rot);
-            if (hr != 0) Marshal.ThrowExceptionForHR(hr);
+            Marshal.ThrowExceptionForHR(hr);
 
-            IEnumMoniker enumMoniker;
-            rot.EnumRunning(out enumMoniker);
-            enumMoniker.Reset();
-
+            rot.EnumRunning(out IEnumMoniker enumMoniker);
             CreateBindCtx(0, out IBindCtx bindCtx);
 
             try
             {
+                enumMoniker.Reset();
+
                 IMoniker[] monikers = new IMoniker[1];
 
                 while (enumMoniker.Next(1, monikers, IntPtr.Zero) == 0)
                 {
-                    IMoniker moniker = monikers[0];
+                    var moniker = monikers[0];
 
                     try
                     {
@@ -41,45 +40,67 @@ namespace AutoGala.Services
                         if (rot.GetObject(moniker, out object obj) != 0)
                             continue;
 
-                        if (obj is AcadDocument doc)
+                        try
                         {
-                            AcadApplication app = doc.Application;
+                            if (obj is not AcadDocument doc)
+                                continue;
 
-                            GetWindowThreadProcessId(
-                                (IntPtr)app.HWND,
-                                out uint appPid);
+                            Debug.WriteLine($"DOCUMENT: {doc.Name}");
 
-                            Debug.WriteLine(
-                                $"  AcadDocument: {doc.Name}, PID: {appPid}");
+                            AcadApplication? app = null;
 
-                            if (appPid == pid)
-                                return app;
+                            try
+                            {
+                                app = doc.Application;
+
+                                GetWindowThreadProcessId(
+                                    (IntPtr)app.HWND,
+                                    out uint appPid);
+
+                                Debug.WriteLine(
+                                    $"APP PID: {appPid}, requested PID: {pid}");
+
+                                if (appPid == pid)
+                                {
+                                    // Transfer ownership of app to caller.
+                                    var result = app;
+                                    app = null;
+
+                                    return result;
+                                }
+                            }
+                            finally
+                            {
+                                if (app != null)
+                                    Marshal.ReleaseComObject(app);
+                            }
                         }
-                        else if (obj != null)
+                        finally
                         {
-                            Marshal.ReleaseComObject(obj); // release bound but unused monikers
+                            Marshal.ReleaseComObject(obj);
                         }
                     }
-                    catch (COMException)
+                    catch (COMException ex)
                     {
-                        // ROT entries can disappear between enumeration and binding.
+                        Debug.WriteLine(
+                            $"ROT entry failed: {ex.Message}");
                     }
                     finally
                     {
                         Marshal.ReleaseComObject(moniker);
                     }
                 }
+
+                return null;
             }
-            finally 
+            finally
             {
                 Marshal.ReleaseComObject(bindCtx);
                 Marshal.ReleaseComObject(enumMoniker);
                 Marshal.ReleaseComObject(rot);
             }
-            
-
-            return null;
         }
+
 
         [DllImport("ole32.dll")]
         private static extern int GetRunningObjectTable(
