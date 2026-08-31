@@ -3,6 +3,7 @@ using System.Data;
 using System.Windows;
 using AutoGala.Contracts;
 using AutoGala.Services;
+using AutoGala.Services.Notifiers;
 using AutoGala.ViewModels;
 using AutoGala.views;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,11 +37,26 @@ namespace AutoGala
             mainWindow.Show();
         }
 
+        protected override void OnExit(ExitEventArgs e)
+        {
+            try
+            {
+                var pipeClient =
+                    _servicesProvider.GetRequiredService<
+                        IAutoGalaPipeClientService>();
+
+                pipeClient.Disconnect();
+            }
+            finally
+            {
+                base.OnExit(e);
+            }
+        }
+
         private void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<JobInfo>();
             services.AddSingleton<IJobInfoChangedNotifier, JobInfoChangedNotifier>();
-            services.AddSingleton<ISectionsReceivedNotifier, SectionsReceivedNotifier>();
 
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();
@@ -52,9 +68,10 @@ namespace AutoGala
             services.AddSingleton<IWindowService, WindowService>();
             services.AddSingleton<IGalaService, GalaService>();
             services.AddSingleton<IMainWindowService, MainWindowService>();
-            services.AddSingleton<IEditStateService, EditStateService>();
             services.AddSingleton<IAutoGalaProcessService, AutoGalaProcessService>();
+            services.AddSingleton<IAutoGalaPipeClientService, AutoGalaPipeClientService>();
             services.AddSingleton<ISortingService, SortingService>();
+            services.AddSingleton<IMessageExchangeService, MessageExchangeService>();
 
             services.AddTransient<SectionViewModel>();
             services.AddTransient<RebarViewModel>();

@@ -8,6 +8,7 @@ namespace AutoGala.Ipc
     {
         private readonly string _pipeName;
         private CancellationTokenSource _cts;
+        private Task? _listenTask;
 
         // Handler receives the raw request line, returns the raw response line.
         public Func<string, Task<string>>? RequestHandler { get; set; }
@@ -19,53 +20,87 @@ namespace AutoGala.Ipc
 
         public void Start()
         {
+            if (_listenTask != null)
+                return;
+
             _cts = new CancellationTokenSource();
-            _ = ListenLoopAsync(_cts.Token);
+            _listenTask = ListenLoopAsync(_cts.Token);
         }
 
-        public void Stop() => _cts?.Cancel();
+        public async Task StopAsync()
+        {
+            if (_cts == null)
+                return;
+
+            _cts.Cancel();
+
+            try
+            {
+                if (_listenTask != null)
+                    await _listenTask;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            _cts.Dispose();
+            _cts = null;
+            _listenTask = null;
+        }
 
         private async Task ListenLoopAsync(CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            try
             {
-                using var pipe = new NamedPipeServerStream(
-                    _pipeName,
-                    PipeDirection.InOut,
-                    maxNumberOfServerInstances: 1,
-                    PipeTransmissionMode.Byte,
-                    PipeOptions.Asynchronous);
-
-                try
+                while (!token.IsCancellationRequested)
                 {
-                    await pipe.WaitForConnectionAsync(token);
+                    using var pipe = new NamedPipeServerStream(
+                        _pipeName,
+                        PipeDirection.InOut,
+                        maxNumberOfServerInstances: 1,
+                        PipeTransmissionMode.Byte,
+                        PipeOptions.Asynchronous);
 
-                    using var reader = new StreamReader(pipe, leaveOpen: true);
-                    using var writer = new StreamWriter(pipe, leaveOpen: true) { AutoFlush = true };
-
-                    // keep connected for multiple messages or only one.
-                    while (pipe.IsConnected)
+                    try
                     {
-                        string? line = await reader.ReadLineAsync();
-                        if (line == null)
+                        await pipe.WaitForConnectionAsync(token);
+
+                        using var reader = new StreamReader(pipe, leaveOpen: true);
+                        using var writer = new StreamWriter(pipe, leaveOpen: true) { AutoFlush = true };
+
+                        // keep connected for multiple messages or only one.
+                        while (pipe.IsConnected &&
+                               !token.IsCancellationRequested)
                         {
-                            break;
+                            string? line = await reader.ReadLineAsync(token);
+                            if (line == null)
+                            {
+                                break;
+                            }
+
+                            string response = RequestHandler != null
+                                ? await RequestHandler(line) : JsonSerializer.Serialize(new PluginResponse { Success = false, Error = "No handler registered" });
+
+                            await writer.WriteLineAsync(response);
                         }
-
-                        string response = RequestHandler != null
-                            ? await RequestHandler(line) : JsonSerializer.Serialize(new PluginResponse { Success = false, Error = "No handler registered" });
-
-                        await writer.WriteLineAsync(response);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        Debug.WriteLine("Stop was called.");
+                    }
+                    catch (IOException ex)
+                    {
+                        Debug.WriteLine(
+                            $"Pipe client disconnected: {ex.Message}");
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    Debug.WriteLine("Stop was called.");
-                }
-                catch (IOException)
-                {
-                    Debug.WriteLine("Client dropped.");
-                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                Debug.WriteLine("Pipe server stopped.");
             }
         }
     }

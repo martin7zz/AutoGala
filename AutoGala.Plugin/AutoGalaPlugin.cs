@@ -32,7 +32,24 @@ namespace AutoGala.Plugin
             _pipeServer.Start();
         }
 
-        public void Terminate() => _pipeServer?.Stop();
+        public void Terminate()
+        {
+            if (_pipeServer != null)
+            {
+                try
+                {
+                    _pipeServer.StopAsync().GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"PipeServer shutdown failed: {ex}");
+                }
+                finally
+                {
+                    _pipeServer = null;
+                }
+            }
+        }
 
         private async Task<string> HandleRequestAsync(string json)
         {
@@ -68,14 +85,14 @@ namespace AutoGala.Plugin
         {
             var tcs = new TaskCompletionSource<object?>();
 
-            Status();
-
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-
             Application.DocumentManager.ExecuteInApplicationContext(_ =>
             {
                 try
                 {
+                    Document doc = Application.DocumentManager.MdiActiveDocument;
+
+                    Status(doc);
+
                     object? result = Dispatch(request, doc);
                     tcs.SetResult(result);
                 }
@@ -289,9 +306,8 @@ namespace AutoGala.Plugin
 
         // for debugging
         [CommandMethod("AUTOGALASTATUS")]
-        public void Status()
+        public void Status(Document doc)
         {
-            var doc = Application.DocumentManager.MdiActiveDocument;
             doc.Editor.WriteMessage($"\nAutoGala plugin loaded. PID: {Process.GetCurrentProcess().Id}\n");
         }
     }

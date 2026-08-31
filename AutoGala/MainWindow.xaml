@@ -102,6 +102,11 @@
                     <Separator/>
                     <MenuItem Header="_Clear All" 
                               Command="{Binding ClearAllCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="_Connect to AutoCAD" 
+                              Command="{Binding ConnectToAutoCADCommand}"/>
+                    <MenuItem Header="_Get all from AutoCAD" 
+                              Command="{Binding GetAllAutoCADCommand}"/>
                 </MenuItem>
 
             </Menu>
