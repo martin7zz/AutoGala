@@ -14,7 +14,7 @@ namespace AutoGala.Contracts
     {
         EditJobInfoView ShowEditJobInfo(JobInfo jobInfo, IJobInfoChangedNotifier notifier);
         GalaPromptView ShowGalaPrompt(string data);
-        AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService, ISortingService sortingService, ISectionsReceivedNotifier sectionsReceivedNotifier);
+        AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService, IAutoGalaPipeClientService autoGalaPipeClientService);
         ClipboardErrorView ShowClipboardError(string data, IEnumerable<string>? failedRows = null);
         void UpdateGalaPrompt(string data, GalaPromptView galaPromptView);
     }
