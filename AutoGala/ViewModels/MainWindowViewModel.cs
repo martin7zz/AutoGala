@@ -1,5 +1,7 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
+using AutoGala.Services;
+using AutoGala.Services.Notifiers;
 using AutoGala.ViewModels.Base;
 using AutoGala.views;
 using Plugin.Core.Contracts;
@@ -22,9 +24,10 @@ namespace AutoGala.ViewModels
 
 
         private IMainWindowService _mainWindowService;
-        private IEditStateService _editStateService;
         private IWindowService _windowService;
         private IGalaService _galaService;
+        private IAutoGalaProcessService _autoGalaProcessService;
+        private IAutoGalaPipeClientService _autoGalaPipeClientService;
         private IJobInfoChangedNotifier _notifier;
 
         public ICommand SaveAllToExcelCommand { get; }
@@ -32,13 +35,18 @@ namespace AutoGala.ViewModels
         public ICommand ClearAllCommand { get; }
         public ICommand EditJobInfoCommand { get; }
         public ICommand SetJobInfoCommand { get; }
+        public ICommand ConnectToAutoCADCommand { get; }
 
         public MainWindowViewModel(SectionViewModel sectionViewModel,
             RebarViewModel rebarViewModel,
             LoadViewModel loadViewModel,
             EditJobInfoViewModel editJobInfoViewModel,
             AutoGalaProcessSelectionViewModel autoGalaProcessSelectionViewModel,
-            IMainWindowService mainWindowService, IEditStateService editStateService, IWindowService windowService, IGalaService galaService,
+            IMainWindowService mainWindowService,
+            IWindowService windowService, 
+            IGalaService galaService,
+            IAutoGalaProcessService autoGalaProcessService,
+            IAutoGalaPipeClientService autoGalaPipeClientService,
             IJobInfoChangedNotifier notifier) 
         {
             SectionView = sectionViewModel;
@@ -48,16 +56,20 @@ namespace AutoGala.ViewModels
             AutoGalaProcessSelectionView = autoGalaProcessSelectionViewModel;
 
             _mainWindowService = mainWindowService;
-            _editStateService = editStateService;
             _windowService = windowService;
             _galaService = galaService;
+            _autoGalaProcessService = autoGalaProcessService;
+            _autoGalaPipeClientService = autoGalaPipeClientService;
             _notifier = notifier;
 
-            SaveAllToExcelCommand = new RelayCommand(param => SaveAllToExcel(), param => HasAll() && !_editStateService.IsEditing);
-            LoadAllFromExcelCommand = new RelayCommand(param => LoadAllFromExcel(), param => !_editStateService.IsEditing);
-            ClearAllCommand = new RelayCommand(param => ClearAll(), param => HasData() && !_editStateService.IsEditing);
+            _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
+
+            SaveAllToExcelCommand = new RelayCommand(param => SaveAllToExcel(), param => HasAll());
+            LoadAllFromExcelCommand = new RelayCommand(param => LoadAllFromExcel());
+            ClearAllCommand = new RelayCommand(param => ClearAll(), param => HasData());
             EditJobInfoCommand = new RelayCommand(param => EditJobInfo());
-            SetJobInfoCommand = new RelayCommand(async param => await SetJobInfo());
+            SetJobInfoCommand = new RelayCommand(async param => await SetJobInfoAsync());
+            ConnectToAutoCADCommand = new RelayCommand(async param => await ConnectToAutoCADAsync(), param => !_autoGalaPipeClientService.IsConnected);
         }
 
         private void EditJobInfo()
@@ -66,9 +78,14 @@ namespace AutoGala.ViewModels
             EditJobInfoView.RefreshFromModel();
         }
 
-        private async Task SetJobInfo()
+        private async Task SetJobInfoAsync()
         {
            await _galaService.HookToGalaJobAsync(EditJobInfoView.JobInfo);
+        }
+
+        private async Task ConnectToAutoCADAsync()
+        {
+            _windowService.ShowProcessSelection(_autoGalaProcessService, _autoGalaPipeClientService);
         }
 
         private void SaveAllToExcel()

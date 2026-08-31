@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Windows.Input;
@@ -39,16 +40,15 @@ namespace AutoGala.ViewModels
         }
 
         private readonly IAutoGalaProcessService _autoGalaProcessService;
-        private readonly ISortingService _sortingService;
-        private readonly ISectionsReceivedNotifier _sectionsReceivedNotifier;
+        private readonly IAutoGalaPipeClientService _pipeClientService;
 
         public ICommand SelectCommand { get; }
 
-        public AutoGalaProcessSelectionViewModel(IAutoGalaProcessService autoGalaProcessService, ISortingService sortingService, ISectionsReceivedNotifier sectionsReceivedNotifier) 
+        public AutoGalaProcessSelectionViewModel(IAutoGalaProcessService autoGalaProcessService,
+            IAutoGalaPipeClientService autoGalaPipeClientService) 
         {
             _autoGalaProcessService = autoGalaProcessService;
-            _sortingService = sortingService;
-            _sectionsReceivedNotifier = sectionsReceivedNotifier;
+            _pipeClientService = autoGalaPipeClientService;
 
             SelectCommand = new RelayCommand(async param => await Select(), param => SelectedInstance != null);
 
@@ -80,88 +80,73 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private AcadApplication? acadApp;
+        public event Action? ConnectionSucceeded;
+        public event Action<string>? ConnectionFailed;
 
         private async Task Select()
         {
-            if (SelectedInstance == null)
+            if (SelectedInstance == null) return;
+            var process = SelectedInstance.Process;
+
+            try
             {
-                return;
+                if (!await TryConnectAsync(process))
+                    await LoadPluginAndConnectAsync(process);
+
+                ConnectionSucceeded?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                ConnectionFailed?.Invoke(ex.Message);
+            }
+        }
+
+        private async Task<bool> TryConnectAsync(Process process)
+        {
+            if (_pipeClientService.IsConnected) return true;
+            try
+            {
+                await _pipeClientService.ConnectAsync(process);
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        }
+
+        private async Task LoadPluginAndConnectAsync(Process process)
+        {
+            AcadApplication? acadApp = await Task.Run(
+                () => _autoGalaProcessService.GetAcadApplicationByProcessId(process.Id));
+
+            try
+            {
+                InjectPlugin(acadApp);
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(acadApp);
             }
 
-            int pid = SelectedInstance.ProcessId;
+            await _pipeClientService.ConnectAsync(process);
+        }
 
-            if (acadApp == null)
+        private static void InjectPlugin(AcadApplication acadApp)
+        {
+            const string pluginPath = @"D:\Programming\Job\AutoGala\AutoGala.Plugin\bin\Debug\net10.0-windows\AutoGala.Plugin.dll";
+
+            AcadDocument? document = acadApp.ActiveDocument;
+            try
             {
-                acadApp = _autoGalaProcessService.GetAcadApplicationByProcessId(pid);
+                document.SendCommand(
+                    "(setvar \"FILEDIA\" 0)\n" +
+                    $"NETLOAD \"{pluginPath}\"\n" +
+                    "(setvar \"FILEDIA\" 1)\n");
             }
-
-            if (acadApp == null)
+            finally
             {
-                Debug.WriteLine("Could not find autoCAD instance.");
-                return;
-            }
-            // when deployed
-            //string pluginPath = @"D:\Programming\Job\software and tests\AutoGala\AutoGala.Plugin.dll";
-
-            // load plugin into autoCAD instance. Skip if autoloaded.
-            string pluginPath = @"D:\Programming\Job\AutoGala\AutoGala.Plugin\bin\Debug\net10.0-windows\AutoGala.Plugin.dll";
-            acadApp.ActiveDocument.SendCommand(
-                "(setvar \"FILEDIA\" 0)\n" +
-                $"NETLOAD \"{pluginPath}\"\n" +
-                "(setvar \"FILEDIA\" 1)\n");
-
-            using var client = new NamedPipeClientStream(".", $"AutoGala_{pid}", PipeDirection.InOut);
-            for (int attempt = 0; attempt < 5; attempt++)
-            {
-                try { await client.ConnectAsync(1000); break; }
-                catch (TimeoutException) when (attempt < 4) { await Task.Delay(300); }
-            }
-
-            using var writer = new StreamWriter(client, leaveOpen: true) { AutoFlush = true };
-            using var reader = new StreamReader(client, leaveOpen: true);
-
-            var request = new PluginRequest
-            {
-                Action = "GetSections",
-                PayloadJson = { }
-            };
-
-            //var request2 = new PluginRequest
-            //{
-            //    Action = "GetPoints",
-            //    PayloadJson = { }
-            //};
-
-            //var request3 = new PluginRequest
-            //{
-            //    Action = "GetCircles",
-            //    PayloadJson = { }
-            //};
-
-            //var request4 = new PluginRequest
-            //{
-            //    Action = "GetAll",
-            //    PayloadJson = { }
-            //};
-
-            await writer.WriteLineAsync(JsonSerializer.Serialize(request));
-            string? responseLine = await reader.ReadLineAsync();
-
-            var response = JsonSerializer.Deserialize<PluginResponse>(responseLine!);
-            if (response!.Success)
-            {
-                //var list = JsonSerializer.Deserialize<List<LineData>>(response.ResultJson);
-
-                //if (list != null)
-                //{
-                //    var sections = _sortingService.SortLines(list);
-                //    _sectionsReceivedNotifier.NotifySectionsRecieved(sections);
-                //}
-            }
-            else
-            {
-                throw new InvalidOperationException(response.Error);
+                Marshal.ReleaseComObject(document);
             }
         }
     }

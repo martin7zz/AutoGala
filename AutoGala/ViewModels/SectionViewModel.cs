@@ -55,9 +55,9 @@ namespace AutoGala.ViewModels
         private readonly IWindowService _windowService;
         private readonly IMainWindowService _mainWindowService;
         private readonly IJobInfoChangedNotifier _notifier;
-        private readonly IAutoGalaProcessService _autoGalaProcessService;
+        private readonly IAutoGalaPipeClientService _autoGalaPipeClientService;
         private readonly ISortingService _sortingService;
-        private readonly ISectionsReceivedNotifier _sectionsRecievedNotifier;
+        private readonly IMessageExchangeService _messageExchangeService;
 
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionsCommand { get; }
@@ -76,9 +76,9 @@ namespace AutoGala.ViewModels
             IMainWindowService mainWindowService,
             JobInfo jobInfo,
             IJobInfoChangedNotifier notifier,
-            IAutoGalaProcessService autoGalaProcessService,
             ISortingService sortingService,
-            ISectionsReceivedNotifier sectionsNotifier
+            IMessageExchangeService messageExchangeService,
+            IAutoGalaPipeClientService autoGalaPipeClientService
             )
         {
             _sectionService = sectionService;
@@ -86,14 +86,14 @@ namespace AutoGala.ViewModels
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
-            _autoGalaProcessService = autoGalaProcessService;
             _sortingService = sortingService;
-            _sectionsRecievedNotifier = sectionsNotifier;
-
-            sectionsNotifier.SectionsReceived += OnSectionsReceived;
+            _messageExchangeService = messageExchangeService;
+            _autoGalaPipeClientService = autoGalaPipeClientService;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
+
+            _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
 
             AddSectionCommand = new RelayCommand(param => AddSection(), param => !HasValidationError);
             RemoveSectionsCommand = new RelayCommand(param => RemoveSections(), param => SelectedSections.Count > 0 && !HasValidationError);
@@ -103,7 +103,7 @@ namespace AutoGala.ViewModels
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Sections.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
             GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
-            GetAutoCADCommand = new RelayCommand(param => GetAutoCAD(), param => !HasValidationError);
+            GetAutoCADCommand = new RelayCommand(async param => await GetAutoCAD(), param => !HasValidationError && _autoGalaPipeClientService.IsConnected);
         }
 
         private void AddSection()
@@ -230,21 +230,27 @@ namespace AutoGala.ViewModels
             CommandManager.InvalidateRequerySuggested();
         }
 
-        private void GetAutoCAD()
+        private async Task GetAutoCAD()
         {
-            _windowService.ShowProcessSelection(_autoGalaProcessService, _sortingService, _sectionsRecievedNotifier);
-        }
+            var sections = await _messageExchangeService.GetSectionsAsync(_autoGalaPipeClientService, _sortingService);
 
-        private void OnSectionsReceived(List<SectionItem> sections)
-        {
-            Sections.Clear();
-            foreach (var s in sections)
-                Sections.Add(s);
+            if (sections.Any())
+            {
+                Sections.Clear();
+            }
+
+            foreach (var section in sections)
+            {
+                Sections.Add(section);
+            }
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void SaveToExcel()
         {
             _mainWindowService.SaveExcel(Sections, _jobInfo);
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void LoadFromExcel()
