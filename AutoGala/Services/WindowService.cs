@@ -1,22 +1,30 @@
 ﻿using AutoGala.Contracts;
 using AutoGala.ViewModels;
 using AutoGala.views;
+using Microsoft.Extensions.DependencyInjection;
 using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Windows;
 
 namespace AutoGala.Services
 {
     public class WindowService : IWindowService
     {
-        public EditJobInfoView ShowEditJobInfo(JobInfo jobInfo, IJobInfoChangedNotifier notifier)
+        private readonly IServiceProvider _serviceProvider;
+
+        public WindowService(IServiceProvider serviceProvider)
         {
-            var viewModel = new EditJobInfoViewModel(jobInfo, notifier);
-            
+            _serviceProvider = serviceProvider;
+        }
+
+        public EditJobInfoView ShowEditJobInfo(
+            JobInfo jobInfo,
+            IJobInfoChangedNotifier notifier)
+        {
+            var viewModel = ActivatorUtilities.CreateInstance<EditJobInfoViewModel>(
+                _serviceProvider,
+                jobInfo,
+                notifier);
+
             var window = new EditJobInfoView
             {
                 Owner = Application.Current.MainWindow,
@@ -24,17 +32,26 @@ namespace AutoGala.Services
             };
 
             viewModel.SaveRequested += () => window.Close();
+
             window.ShowDialog();
 
             return window;
         }
 
-        public ClipboardErrorView ShowClipboardError(string data, IEnumerable<string>? failedRows = null)
+
+        public ClipboardErrorView ShowClipboardError(
+            string data,
+            IEnumerable<string>? failedRows = null)
         {
+            var viewModel = ActivatorUtilities.CreateInstance<ClipboardErrorViewModel>(
+                _serviceProvider,
+                data,
+                failedRows);
+
             var window = new ClipboardErrorView
             {
                 Owner = Application.Current.MainWindow,
-                DataContext = new ClipboardErrorViewModel(data, failedRows)
+                DataContext = viewModel
             };
 
             window.Show();
@@ -42,9 +59,11 @@ namespace AutoGala.Services
             return window;
         }
 
-        public AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService, IAutoGalaPipeClientService autoGalaPipeClientService)
+
+        public AutoGalaProcessSelectionView ShowProcessSelection()
         {
-            var viewModel = new AutoGalaProcessSelectionViewModel(autoGalaProcessService, autoGalaPipeClientService);
+            var viewModel =
+                _serviceProvider.GetRequiredService<AutoGalaProcessSelectionViewModel>();
 
             var window = new AutoGalaProcessSelectionView
             {
@@ -53,8 +72,19 @@ namespace AutoGala.Services
             };
 
             viewModel.ConnectionSucceeded += () => window.Close();
+
             viewModel.ConnectionFailed += message =>
-                MessageBox.Show(window, message, "Connection Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    window,
+                    message,
+                    "Connection Failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+            window.Closed += (_, _) =>
+            {
+                viewModel.Dispose();
+            };
 
             window.Show();
 
@@ -63,16 +93,21 @@ namespace AutoGala.Services
 
         public GalaPromptView ShowGalaPrompt(string data)
         {
+            var viewModel = ActivatorUtilities.CreateInstance<GalaPromptViewModel>(
+                _serviceProvider,
+                data);
+
             var window = new GalaPromptView
             {
                 Owner = Application.Current.MainWindow,
-                DataContext = new GalaPromptViewModel(data)
+                DataContext = viewModel
             };
 
             window.Show();
 
             return window;
         }
+
 
         public void UpdateGalaPrompt(string data, GalaPromptView galaPromptView)
         {

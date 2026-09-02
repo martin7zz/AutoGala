@@ -1,12 +1,5 @@
-﻿using AutoGala.Services;
-using AutoGala.ViewModels;
-using AutoGala.views;
+﻿using AutoGala.views;
 using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
-using System.Windows;
 
 namespace AutoGala.Contracts
 {
@@ -14,7 +7,7 @@ namespace AutoGala.Contracts
     {
         EditJobInfoView ShowEditJobInfo(JobInfo jobInfo, IJobInfoChangedNotifier notifier);
         GalaPromptView ShowGalaPrompt(string data);
-        AutoGalaProcessSelectionView ShowProcessSelection(IAutoGalaProcessService autoGalaProcessService, IAutoGalaPipeClientService autoGalaPipeClientService);
+        AutoGalaProcessSelectionView ShowProcessSelection();
         ClipboardErrorView ShowClipboardError(string data, IEnumerable<string>? failedRows = null);
         void UpdateGalaPrompt(string data, GalaPromptView galaPromptView);
     }

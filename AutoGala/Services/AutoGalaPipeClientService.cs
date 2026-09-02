@@ -1,13 +1,12 @@
 ﻿using AutoGala.Contracts;
 using AutoGala.Ipc;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
-using System.Text;
 using System.Text.Json;
 using System.Windows;
+
+using static AutoGala.Common.UiNavigation;
 
 namespace AutoGala.Services
 {
@@ -130,6 +129,45 @@ namespace AutoGala.Services
             finally
             {
                 _lock.Release();
+            }
+        }
+
+        public void ActivateAutoCAD()
+        {
+            var process = _watchedProcess;
+
+            if (process == null)
+                throw new InvalidOperationException("AutoCAD is not connected.");
+
+            try
+            {
+                if (process.HasExited)
+                {
+                    Disconnect();
+                    throw new InvalidOperationException("AutoCAD has exited.");
+                }
+
+                process.Refresh();
+
+                var handle = process.MainWindowHandle;
+
+                if (handle == IntPtr.Zero)
+                    throw new InvalidOperationException("Could not find the AutoCAD window.");
+
+                // If AutoCAD is minimized, restore it first.
+                ShowWindow(handle, SW_RESTORE);
+
+                SetForegroundWindow(handle);
+            }
+            catch (InvalidOperationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    "Could not bring AutoCAD to the foreground.",
+                    ex);
             }
         }
     }

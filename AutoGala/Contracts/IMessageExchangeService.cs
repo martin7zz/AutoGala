@@ -1,14 +1,11 @@
-﻿using AutoGala.Services;
-using AutoGala.Services.Notifiers;
-using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Plugin.Core.Models;
 
 namespace AutoGala.Contracts
 {
     public interface IMessageExchangeService
     {
-        Task<List<SectionItem>> GetSectionsAsync(IAutoGalaPipeClientService autoGalaPipeClientService, ISortingService sortingService);
+        Task<(List<SectionItem>, string)> GetSectionsAsync(IAutoGalaPipeClientService autoGalaPipeClientService, string name);
+        Task<(List<RebarItem>, string)> GetRebarsAsync(IAutoGalaPipeClientService autoGalaPipeClientService, string name);
+        Task<((List<SectionItem>, List<RebarItem>), string)> GetAllAsync(IAutoGalaPipeClientService autoGalaPipeClientService, string name);
     }
 }
