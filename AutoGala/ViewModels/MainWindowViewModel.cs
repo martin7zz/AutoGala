@@ -1,15 +1,10 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
-using AutoGala.Services;
-using AutoGala.Services.Notifiers;
 using AutoGala.ViewModels.Base;
-using AutoGala.views;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using System.Windows;
 using System.Windows.Input;
 
 namespace AutoGala.ViewModels
@@ -28,6 +23,7 @@ namespace AutoGala.ViewModels
         private IGalaService _galaService;
         private IAutoGalaProcessService _autoGalaProcessService;
         private IAutoGalaPipeClientService _autoGalaPipeClientService;
+        private IMessageExchangeService _messageExchageService;
         private IJobInfoChangedNotifier _notifier;
 
         public ICommand SaveAllToExcelCommand { get; }
@@ -36,6 +32,7 @@ namespace AutoGala.ViewModels
         public ICommand EditJobInfoCommand { get; }
         public ICommand SetJobInfoCommand { get; }
         public ICommand ConnectToAutoCADCommand { get; }
+        public ICommand GetAllFromAutoCADCommand { get; }
 
         public MainWindowViewModel(SectionViewModel sectionViewModel,
             RebarViewModel rebarViewModel,
@@ -43,11 +40,12 @@ namespace AutoGala.ViewModels
             EditJobInfoViewModel editJobInfoViewModel,
             AutoGalaProcessSelectionViewModel autoGalaProcessSelectionViewModel,
             IMainWindowService mainWindowService,
-            IWindowService windowService, 
+            IWindowService windowService,
             IGalaService galaService,
             IAutoGalaProcessService autoGalaProcessService,
             IAutoGalaPipeClientService autoGalaPipeClientService,
-            IJobInfoChangedNotifier notifier) 
+            IJobInfoChangedNotifier notifier,
+            IMessageExchangeService messageExchangeService)
         {
             SectionView = sectionViewModel;
             RebarView = rebarViewModel;
@@ -61,6 +59,7 @@ namespace AutoGala.ViewModels
             _autoGalaProcessService = autoGalaProcessService;
             _autoGalaPipeClientService = autoGalaPipeClientService;
             _notifier = notifier;
+            _messageExchageService = messageExchangeService;
 
             _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
 
@@ -70,6 +69,7 @@ namespace AutoGala.ViewModels
             EditJobInfoCommand = new RelayCommand(param => EditJobInfo());
             SetJobInfoCommand = new RelayCommand(async param => await SetJobInfoAsync());
             ConnectToAutoCADCommand = new RelayCommand(async param => await ConnectToAutoCADAsync(), param => !_autoGalaPipeClientService.IsConnected);
+            GetAllFromAutoCADCommand = new RelayCommand(async param => await GetAllFromAutoCADAsync(), param => _autoGalaPipeClientService.IsConnected);
         }
 
         private void EditJobInfo()
@@ -80,12 +80,46 @@ namespace AutoGala.ViewModels
 
         private async Task SetJobInfoAsync()
         {
-           await _galaService.HookToGalaJobAsync(EditJobInfoView.JobInfo);
+            await _galaService.HookToGalaJobAsync(EditJobInfoView.JobInfo);
         }
 
         private async Task ConnectToAutoCADAsync()
         {
-            _windowService.ShowProcessSelection(_autoGalaProcessService, _autoGalaPipeClientService);
+            _windowService.ShowProcessSelection();
+        }
+
+        private async Task GetAllFromAutoCADAsync()
+        {
+            try
+            {
+                _autoGalaPipeClientService.ActivateAutoCAD();
+
+                var shapeData = await _messageExchageService.GetAllAsync(_autoGalaPipeClientService, EditJobInfoView.JobInfo.JobTitle);
+
+                if (shapeData.Item1.Item1.Any() || shapeData.Item1.Item2.Any())
+                {
+                    ClearAll();
+                }
+
+                foreach (var section in shapeData.Item1.Item1)
+                {
+                    SectionView.Sections.Add(section);
+                }
+
+                foreach (var rebar in shapeData.Item1.Item2)
+                {
+                    RebarView.Rebars.Add(rebar);
+                }
+
+                EditJobInfoView.JobInfo.JobTitle = shapeData.Item2;
+                _notifier.NotifyJobInfoChanged();
+
+                CommandManager.InvalidateRequerySuggested();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message, "AutoGala", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void SaveAllToExcel()
@@ -107,7 +141,7 @@ namespace AutoGala.ViewModels
             {
                 return;
             }
-            
+
             ClearAll();
 
             foreach (var section in (ObservableCollection<SectionItem>)items[0])

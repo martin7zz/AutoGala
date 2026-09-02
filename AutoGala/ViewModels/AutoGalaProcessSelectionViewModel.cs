@@ -1,28 +1,23 @@
-﻿using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.Interop;
+﻿using Autodesk.AutoCAD.Interop;
 using AutoGala.Common;
 using AutoGala.Contracts;
-using AutoGala.Ipc;
-using AutoGala.Services;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Pipes;
+using System.Management;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.Json;
+using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media.Media3D;
 
 namespace AutoGala.ViewModels
 {
-    public class AutoGalaProcessSelectionViewModel : ViewModelBase
+    public class AutoGalaProcessSelectionViewModel : ViewModelBase, IDisposable
     {
         private const string TargetProcessName = "acad";
+
+        private ManagementEventWatcher? _processStartWatcher;
+        private ManagementEventWatcher? _processStopWatcher;
 
         public ObservableCollection<AutoCADApplication> RunningInstances { get; } = new();
 
@@ -44,15 +39,20 @@ namespace AutoGala.ViewModels
 
         public ICommand SelectCommand { get; }
 
+        public ICommand RefreshCommand { get; }
+
         public AutoGalaProcessSelectionViewModel(IAutoGalaProcessService autoGalaProcessService,
-            IAutoGalaPipeClientService autoGalaPipeClientService) 
+            IAutoGalaPipeClientService autoGalaPipeClientService)
         {
             _autoGalaProcessService = autoGalaProcessService;
             _pipeClientService = autoGalaPipeClientService;
 
             SelectCommand = new RelayCommand(async param => await Select(), param => SelectedInstance != null);
+            RefreshCommand = new RelayCommand(param => Refresh());
 
             Refresh();
+
+            StartProcessWatcher();
         }
 
         private void Refresh()
@@ -78,6 +78,48 @@ namespace AutoGala.ViewModels
                 }
                 Debug.WriteLine($"Found {RunningInstances.Count} instances");
             }
+        }
+
+        private void StartProcessWatcher()
+        {
+            _processStartWatcher = new ManagementEventWatcher(
+                new WqlEventQuery("SELECT * FROM Win32_ProcessStartTrace"));
+
+            _processStartWatcher.EventArrived += (_, e) =>
+            {
+                var processName = e.NewEvent["ProcessName"]?.ToString();
+
+                if (string.Equals(processName, "acad.exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    Application.Current.Dispatcher.Invoke(Refresh);
+                }
+            };
+
+            _processStartWatcher.Start();
+
+            _processStopWatcher = new ManagementEventWatcher(
+                new WqlEventQuery("SELECT * FROM Win32_ProcessStopTrace"));
+
+            _processStopWatcher.EventArrived += (_, e) =>
+            {
+                var processName = e.NewEvent["ProcessName"]?.ToString();
+
+                if (string.Equals(processName, "acad.exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    Application.Current.Dispatcher.Invoke(Refresh);
+                }
+            };
+
+            _processStopWatcher.Start();
+        }
+
+        public void Dispose()
+        {
+            _processStartWatcher?.Stop();
+            _processStartWatcher?.Dispose();
+
+            _processStopWatcher?.Stop();
+            _processStopWatcher?.Dispose();
         }
 
         public event Action? ConnectionSucceeded;

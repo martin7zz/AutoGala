@@ -1,17 +1,11 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
-using AutoGala.Services;
 using AutoGala.ViewModels.Base;
-using AutoGala.views;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel.Design;
-using System.Text;
+using System.Windows;
 using System.Windows.Input;
-using static AutoGala.Common.NotificationMessages;
 
 namespace AutoGala.ViewModels
 {
@@ -56,7 +50,6 @@ namespace AutoGala.ViewModels
         private readonly IMainWindowService _mainWindowService;
         private readonly IJobInfoChangedNotifier _notifier;
         private readonly IAutoGalaPipeClientService _autoGalaPipeClientService;
-        private readonly ISortingService _sortingService;
         private readonly IMessageExchangeService _messageExchangeService;
 
         public ICommand AddSectionCommand { get; }
@@ -67,7 +60,7 @@ namespace AutoGala.ViewModels
         public ICommand SaveToExcelCommand { get; }
         public ICommand LoadFromExcelCommand { get; }
         public ICommand GetFromGalaCommand { get; }
-        public ICommand GetAutoCADCommand {  get; }
+        public ICommand GetFromAutoCADCommand { get; }
 
         public SectionViewModel(ISectionService sectionService,
             IClipboardService clipboardService,
@@ -76,7 +69,6 @@ namespace AutoGala.ViewModels
             IMainWindowService mainWindowService,
             JobInfo jobInfo,
             IJobInfoChangedNotifier notifier,
-            ISortingService sortingService,
             IMessageExchangeService messageExchangeService,
             IAutoGalaPipeClientService autoGalaPipeClientService
             )
@@ -86,7 +78,6 @@ namespace AutoGala.ViewModels
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
-            _sortingService = sortingService;
             _messageExchangeService = messageExchangeService;
             _autoGalaPipeClientService = autoGalaPipeClientService;
 
@@ -103,7 +94,7 @@ namespace AutoGala.ViewModels
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Sections.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
             GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
-            GetAutoCADCommand = new RelayCommand(async param => await GetAutoCAD(), param => !HasValidationError && _autoGalaPipeClientService.IsConnected);
+            GetFromAutoCADCommand = new RelayCommand(async param => await GetFromAutoCAD(), param => !HasValidationError && _autoGalaPipeClientService.IsConnected);
         }
 
         private void AddSection()
@@ -230,21 +221,34 @@ namespace AutoGala.ViewModels
             CommandManager.InvalidateRequerySuggested();
         }
 
-        private async Task GetAutoCAD()
+        private async Task GetFromAutoCAD()
         {
-            var sections = await _messageExchangeService.GetSectionsAsync(_autoGalaPipeClientService, _sortingService);
-
-            if (sections.Any())
+            try
             {
-                Sections.Clear();
+                _autoGalaPipeClientService.ActivateAutoCAD();
+
+                var sections = await _messageExchangeService.GetSectionsAsync(_autoGalaPipeClientService, _jobInfo.JobTitle);
+
+                if (sections.Item1.Any())
+                {
+                    Sections.Clear();
+                }
+
+                foreach (var section in sections.Item1)
+                {
+                    Sections.Add(section);
+                }
+
+                _jobInfo.JobTitle = sections.Item2;
+                _notifier.NotifyJobInfoChanged();
+
+                CommandManager.InvalidateRequerySuggested();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message, "AutoGala", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
-            foreach (var section in sections)
-            {
-                Sections.Add(section);
-            }
-
-            CommandManager.InvalidateRequerySuggested();
         }
 
         private void SaveToExcel()

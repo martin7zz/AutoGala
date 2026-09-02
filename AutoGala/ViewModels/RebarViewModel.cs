@@ -3,14 +3,9 @@ using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
-using Plugin.Core.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
-using System.Windows.Data;
+using System.Windows;
 using System.Windows.Input;
-using static AutoGala.Common.NotificationMessages;
 
 namespace AutoGala.ViewModels
 {
@@ -37,7 +32,7 @@ namespace AutoGala.ViewModels
         {
             get => _selectedRebars;
             set
-            { 
+            {
                 _selectedRebars = value;
                 OnPropertyChanged();
                 CommandManager.InvalidateRequerySuggested();
@@ -66,6 +61,8 @@ namespace AutoGala.ViewModels
         private readonly IClipboardService _clipboardService;
         private readonly IGalaService _galaService;
         private readonly IWindowService _windowService;
+        private readonly IAutoGalaPipeClientService _autoGalaPipeClientService;
+        private readonly IMessageExchangeService _messageExchangeService;
         private readonly IMainWindowService _mainWindowService;
         private readonly IJobInfoChangedNotifier _notifier;
 
@@ -73,17 +70,20 @@ namespace AutoGala.ViewModels
         public ICommand RemoveRebarsCommand { get; }
         public ICommand PasteRebarCommand { get; }
         public ICommand ClearRebarCommand { get; }
-        public ICommand CheckForDuplicatesCommand {  get; }
+        public ICommand CheckForDuplicatesCommand { get; }
         public ICommand HookToGalaCommand { get; }
         public ICommand SaveToExcelCommand { get; }
         public ICommand LoadFromExcelCommand { get; }
         public ICommand GetFromGalaCommand { get; }
+        public ICommand GetFromAutoCADCommand { get; }
 
         public RebarViewModel(IRebarService rebarService,
             IClipboardService clipboardService,
             IGalaService galaService,
             IWindowService windowService,
             IMainWindowService mainWindowService,
+            IAutoGalaPipeClientService autoGalaPipeClientService,
+            IMessageExchangeService messageExchangeService,
             JobInfo jobInfo,
             IJobInfoChangedNotifier notifier)
         {
@@ -92,18 +92,24 @@ namespace AutoGala.ViewModels
             _galaService = galaService;
             _windowService = windowService;
             _mainWindowService = mainWindowService;
+            _autoGalaPipeClientService = autoGalaPipeClientService;
+            _messageExchangeService = messageExchangeService;
+
             _jobInfo = jobInfo;
             _notifier = notifier;
+
+            _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
 
             AddRebarCommand = new RelayCommand(param => AddRebar(), param => !HasValidationError);
             RemoveRebarsCommand = new RelayCommand(param => RemoveRebar(), param => SelectedRebars.Count > 0 && !HasValidationError);
             PasteRebarCommand = new RelayCommand(param => Paste(), param => !HasValidationError);
             ClearRebarCommand = new RelayCommand(param => ClearList(), param => Rebars.Count > 0 && !HasValidationError);
-            CheckForDuplicatesCommand = new RelayCommand(param =>  CheckForDuplicates(), param => Rebars.Count > 0);
+            CheckForDuplicatesCommand = new RelayCommand(param => CheckForDuplicates(), param => Rebars.Count > 0);
             HookToGalaCommand = new RelayCommand(async param => await SetToGalaAsync(), param => !HasValidationError);
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Rebars.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
             GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
+            GetFromAutoCADCommand = new RelayCommand(async param => await GetFromAutoCADAsync(), param => !HasValidationError && _autoGalaPipeClientService.IsConnected);
         }
 
         private void AddRebar()
@@ -137,7 +143,7 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private void RemoveRebar()
+        public void RemoveRebar()
         {
             foreach (var rebar in SelectedRebars.ToList())
             {
@@ -247,6 +253,36 @@ namespace AutoGala.ViewModels
             }
 
             CommandManager.InvalidateRequerySuggested();
+        }
+
+        private async Task GetFromAutoCADAsync()
+        {
+            try
+            {
+                _autoGalaPipeClientService.ActivateAutoCAD();
+
+                var rebars = await _messageExchangeService.GetRebarsAsync(_autoGalaPipeClientService, _jobInfo.JobTitle);
+
+                if (rebars.Item1.Any())
+                {
+                    Rebars.Clear();
+                }
+
+                foreach (var rebar in rebars.Item1)
+                {
+                    Rebars.Add(rebar);
+                }
+
+                _jobInfo.JobTitle = rebars.Item2;
+                _notifier.NotifyJobInfoChanged();
+
+                CommandManager.InvalidateRequerySuggested();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message, "AutoGala", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
         }
 
         private void SaveToExcel()
