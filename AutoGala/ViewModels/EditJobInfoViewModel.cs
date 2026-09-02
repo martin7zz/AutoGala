@@ -2,7 +2,6 @@
 using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Models;
-using System.Runtime;
 using System.Windows.Input;
 
 namespace AutoGala.ViewModels

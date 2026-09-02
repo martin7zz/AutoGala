@@ -28,6 +28,7 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
+                    <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
                 <Button Content="Add"
@@ -45,15 +46,21 @@
                     Command="{Binding PasteRebarCommand}"
                     Style="{StaticResource SecondaryButtonStyle}"/>
 
+                <Button Content="From Gala"
+                        Grid.Column="3"
+                        Command="{Binding GetFromGalaCommand}"
+                        Style="{StaticResource SuccessButtonStyle}"/>
+
                 <Button Content="To Gala"
-                    Grid.Column="3"
+                    Grid.Column="4"
                     Command="{Binding HookToGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}"/>
 
-                <Button Content="From Gala"
-                        Grid.Column="4"
-                        Command="{Binding GetFromGalaCommand}"
+                <Button Content="AutoCAD"
+                        Grid.Column="5"
+                        Command="{Binding GetFromAutoCADCommand}"
                         Style="{StaticResource SuccessButtonStyle}"/>
+                
             </Grid>
 
             <DataGrid x:Name="RebarGrid"
@@ -66,6 +73,7 @@
                   SelectionChanged="RebarGrid_SelectionChanged"
                   Validation.Error="RebarGrid_ValidationError"
                   CellEditEnding="RebarGrid_CellEditEnding"
+                  PreviewKeyDown="RebarGrid_PreviewKeyDown"
                   AutoGenerateColumns="False"
                   HeadersVisibility="Column"
                   CanUserAddRows="False"

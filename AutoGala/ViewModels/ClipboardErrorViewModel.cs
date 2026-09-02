@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using AutoGala.ViewModels.Base;
+﻿using AutoGala.ViewModels.Base;
 
 namespace AutoGala.ViewModels
 {
@@ -12,10 +8,10 @@ namespace AutoGala.ViewModels
 
         public string Message { get; }
         public List<string> FailedRows { get; }
-        public bool HasFailedRows 
-        { 
-            get =>  _hasFailedRows;
-            set 
+        public bool HasFailedRows
+        {
+            get => _hasFailedRows;
+            set
             {
                 if (value == _hasFailedRows) return;
                 _hasFailedRows = value;

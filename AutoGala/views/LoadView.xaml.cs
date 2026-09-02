@@ -1,19 +1,6 @@
-﻿using AutoGala.Services;
-using AutoGala.ViewModels;
+﻿using AutoGala.ViewModels;
 using Plugin.Core.Models;
-using Plugin.Core.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace AutoGala.views
 {
@@ -53,7 +40,7 @@ namespace AutoGala.views
                     vm.SelectedLoads.Remove(item);
                 }
 
-                foreach(LoadItem item in e.AddedItems)
+                foreach (LoadItem item in e.AddedItems)
                 {
                     vm.SelectedLoads.Add(item);
                 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace AutoGala.Common
 {
@@ -24,7 +21,7 @@ namespace AutoGala.Common
 
         public bool CanExecute(object? parameter)
         {
-           return _canExecute?.Invoke(parameter) ?? true;
+            return _canExecute?.Invoke(parameter) ?? true;
         }
 
         public void Execute(object? parameter)

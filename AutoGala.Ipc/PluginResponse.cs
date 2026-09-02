@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AutoGala.Ipc
+﻿namespace AutoGala.Ipc
 {
     public class PluginResponse
     {

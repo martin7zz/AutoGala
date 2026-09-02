@@ -1,8 +1,4 @@
 ﻿using Autodesk.AutoCAD.Interop;
-using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AutoGala.Contracts
 {

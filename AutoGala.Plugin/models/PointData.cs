@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AutoGala.Plugin.models
+﻿namespace AutoGala.Plugin.models
 {
     public class PointData
     {

@@ -1,20 +1,14 @@
 ﻿using AutoGala.Contracts;
 using AutoGala.Services.Helper;
-using DocumentFormat.OpenXml.Spreadsheet;
 using Gma.System.MouseKeyHook;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
-using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Forms;
 using static AutoGala.Common.NotificationMessages;
-using static AutoGala.Common.UiNavigation;
-using Condition = System.Windows.Automation.Condition;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace AutoGala.Services

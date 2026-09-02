@@ -1,14 +1,8 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Win32;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Runtime;
-using System.Text;
 using System.Windows;
 
 namespace AutoGala.Services

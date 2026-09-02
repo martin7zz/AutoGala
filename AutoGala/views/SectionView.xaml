@@ -46,16 +46,16 @@
                     Command="{Binding GetFromGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}"/>
 
-                <Button Content="AutoCAD"
-                    Grid.Column="4"
-                    Command="{Binding GetAutoCADCommand}"
-                    Style="{StaticResource SuccessButtonStyle}"/>
-
                 <Button Content="To Gala"
-                    Grid.Column="5"
+                    Grid.Column="4"
                     Command="{Binding HookToGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}"/>
 
+                <Button Content="AutoCAD"
+                    Grid.Column="5"
+                    Command="{Binding GetFromAutoCADCommand}"
+                    Style="{StaticResource SuccessButtonStyle}"/>
+                
             </Grid>
 
             <DataGrid x:Name="SectionGrid"

@@ -1,7 +1,5 @@
 ﻿using Autodesk.AutoCAD.Interop;
 using AutoGala.Contracts;
-using DocumentFormat.OpenXml.Bibliography;
-using Plugin.Core.Models;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;

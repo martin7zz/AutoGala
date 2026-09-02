@@ -39,7 +39,7 @@
                     <MenuItem Header="_Get from Gala"
                               Command="{Binding SectionView.GetFromGalaCommand}"/>
                     <MenuItem Header="_Get from AutoCAD"
-                              Command="{Binding GetAutoCADCommand}"/>
+                              Command="{Binding SectionView.GetFromAutoCADCommand}"/>
                 </MenuItem>
 
                 <MenuItem Header="_Rebar" Padding="10,6">
@@ -60,7 +60,7 @@
                     <MenuItem Header="_Get from Gala"
                               Command="{Binding RebarView.GetFromGalaCommand}"/>
                     <MenuItem Header="_Get from AutoCAD"
-                              Command="{Binding GetAutoCADCommand}"/>
+                              Command="{Binding RebarView.GetFromAutoCADCommand}"/>
                 </MenuItem>
 
                 <MenuItem Header="_Loads" Padding="10,6">
@@ -106,7 +106,7 @@
                     <MenuItem Header="_Connect to AutoCAD" 
                               Command="{Binding ConnectToAutoCADCommand}"/>
                     <MenuItem Header="_Get all from AutoCAD" 
-                              Command="{Binding GetAllAutoCADCommand}"/>
+                              Command="{Binding GetAllFromAutoCADCommand}"/>
                 </MenuItem>
 
             </Menu>

@@ -62,13 +62,29 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Button Grid.Row="2"
+        <Grid Grid.Row="2"
+              Margin="10,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1"
+                Content="Refresh"
+                Width="100"
+                Height="32"
+                Margin="0,15,0,0"
+                Command="{Binding RefreshCommand}"/>
+
+            <Button Grid.Column="2"
                 Content="Select"
                 Width="100"
                 Height="32"
                 HorizontalAlignment="Right"
                 Margin="0,15,0,0"
                 Command="{Binding SelectCommand}"/>
+        </Grid>
+        
     </Grid>
     
 </Window>

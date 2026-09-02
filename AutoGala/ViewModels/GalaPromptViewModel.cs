@@ -1,7 +1,4 @@
 ﻿using AutoGala.ViewModels.Base;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AutoGala.ViewModels
 {
@@ -13,8 +10,8 @@ namespace AutoGala.ViewModels
         public string Message
         {
             get => _message;
-            set 
-            { 
+            set
+            {
                 if (value == _message) return;
 
                 _message = value;

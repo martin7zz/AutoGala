@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AutoGala.Common
+﻿namespace AutoGala.Common
 {
     public static class NotificationMessages
     {
@@ -37,7 +31,7 @@ namespace AutoGala.Common
         public const string NoGalaStructureFoundErrorMessage = "Could not locate the structure in Gala.";
 
         public const string UnfilledSectionErrorMessage = "Fill in X/Y for every section.";
-        
+
         public const string UnfilledRebarErrorMessage = "Fill in Area/X/Y for every rebar.";
 
         public const string UnfilledLoadErrorMessage = "Fill in N/Mx/My for every load.";

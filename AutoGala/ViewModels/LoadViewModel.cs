@@ -1,21 +1,10 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
-using AutoGala.Services;
 using AutoGala.ViewModels.Base;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
-using Plugin.Core.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using static AutoGala.Common.NotificationMessages;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace AutoGala.ViewModels
 {
@@ -24,7 +13,7 @@ namespace AutoGala.ViewModels
         public ObservableCollection<LoadItem> Loads { get; } = new();
 
         private LoadItem? _selectLoad;
-        
+
         public LoadItem? SelectedLoad
         {
             get => _selectLoad;
@@ -36,7 +25,7 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private ObservableCollection<LoadItem> _selectedLoads = new ();
+        private ObservableCollection<LoadItem> _selectedLoads = new();
 
         public ObservableCollection<LoadItem> SelectedLoads
         {
@@ -91,9 +80,9 @@ namespace AutoGala.ViewModels
         public ICommand GetFromGalaCommand { get; }
 
         public LoadViewModel(ILoadService loadService,
-            IClipboardService clipboardService, 
-            IGalaService galaService, 
-            IWindowService windowService, 
+            IClipboardService clipboardService,
+            IGalaService galaService,
+            IWindowService windowService,
             IMainWindowService mainWindowService,
             JobInfo jobInfo,
             IJobInfoChangedNotifier notifier)

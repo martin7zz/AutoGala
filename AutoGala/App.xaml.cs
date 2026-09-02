@@ -1,7 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-using AutoGala.Contracts;
+﻿using AutoGala.Contracts;
 using AutoGala.Services;
 using AutoGala.Services.Notifiers;
 using AutoGala.ViewModels;
@@ -10,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using Plugin.Core.Services;
+using System.Windows;
 
 namespace AutoGala
 {
@@ -20,7 +18,7 @@ namespace AutoGala
     {
         private readonly IServiceProvider _servicesProvider;
 
-        public App() 
+        public App()
         {
             var services = new ServiceCollection();
 
@@ -70,7 +68,6 @@ namespace AutoGala
             services.AddSingleton<IMainWindowService, MainWindowService>();
             services.AddSingleton<IAutoGalaProcessService, AutoGalaProcessService>();
             services.AddSingleton<IAutoGalaPipeClientService, AutoGalaPipeClientService>();
-            services.AddSingleton<ISortingService, SortingService>();
             services.AddSingleton<IMessageExchangeService, MessageExchangeService>();
 
             services.AddTransient<SectionViewModel>();
