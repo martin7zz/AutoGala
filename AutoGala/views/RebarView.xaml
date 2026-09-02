@@ -73,7 +73,6 @@
                   SelectionChanged="RebarGrid_SelectionChanged"
                   Validation.Error="RebarGrid_ValidationError"
                   CellEditEnding="RebarGrid_CellEditEnding"
-                  PreviewKeyDown="RebarGrid_PreviewKeyDown"
                   AutoGenerateColumns="False"
                   HeadersVisibility="Column"
                   CanUserAddRows="False"
