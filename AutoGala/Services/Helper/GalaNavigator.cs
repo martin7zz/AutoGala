@@ -1,18 +1,10 @@
 ﻿using Plugin.Core.Contracts;
 using Plugin.Core.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using System.Windows.Automation;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using static AutoGala.Common.UiNavigation;
 
 namespace AutoGala.Services.Helper
@@ -59,7 +51,7 @@ namespace AutoGala.Services.Helper
                 return false;
             }
 
-            _gridHandle = FindDescendantByClass(MainWindow, "TStringGrid");
+            //_gridHandle = FindDescendantByClass(MainWindow, "TStringGrid");
 
             if (_gridHandle == IntPtr.Zero)
             {
@@ -70,7 +62,7 @@ namespace AutoGala.Services.Helper
 
             //FocusWindow(_gridHandle);
 
-            ShowWindow(_gridHandle, SW_HIDE);
+            //ShowWindow(_gridHandle, SW_HIDE);
 
             try
             {
@@ -106,7 +98,7 @@ namespace AutoGala.Services.Helper
             _spinHandle = FindRowCountSpin(MainWindow);
 
             return WriteItemsCore(sections,
-                s => new[] { 
+                s => new[] {
                     s.X?.ToString(CultureInfo.InvariantCulture) ?? "",
                     s.Y?.ToString(CultureInfo.InvariantCulture) ?? ""
                 });
@@ -129,13 +121,13 @@ namespace AutoGala.Services.Helper
             _spinHandle = FindRowCountSpin(MainWindow);
 
             return WriteItemsCore(loads,
-                l => isSimpleBending 
-                ? new[] 
-                { 
+                l => isSimpleBending
+                ? new[]
+                {
                     l.N?.ToString(CultureInfo.InvariantCulture) ?? "",
-                    l.Mx?.ToString(CultureInfo.InvariantCulture) ?? "" 
+                    l.Mx?.ToString(CultureInfo.InvariantCulture) ?? ""
                 }
-                : new[] 
+                : new[]
                 {
                     l.N?.ToString(CultureInfo.InvariantCulture) ?? "",
                     l.Mx?.ToString(CultureInfo.InvariantCulture) ?? "",
@@ -197,7 +189,7 @@ namespace AutoGala.Services.Helper
 
             _editHandle = GetEditHandle(forceRefresh: true);
 
-    return _editHandle != IntPtr.Zero;
+            return _editHandle != IntPtr.Zero;
         }
 
         private bool ReadItemsCore<T>(
@@ -230,7 +222,7 @@ namespace AutoGala.Services.Helper
             {
                 GoToFirstCell();
 
-                GetEditHandle();
+                GetEditHandle(forceRefresh: true);
 
                 for (int row = 0; row < rowCount; row++)
                 {
@@ -272,8 +264,6 @@ namespace AutoGala.Services.Helper
                 return false;
             }
 
-            _gridHandle = FindDescendantByClass(MainWindow, "TStringGrid");
-
             int rowCount = GetCurrentSpinValue();
 
             int id = 1;
@@ -301,8 +291,6 @@ namespace AutoGala.Services.Helper
                 rebars = new ObservableCollection<RebarItem>();
                 return false;
             }
-
-            _gridHandle = FindDescendantByClass(MainWindow, "TStringGrid");
 
             int rowCount = GetCurrentSpinValue();
 
@@ -337,8 +325,6 @@ namespace AutoGala.Services.Helper
                 loads = new ObservableCollection<LoadItem>();
                 return false;
             }
-
-            _gridHandle = FindDescendantByClass(MainWindow, "TStringGrid");
 
             int rowCount = GetCurrentSpinValue();
 
@@ -403,11 +389,24 @@ namespace AutoGala.Services.Helper
 
             for (int i = 0; i < Math.Abs(target - current); i++)
             {
+                if (i == 1)
+                {
+                    _gridHandle = FindDescendantByClass(MainWindow, "TStringGrid");
+
+                    ShowWindow(_gridHandle, SW_HIDE);
+                }
                 SendMessage(_spinHandle, WM_KEYDOWN, (IntPtr)key, IntPtr.Zero);
                 SendMessage(_spinHandle, WM_KEYUP, (IntPtr)key, IntPtr.Zero);
             }
 
             int actual = GetCurrentSpinValue();
+
+            if (_gridHandle == IntPtr.Zero)
+            {
+                _gridHandle = FindDescendantByClass(MainWindow, "TStringGrid");
+
+                ShowWindow(_gridHandle, SW_HIDE);
+            }
 
             if (actual != target)
             {
