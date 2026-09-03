@@ -23,7 +23,7 @@ namespace AutoGala.Services.Helper
             return MainWindow != IntPtr.Zero;
         }
 
-        protected bool FocusWindow(IntPtr hwnd, IntPtr window)
+        protected bool FocusWindow(IntPtr hwnd, IntPtr window, bool manageAttachment = true)
         {
             if (hwnd == IntPtr.Zero)
                 return false;
@@ -35,7 +35,7 @@ namespace AutoGala.Services.Helper
 
             try
             {
-                if (targetThread != currentThread)
+                if (manageAttachment && targetThread != currentThread)
                 {
                     attached = AttachThreadInput(
                         currentThread,
@@ -52,10 +52,6 @@ namespace AutoGala.Services.Helper
 
                 IntPtr previous = SetFocus(hwnd);
                 IntPtr actual = GetFocus();
-
-                //Debug.WriteLine($"Target:   0x{hwnd:X}");
-                //Debug.WriteLine($"Previous: 0x{previous:X}");
-                //Debug.WriteLine($"Actual:   0x{actual:X}");
 
                 return actual == hwnd;
             }

@@ -3,6 +3,7 @@ using Plugin.Core.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using static AutoGala.Common.UiNavigation;
@@ -222,7 +223,7 @@ namespace AutoGala.Services.Helper
             {
                 GoToFirstCell();
 
-                GetEditHandle(forceRefresh: true);
+                GetEditHandle();
 
                 for (int row = 0; row < rowCount; row++)
                 {
@@ -439,31 +440,66 @@ namespace AutoGala.Services.Helper
         // uses keyboard state table to simulate ctrl + home so that it automatically sets the current cell to the first in the grid
         private void GoToFirstCell()
         {
-            if (_gridHandle == IntPtr.Zero) return;
+            if (_gridHandle == IntPtr.Zero)
+                return;
 
             uint targetThread = GetWindowThreadProcessId(_gridHandle, out _);
             uint currentThread = GetCurrentThreadId();
-            bool attached = AttachThreadInput(currentThread, targetThread, true);
+
+            bool attached = AttachThreadInput(
+                currentThread,
+                targetThread,
+                true);
 
             try
             {
-                FocusWindow(_gridHandle, MainWindow);
+                FocusWindow(
+                    _gridHandle,
+                    MainWindow,
+                    manageAttachment: false);
+
+                // Allow the target UI/input thread to finish processing
+                // the focus change before we manipulate keyboard state.
+                Thread.Sleep(10);
 
                 byte[] keyState = new byte[256];
                 GetKeyboardState(keyState);
-                keyState[VK_CONTROL] = 0x80; // high bit = "down"
-                SetKeyboardState(keyState);
 
-                SendMessage(_gridHandle, WM_KEYDOWN, (IntPtr)VK_HOME, IntPtr.Zero);
-                SendMessage(_gridHandle, WM_KEYUP, (IntPtr)VK_HOME, IntPtr.Zero);
+                bool ctrlWasDown =
+                    (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
 
-                keyState[VK_CONTROL] = 0x00;
-                SetKeyboardState(keyState);
+                try
+                {
+                    keyState[VK_CONTROL] = 0x80;
+                    SetKeyboardState(keyState);
+
+                    SendMessage(
+                        _gridHandle,
+                        WM_KEYDOWN,
+                        (IntPtr)VK_HOME,
+                        IntPtr.Zero);
+
+                    SendMessage(
+                        _gridHandle,
+                        WM_KEYUP,
+                        (IntPtr)VK_HOME,
+                        IntPtr.Zero);
+                }
+                finally
+                {
+                    keyState[VK_CONTROL] =
+                        ctrlWasDown ? (byte)0x80 : (byte)0x00;
+
+                    SetKeyboardState(keyState);
+                }
             }
             finally
             {
                 if (attached)
-                    AttachThreadInput(currentThread, targetThread, false);
+                    AttachThreadInput(
+                        currentThread,
+                        targetThread,
+                        false);
             }
         }
 
