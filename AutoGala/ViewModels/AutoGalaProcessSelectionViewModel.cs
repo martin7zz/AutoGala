@@ -9,6 +9,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace AutoGala.ViewModels
 {
@@ -16,6 +17,7 @@ namespace AutoGala.ViewModels
     {
         private const string TargetProcessName = "acad";
 
+        private DispatcherTimer? _processUpdateTimer;
         private ManagementEventWatcher? _processStartWatcher;
         private ManagementEventWatcher? _processStopWatcher;
 
@@ -34,6 +36,7 @@ namespace AutoGala.ViewModels
             }
         }
 
+        private readonly IWindowService _windowService;
         private readonly IAutoGalaProcessService _autoGalaProcessService;
         private readonly IAutoGalaPipeClientService _pipeClientService;
 
@@ -42,10 +45,12 @@ namespace AutoGala.ViewModels
         public ICommand RefreshCommand { get; }
 
         public AutoGalaProcessSelectionViewModel(IAutoGalaProcessService autoGalaProcessService,
-            IAutoGalaPipeClientService autoGalaPipeClientService)
+            IAutoGalaPipeClientService autoGalaPipeClientService,
+            IWindowService windowService)
         {
             _autoGalaProcessService = autoGalaProcessService;
             _pipeClientService = autoGalaPipeClientService;
+            _windowService = windowService;
 
             SelectCommand = new RelayCommand(async param => await Select(), param => SelectedInstance != null);
             RefreshCommand = new RelayCommand(param => Refresh());
@@ -57,26 +62,69 @@ namespace AutoGala.ViewModels
 
         private void Refresh()
         {
-            RunningInstances.Clear();
+            var processes = Process.GetProcessesByName(TargetProcessName);
 
-            foreach (var process in Process.GetProcessesByName(TargetProcessName))
+            try
             {
-                try
+                var processIds = processes
+                    .Select(x => x.Id)
+                    .ToHashSet();
+
+                // Add/update
+                foreach (var process in processes)
                 {
-                    RunningInstances.Add(new AutoCADApplication
+                    var instance = RunningInstances
+                        .FirstOrDefault(x => x.ProcessId == process.Id);
+
+                    if (instance == null)
                     {
-                        ProcessId = process.Id,
-                        ProcessName = process.ProcessName,
-                        WindowTitle = process.MainWindowTitle,
-                        Process = process
-                    });
+                        RunningInstances.Add(new AutoCADApplication
+                        {
+                            ProcessId = process.Id,
+                            ProcessName = process.ProcessName,
+                            WindowTitle = process.MainWindowTitle,
+                            Process = process
+                        });
+
+                        continue;
+                    }
+
+                    if (instance.WindowTitle != process.MainWindowTitle ||
+                        instance.ProcessName != process.ProcessName)
+                    {
+                        var index = RunningInstances.IndexOf(instance);
+                        var wasSelected = SelectedInstance == instance;
+
+                        RunningInstances[index] = new AutoCADApplication
+                        {
+                            ProcessId = process.Id,
+                            ProcessName = process.ProcessName,
+                            WindowTitle = process.MainWindowTitle,
+                            Process = process
+                        };
+
+                        if (wasSelected)
+                        {
+                            SelectedInstance = RunningInstances[index];
+                        }
+                    }
                 }
-                catch (Exception ex)
+
+                // Remove processes that no longer exist
+                foreach (var instance in RunningInstances.ToList())
                 {
-                    Debug.WriteLine(ex);
-                    throw new InvalidOperationException();
+                    if (!processIds.Contains(instance.ProcessId))
+                    {
+                        if (SelectedInstance == instance)
+                            SelectedInstance = null;
+
+                        RunningInstances.Remove(instance);
+                    }
                 }
-                Debug.WriteLine($"Found {RunningInstances.Count} instances");
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowClipboardError(ex.Message);
             }
         }
 
@@ -111,10 +159,22 @@ namespace AutoGala.ViewModels
             };
 
             _processStopWatcher.Start();
+
+            // watches for changes that happen to exsiting processes
+            _processUpdateTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(500)
+            };
+
+            _processUpdateTimer.Tick += (_, _) => Refresh();
+
+            _processUpdateTimer.Start();
         }
 
         public void Dispose()
         {
+            _processUpdateTimer?.Stop();
+
             _processStartWatcher?.Stop();
             _processStartWatcher?.Dispose();
 
@@ -151,8 +211,9 @@ namespace AutoGala.ViewModels
                 await _pipeClientService.ConnectAsync(process);
                 return true;
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
+                _windowService.ShowClipboardError(ex.Message);
                 return false;
             }
         }
