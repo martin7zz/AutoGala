@@ -5,86 +5,163 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AutoGala.views"
         mc:Ignorable="d"
-        Title="AutoGalaProcessSelectionView" Height="450" Width="800">
+        Title="Connect to AutoGala"
+        Width="720"
+        Height="500"
+        MinWidth="600"
+        MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        Background="#F7F8FA">
     
-    <Grid Margin="20">
-        
+    <Grid Margin="32">
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="24"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="24"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel>
-            <TextBlock Text="Select a running instance"
-                       FontSize="20"
-                       FontWeight="SemiBold"/>
 
-            <TextBlock Text="Choose which instance of the application you want to connect to."
-                       Foreground="Gray"
-                       Margin="0,5,0,15"/>
+        <!-- Header -->
+        <StackPanel Grid.Row="0">
+
+            <TextBlock Text="Connect to AutoGala"
+                       FontSize="24"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource ProcessSelectionTextBrush}"/>
+
+            <TextBlock Text="Select a running instance to connect to."
+                       Margin="0,6,0,0"
+                       FontSize="14"
+                       Foreground="{StaticResource ProcessSelectionSecondaryTextBrush}"/>
+
         </StackPanel>
 
-        <ListBox Grid.Row="1"
+
+        <!-- Running instances -->
+        <ListBox Grid.Row="2"
                  ItemsSource="{Binding RunningInstances}"
-                 SelectedItem="{Binding SelectedInstance}"
-                 BorderBrush="#DDD"
-                 BorderThickness="1">
+                 SelectedItem="{Binding SelectedInstance}">
 
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid Margin="10,8">
+
+                    <Grid>
+
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="16"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel>
+
+                        <!-- Application icon -->
+                        <Border Width="40"
+                                Height="40"
+                                Background="#EEF2FF"
+                                CornerRadius="8"
+                                VerticalAlignment="Center">
+
+                            <TextBlock Text="A"
+                                       FontSize="17"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource ProcessSelectionAccentBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+
+                        </Border>
+
+
+                        <!-- Process information -->
+                        <StackPanel Grid.Column="2"
+                                    VerticalAlignment="Center">
+
                             <TextBlock Text="{Binding ProcessName}"
-                                       FontWeight="SemiBold"/>
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource ProcessSelectionTextBrush}"/>
 
                             <TextBlock Text="{Binding WindowTitle}"
-                                       Foreground="Gray"
+                                       Margin="0,3,0,0"
+                                       FontSize="12"
+                                       Foreground="{StaticResource ProcessSelectionSecondaryTextBrush}"
                                        TextTrimming="CharacterEllipsis"/>
 
-                            <TextBlock Text="{Binding ProcessId, StringFormat=PID: {0}}"
+                            <TextBlock Text="{Binding ProcessId, StringFormat=PID {0}}"
+                                       Margin="0,3,0,0"
                                        FontSize="11"
-                                       Foreground="#888"/>
+                                       Foreground="#9CA3AF"/>
+
                         </StackPanel>
 
-                        <Ellipse Grid.Column="1"
-                                 Width="10"
-                                 Height="10"
-                                 Fill="#42B883"
-                                 VerticalAlignment="Center"/>
+
+                        <!-- Status -->
+                        <StackPanel Grid.Column="3"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Margin="16,0,0,0">
+
+                            <Ellipse Width="8"
+                                     Height="8"
+                                     Fill="#22C55E"
+                                     VerticalAlignment="Center"/>
+
+                            <TextBlock Text="Running"
+                                       Margin="6,0,0,0"
+                                       FontSize="12"
+                                       Foreground="#16A34A"/>
+
+                        </StackPanel>
+
                     </Grid>
+
                 </DataTemplate>
             </ListBox.ItemTemplate>
+
         </ListBox>
 
-        <Grid Grid.Row="2"
-              Margin="10,8">
+
+        <!-- Footer -->
+        <Grid Grid.Row="4">
+
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="1"
-                Content="Refresh"
-                Width="100"
-                Height="32"
-                Margin="0,15,0,0"
-                Command="{Binding RefreshCommand}"/>
 
-            <Button Grid.Column="2"
-                Content="Select"
-                Width="100"
-                Height="32"
-                HorizontalAlignment="Right"
-                Margin="0,15,0,0"
-                Command="{Binding SelectCommand}"/>
+            <!-- Instance count -->
+            <TextBlock Grid.Column="0"
+                       Text="{Binding RunningInstances.Count, StringFormat={}{0} instance(s) found}"
+                       VerticalAlignment="Center"
+                       FontSize="12"
+                       Foreground="{StaticResource ProcessSelectionSecondaryTextBrush}"/>
+
+
+            <!-- Refresh -->
+            <Button Grid.Column="1"
+                    Content="Refresh"
+                    MinWidth="90"
+                    Height="36"
+                    Command="{Binding RefreshCommand}"
+                    Style="{StaticResource ProcessSelectionSecondaryButton}"/>
+
+
+            <!-- Select -->
+            <Button Grid.Column="3"
+                    Content="Select"
+                    MinWidth="90"
+                    Height="36"
+                    Command="{Binding SelectCommand}"
+                    Style="{StaticResource ProcessSelectionPrimaryButton}"/>
+
         </Grid>
-        
+
     </Grid>
-    
+
 </Window>

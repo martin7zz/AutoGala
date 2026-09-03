@@ -118,7 +118,7 @@ namespace AutoGala.ViewModels
             }
             catch (InvalidOperationException ex)
             {
-                MessageBox.Show(ex.Message, "AutoGala", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _windowService.ShowClipboardError(ex.Message);
             }
         }
 

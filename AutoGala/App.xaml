@@ -10,6 +10,8 @@
                 <ResourceDictionary Source="/Styles/GalaPromptViewStyles.xaml"/>
                 <ResourceDictionary Source="/Styles/ButtonsStyles.xaml"/>
                 <ResourceDictionary Source="/Styles/JobInfoStyles.xaml"/>
+                <ResourceDictionary Source="/Styles/ProcessSelectionViewStyles.xaml"/>
+                <ResourceDictionary Source="/Styles/ErrorViewStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
