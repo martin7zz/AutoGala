@@ -2,7 +2,7 @@
 
 namespace AutoGala.ViewModels
 {
-    public class ClipboardErrorViewModel : ViewModelBase
+    public class ErrorViewModel : ViewModelBase
     {
         private bool _hasFailedRows = false;
 
@@ -19,7 +19,7 @@ namespace AutoGala.ViewModels
             }
         }
 
-        public ClipboardErrorViewModel(string message, IEnumerable<string>? failedRows)
+        public ErrorViewModel(string message, IEnumerable<string>? failedRows)
         {
             Message = message;
             FailedRows = failedRows?.ToList() ?? new List<string>();

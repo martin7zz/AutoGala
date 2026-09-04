@@ -4,6 +4,7 @@ using AutoGala.ViewModels.Base;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 
@@ -51,6 +52,7 @@ namespace AutoGala.ViewModels
         private readonly IJobInfoChangedNotifier _notifier;
         private readonly IAutoGalaPipeClientService _autoGalaPipeClientService;
         private readonly IMessageExchangeService _messageExchangeService;
+        private readonly IAutoCADOperationRunner _autoCADRunnerService;
 
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionsCommand { get; }
@@ -70,7 +72,8 @@ namespace AutoGala.ViewModels
             JobInfo jobInfo,
             IJobInfoChangedNotifier notifier,
             IMessageExchangeService messageExchangeService,
-            IAutoGalaPipeClientService autoGalaPipeClientService
+            IAutoGalaPipeClientService autoGalaPipeClientService,
+            IAutoCADOperationRunner autoCADOperationRunnerService
             )
         {
             _sectionService = sectionService;
@@ -80,6 +83,7 @@ namespace AutoGala.ViewModels
             _mainWindowService = mainWindowService;
             _messageExchangeService = messageExchangeService;
             _autoGalaPipeClientService = autoGalaPipeClientService;
+            _autoCADRunnerService = autoCADOperationRunnerService;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
@@ -126,7 +130,7 @@ namespace AutoGala.ViewModels
             }
         }
 
-        private void RemoveSections()
+        public void RemoveSections()
         {
             foreach (var section in SelectedSections.ToList())
             {
@@ -152,7 +156,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
-                _windowService.ShowClipboardError(NotificationMessages.NoClipboardDataErrorMassage);
+                _windowService.ShowError(NotificationMessages.NoClipboardDataErrorMassage);
                 return;
             }
 
@@ -185,13 +189,13 @@ namespace AutoGala.ViewModels
 
             if (added == 0)
             {
-                _windowService.ShowClipboardError(
+                _windowService.ShowError(
                     NotificationMessages.SectionPasteErrorMessage,
                     failedRows);
             }
             else if (failedRows.Count > 0)
             {
-                _windowService.ShowClipboardError(
+                _windowService.ShowError(
                     $"{added} row(s) added, but {failedRows.Count} row(s) couldn't be parsed.",
                     failedRows);
             }
@@ -199,13 +203,31 @@ namespace AutoGala.ViewModels
 
         private async Task SetToGalaAsync()
         {
-            await _galaService.HookToGalaAsync(Sections);
+            try
+            {
+                await _galaService.HookToGalaAsync(Sections);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError(ex.Message);
+                return;
+            }
 
             CommandManager.InvalidateRequerySuggested();
         }
         private async Task GetFromGalaAsync()
         {
-            var sections = await _galaService.GetSectionsFromGalaAsync();
+            ObservableCollection<SectionItem> sections;
+
+            try
+            {
+                sections = await _galaService.GetSectionsFromGalaAsync();
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError(ex.Message);
+                return;
+            }
 
             if (sections.Any())
             {
@@ -223,43 +245,57 @@ namespace AutoGala.ViewModels
 
         private async Task GetFromAutoCAD()
         {
-            try
+            var (success, sections) = await _autoCADRunnerService.RunAsync(() =>
+            _messageExchangeService.GetSectionsAsync(_autoGalaPipeClientService, _jobInfo.JobTitle));
+
+            if (!success)
             {
-                _autoGalaPipeClientService.ActivateAutoCAD();
-
-                var sections = await _messageExchangeService.GetSectionsAsync(_autoGalaPipeClientService, _jobInfo.JobTitle);
-
-                if (sections.Item1.Any())
-                {
-                    Sections.Clear();
-                }
-
-                foreach (var section in sections.Item1)
-                {
-                    Sections.Add(section);
-                }
-
-                _jobInfo.JobTitle = sections.Item2;
-                _notifier.NotifyJobInfoChanged();
-
-                CommandManager.InvalidateRequerySuggested();
-            }
-            catch (InvalidOperationException ex)
-            {
-                _windowService.ShowClipboardError(ex.Message);
+                return;
             }
 
+            if (sections.Item1.Any())
+            {
+                Sections.Clear();
+            }
+
+            foreach (var section in sections.Item1)
+            {
+                Sections.Add(section);
+            }
+
+            _jobInfo.JobTitle = sections.Item2;
+            _notifier.NotifyJobInfoChanged();
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void SaveToExcel()
         {
-            _mainWindowService.SaveExcel(Sections, _jobInfo);
+            try
+            {
+                _mainWindowService.SaveExcel(Sections, _jobInfo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError($"File was not saved: {ex.Message}");
+                return;
+            }
+            
             CommandManager.InvalidateRequerySuggested();
         }
 
         private void LoadFromExcel()
         {
-            var loadedSections = _mainWindowService.LoadSectionsExcel(_jobInfo);
+            ObservableCollection<SectionItem> loadedSections;
+            try
+            {
+                loadedSections = _mainWindowService.LoadSectionsExcel(_jobInfo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError($"Unable to load file: {ex.Message}");
+                return;
+            }
 
             if (loadedSections.Count > 0)
             {

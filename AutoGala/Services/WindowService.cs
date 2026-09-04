@@ -39,18 +39,15 @@ namespace AutoGala.Services
         }
 
 
-        public ClipboardErrorView ShowClipboardError(
+        public ErrorView ShowError(
             string data,
-            IEnumerable<string>? failedRows = null)
+            IEnumerable<string>? failedRows = null, Window? owner = null)
         {
-            var viewModel = ActivatorUtilities.CreateInstance<ClipboardErrorViewModel>(
-                _serviceProvider,
-                data,
-                failedRows);
+            var viewModel = new ErrorViewModel(data, failedRows);
 
-            var window = new ClipboardErrorView
+            var window = new ErrorView
             {
-                Owner = Application.Current.MainWindow,
+                Owner = owner ?? Application.Current.MainWindow,
                 DataContext = viewModel
             };
 
@@ -73,13 +70,7 @@ namespace AutoGala.Services
 
             viewModel.ConnectionSucceeded += () => window.Close();
 
-            viewModel.ConnectionFailed += message =>
-                MessageBox.Show(
-                    window,
-                    message,
-                    "Connection Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+            viewModel.ConnectionFailed += message => ShowError(message, owner: window);
 
             window.Closed += (_, _) =>
             {

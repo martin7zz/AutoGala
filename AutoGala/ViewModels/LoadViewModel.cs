@@ -4,6 +4,7 @@ using AutoGala.ViewModels.Base;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Input;
 
 namespace AutoGala.ViewModels
@@ -132,7 +133,7 @@ namespace AutoGala.ViewModels
             updateLoadsTable();
         }
 
-        private void RemoveLoad()
+        public void RemoveLoad()
         {
             foreach (var load in SelectedLoads.ToList())
             {
@@ -223,7 +224,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
-                _windowService.ShowClipboardError(NotificationMessages.NoClipboardDataErrorMassage);
+                _windowService.ShowError(NotificationMessages.NoClipboardDataErrorMassage);
                 return;
             }
 
@@ -270,13 +271,13 @@ namespace AutoGala.ViewModels
                 var message = IsSimpleBending ?
                     NotificationMessages.LoadSimpleBendingPasteErrorMessage : NotificationMessages.LoadPasteErrorMessage;
 
-                _windowService.ShowClipboardError(
+                _windowService.ShowError(
                     message,
                     failedRows);
             }
             else if (failedRows.Count > 0)
             {
-                _windowService.ShowClipboardError(
+                _windowService.ShowError(
                     $"{added} row(s) added, but {failedRows.Count} row(s) couldn't be parsed.",
                     failedRows);
             }
@@ -284,14 +285,32 @@ namespace AutoGala.ViewModels
 
         private async Task SetToGalaAsync()
         {
-            await _galaService.HookToGalaAsync(Loads, IsSimpleBending);
+            try
+            {
+                await _galaService.HookToGalaAsync(Loads, IsSimpleBending);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError(ex.Message);
+                return;
+            }
 
             CommandManager.InvalidateRequerySuggested();
         }
 
         private async Task GetFromGalaAsync()
         {
-            var loads = await _galaService.GetLoadsFromGalaAsync(IsSimpleBending);
+            ObservableCollection<LoadItem> loads;
+
+            try
+            {
+                loads = await _galaService.GetLoadsFromGalaAsync(IsSimpleBending);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError(ex.Message);
+                return;
+            }
 
             if (loads.Any())
             {
@@ -308,12 +327,30 @@ namespace AutoGala.ViewModels
 
         private void SaveToExcel()
         {
-            _mainWindowService.SaveExcel(Loads, IsSimpleBending, _jobInfo);
+            try
+            {
+                _mainWindowService.SaveExcel(Loads, IsSimpleBending, _jobInfo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError($"File was not saved: {ex.Message}");
+                return;
+            }
         }
 
         private void LoadFromExcel()
         {
-            var loadedLoads = _mainWindowService.LoadLoadsExcel(IsSimpleBending, _jobInfo);
+            ObservableCollection<LoadItem> loadedLoads;
+
+            try
+            {
+                loadedLoads = _mainWindowService.LoadLoadsExcel(IsSimpleBending, _jobInfo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError($"Unable to load file: {ex.Message}");
+                return;
+            }
 
             if (loadedLoads.Count > 0)
             {

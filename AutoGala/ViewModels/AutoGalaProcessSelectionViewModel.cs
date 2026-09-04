@@ -18,8 +18,6 @@ namespace AutoGala.ViewModels
         private const string TargetProcessName = "acad";
 
         private DispatcherTimer? _processUpdateTimer;
-        private ManagementEventWatcher? _processStartWatcher;
-        private ManagementEventWatcher? _processStopWatcher;
 
         public ObservableCollection<AutoCADApplication> RunningInstances { get; } = new();
 
@@ -62,10 +60,10 @@ namespace AutoGala.ViewModels
 
         private void Refresh()
         {
-            var processes = Process.GetProcessesByName(TargetProcessName);
-
             try
             {
+                var processes = Process.GetProcessesByName(TargetProcessName);
+
                 var processIds = processes
                     .Select(x => x.Id)
                     .ToHashSet();
@@ -94,6 +92,7 @@ namespace AutoGala.ViewModels
                     {
                         var index = RunningInstances.IndexOf(instance);
                         var wasSelected = SelectedInstance == instance;
+                        var oldProcess = instance.Process;
 
                         RunningInstances[index] = new AutoCADApplication
                         {
@@ -107,6 +106,8 @@ namespace AutoGala.ViewModels
                         {
                             SelectedInstance = RunningInstances[index];
                         }
+
+                        oldProcess?.Dispose();
                     }
                 }
 
@@ -119,47 +120,18 @@ namespace AutoGala.ViewModels
                             SelectedInstance = null;
 
                         RunningInstances.Remove(instance);
+                        instance.Process?.Dispose();
                     }
                 }
             }
             catch (InvalidOperationException ex)
             {
-                _windowService.ShowClipboardError(ex.Message);
+                _windowService.ShowError(ex.Message);
             }
         }
 
         private void StartProcessWatcher()
         {
-            _processStartWatcher = new ManagementEventWatcher(
-                new WqlEventQuery("SELECT * FROM Win32_ProcessStartTrace"));
-
-            _processStartWatcher.EventArrived += (_, e) =>
-            {
-                var processName = e.NewEvent["ProcessName"]?.ToString();
-
-                if (string.Equals(processName, "acad.exe", StringComparison.OrdinalIgnoreCase))
-                {
-                    Application.Current.Dispatcher.Invoke(Refresh);
-                }
-            };
-
-            _processStartWatcher.Start();
-
-            _processStopWatcher = new ManagementEventWatcher(
-                new WqlEventQuery("SELECT * FROM Win32_ProcessStopTrace"));
-
-            _processStopWatcher.EventArrived += (_, e) =>
-            {
-                var processName = e.NewEvent["ProcessName"]?.ToString();
-
-                if (string.Equals(processName, "acad.exe", StringComparison.OrdinalIgnoreCase))
-                {
-                    Application.Current.Dispatcher.Invoke(Refresh);
-                }
-            };
-
-            _processStopWatcher.Start();
-
             // watches for changes that happen to exsiting processes
             _processUpdateTimer = new DispatcherTimer
             {
@@ -174,12 +146,6 @@ namespace AutoGala.ViewModels
         public void Dispose()
         {
             _processUpdateTimer?.Stop();
-
-            _processStartWatcher?.Stop();
-            _processStartWatcher?.Dispose();
-
-            _processStopWatcher?.Stop();
-            _processStopWatcher?.Dispose();
         }
 
         public event Action? ConnectionSucceeded;
@@ -213,7 +179,7 @@ namespace AutoGala.ViewModels
             }
             catch (InvalidOperationException ex)
             {
-                _windowService.ShowClipboardError(ex.Message);
+                _windowService.ShowError(ex.Message);
                 return false;
             }
         }

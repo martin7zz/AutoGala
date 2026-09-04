@@ -21,6 +21,7 @@
         public const string WaitingGalaJobInfoClickMessage = "Please click on the gala jobs window.";
 
         public const string TransferingToGalaMessage = "Transfering data to Gala.";
+        public const string TransferingFromGalaMessage = "Transfering data from Gala.";
 
         public const string GettingFromGalaMessage = "Transfering data from Gala";
 

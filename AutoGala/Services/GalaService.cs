@@ -9,7 +9,6 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Forms;
 using static AutoGala.Common.NotificationMessages;
-using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace AutoGala.Services
 {
@@ -35,8 +34,7 @@ namespace AutoGala.Services
         {
             if (jobInfo == null)
             {
-                MessageBox.Show(JobInfoNullErrorMessage);
-                return;
+                throw new InvalidOperationException(JobInfoNullErrorMessage);
             }
 
             var prompt = _windowService.ShowGalaPrompt(
@@ -64,7 +62,7 @@ namespace AutoGala.Services
 
             if (errorMessage != null)
             {
-                MessageBox.Show(errorMessage);
+                throw new InvalidOperationException(errorMessage);
             }
         }
 
@@ -79,8 +77,7 @@ namespace AutoGala.Services
         {
             if (items.Count == 0)
             {
-                MessageBox.Show(NoDataErrorMessage);
-                return;
+                throw new InvalidOperationException(NoDataErrorMessage);
             }
 
             var prompt = _windowService.ShowGalaPrompt(WaitingGalaClickMessage);
@@ -101,7 +98,7 @@ namespace AutoGala.Services
 
             if (errorMessage != null)
             {
-                MessageBox.Show(errorMessage);
+                throw new InvalidOperationException(errorMessage);
             }
         }
 
@@ -124,7 +121,7 @@ namespace AutoGala.Services
             {
                 var clickPoint = await WaitForUserClickAsync();
 
-                _windowService.UpdateGalaPrompt(TransferingToGalaMessage, prompt);
+                _windowService.UpdateGalaPrompt(TransferingFromGalaMessage, prompt);
 
                 (errorMessage, items) = await Task.Run(() => AttachAndPullGeneral(clickPoint, readItems));
             }
@@ -135,8 +132,7 @@ namespace AutoGala.Services
 
             if (errorMessage != null || items == null)
             {
-                MessageBox.Show(errorMessage);
-                return [];
+                throw new InvalidOperationException(errorMessage);
             }
 
             return items;

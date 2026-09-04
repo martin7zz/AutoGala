@@ -45,13 +45,7 @@ namespace AutoGala.Services
         {
             if (items == null || items.Count == 0)
             {
-                MessageBox.Show(
-                    "Nothing to save.",
-                    "Save to Excel",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-
-                return;
+                throw new InvalidOperationException("Nothing to save.");
             }
 
             var saveDialog = new SaveFileDialog
@@ -128,13 +122,9 @@ namespace AutoGala.Services
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show(
-                    $"Could not save the Excel file.\n\n{ex.Message}",
-                    "Save Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                throw new InvalidOperationException("Could not save the Excel file.");
             }
         }
         public void SaveExcel(ObservableCollection<SectionItem> items, JobInfo jobInfo) =>
@@ -182,13 +172,7 @@ namespace AutoGala.Services
         (rebars == null || rebars.Count == 0) &&
         (loads == null || loads.Count == 0))
             {
-                MessageBox.Show(
-                    "Nothing to save.",
-                    "Save to Excel",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-
-                return;
+                throw new InvalidOperationException("Nothing to save.");
             }
 
             var saveDialog = new SaveFileDialog
@@ -313,13 +297,9 @@ namespace AutoGala.Services
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException)
             {
-                MessageBox.Show(
-                    $"Could not save the Excel file.\n\n{ex.Message}",
-                    "Save Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                throw new InvalidOperationException("Could not save the Excel file.");
             }
         }
 
@@ -367,15 +347,8 @@ namespace AutoGala.Services
 
                     if (!string.Equals(actualHeaders, expected, StringComparison.Ordinal))
                     {
-                        MessageBox.Show(
-                            $"Excel is in wrong format.\n\n" +
-                            $"Column {i + 1} should be '{expected}', " +
-                            $"but found '{actualHeaders}'.",
-                            "Load Excel",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Warning);
-
-                        return new ObservableCollection<T>();
+                        throw new InvalidOperationException(
+                            $"Excel is in wrong format.\n\nColumn {i + 1} should be '{expected}', but found '{actualHeaders}'.");
                     }
                 }
 
@@ -415,15 +388,9 @@ namespace AutoGala.Services
 
                 return result;
             }
-            catch (Exception ex)
+            catch (InvalidOperationException)
             {
-                MessageBox.Show(
-                    $"Could not load the Excel file.\n\n{ex.Message}",
-                    "Load Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-
-                return new ObservableCollection<T>();
+                throw new InvalidOperationException("Could not load the Excel file.");
             }
         }
 
@@ -571,13 +538,7 @@ namespace AutoGala.Services
 
                 if (!sectionsValid && !rebarsValid && !loadsValid)
                 {
-                    MessageBox.Show(
-                        "The Excel file does not have a valid format.",
-                        "Load Excel",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-
-                    return new List<object>();
+                    throw new InvalidOperationException("The Excel file does not have a valid format.");
                 }
 
                 if (sectionsValid)
@@ -696,17 +657,9 @@ namespace AutoGala.Services
 
                 return items;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show(
-                    $"Could not load the Excel file.\n\n{ex.Message}",
-                    "Load Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-
-                return (
-                   new List<object>()
-                );
+                throw new InvalidOperationException("Could not load the Excel file.");
             }
         }
     }

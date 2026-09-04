@@ -1,9 +1,11 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
+using AutoGala.views;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 
@@ -65,6 +67,7 @@ namespace AutoGala.ViewModels
         private readonly IMessageExchangeService _messageExchangeService;
         private readonly IMainWindowService _mainWindowService;
         private readonly IJobInfoChangedNotifier _notifier;
+        private readonly IAutoCADOperationRunner _autoCADRunnerService;
 
         public ICommand AddRebarCommand { get; }
         public ICommand RemoveRebarsCommand { get; }
@@ -85,7 +88,8 @@ namespace AutoGala.ViewModels
             IAutoGalaPipeClientService autoGalaPipeClientService,
             IMessageExchangeService messageExchangeService,
             JobInfo jobInfo,
-            IJobInfoChangedNotifier notifier)
+            IJobInfoChangedNotifier notifier,
+            IAutoCADOperationRunner autoCADOperationRunner)
         {
             _rebarService = rebarService;
             _clipboardService = clipboardService;
@@ -94,6 +98,7 @@ namespace AutoGala.ViewModels
             _mainWindowService = mainWindowService;
             _autoGalaPipeClientService = autoGalaPipeClientService;
             _messageExchangeService = messageExchangeService;
+            _autoCADRunnerService = autoCADOperationRunner;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
@@ -182,7 +187,7 @@ namespace AutoGala.ViewModels
 
             if (string.IsNullOrWhiteSpace(clipboard))
             {
-                _windowService.ShowClipboardError(NotificationMessages.NoClipboardDataErrorMassage);
+                _windowService.ShowError(NotificationMessages.NoClipboardDataErrorMassage);
                 return;
             }
 
@@ -217,13 +222,13 @@ namespace AutoGala.ViewModels
 
             if (added == 0)
             {
-                _windowService.ShowClipboardError(
+                _windowService.ShowError(
                     NotificationMessages.RebarPasteErrorMessage,
                     failedRows);
             }
             else if (failedRows.Count > 0)
             {
-                _windowService.ShowClipboardError(
+                _windowService.ShowError(
                     $"{added} row(s) added, but {failedRows.Count} row(s) couldn't be parsed.",
                     failedRows);
             }
@@ -233,14 +238,32 @@ namespace AutoGala.ViewModels
 
         private async Task SetToGalaAsync()
         {
-            await _galaService.HookToGalaAsync(Rebars);
+            try
+            {
+                await _galaService.HookToGalaAsync(Rebars);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError(ex.Message);
+                return;
+            }
 
             CommandManager.InvalidateRequerySuggested();
         }
 
         private async Task GetFromGalaAsync()
         {
-            var rebars = await _galaService.GetRebarsFromGalaAsync();
+            ObservableCollection<RebarItem> rebars;
+
+            try
+            {
+                rebars = await _galaService.GetRebarsFromGalaAsync();
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError(ex.Message);
+                return;
+            }
 
             if (rebars.Any())
             {
@@ -257,42 +280,56 @@ namespace AutoGala.ViewModels
 
         private async Task GetFromAutoCADAsync()
         {
-            try
+            var (success, rebars) = await _autoCADRunnerService.RunAsync(() =>
+            _messageExchangeService.GetRebarsAsync(_autoGalaPipeClientService, _jobInfo.JobTitle));
+
+            if (!success)
             {
-                _autoGalaPipeClientService.ActivateAutoCAD();
-
-                var rebars = await _messageExchangeService.GetRebarsAsync(_autoGalaPipeClientService, _jobInfo.JobTitle);
-
-                if (rebars.Item1.Any())
-                {
-                    Rebars.Clear();
-                }
-
-                foreach (var rebar in rebars.Item1)
-                {
-                    Rebars.Add(rebar);
-                }
-
-                _jobInfo.JobTitle = rebars.Item2;
-                _notifier.NotifyJobInfoChanged();
-
-                CommandManager.InvalidateRequerySuggested();
-            }
-            catch (InvalidOperationException ex)
-            {
-                _windowService.ShowClipboardError(ex.Message);
+                return;
             }
 
+            if (rebars.Item1.Any())
+            {
+                Rebars.Clear();
+            }
+
+            foreach (var rebar in rebars.Item1)
+            {
+                Rebars.Add(rebar);
+            }
+
+            _jobInfo.JobTitle = rebars.Item2;
+            _notifier.NotifyJobInfoChanged();
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void SaveToExcel()
         {
-            _mainWindowService.SaveExcel(Rebars, _jobInfo);
+            try
+            {
+                _mainWindowService.SaveExcel(Rebars, _jobInfo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError($"File was not saved: {ex.Message}");
+                return;
+            }
+
         }
 
         private void LoadFromExcel()
         {
-            var loadedRebars = _mainWindowService.LoadRebarsExcel(_jobInfo);
+            ObservableCollection<RebarItem> loadedRebars;
+            try
+            {
+                loadedRebars = _mainWindowService.LoadRebarsExcel(_jobInfo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError($"Unable to load file: {ex.Message}");
+                return;
+            }
 
             if (loadedRebars.Count > 0)
             {

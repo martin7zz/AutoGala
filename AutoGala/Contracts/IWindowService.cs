@@ -1,5 +1,6 @@
 ﻿using AutoGala.views;
 using Plugin.Core.Models;
+using System.Windows;
 
 namespace AutoGala.Contracts
 {
@@ -8,7 +9,7 @@ namespace AutoGala.Contracts
         EditJobInfoView ShowEditJobInfo(JobInfo jobInfo, IJobInfoChangedNotifier notifier);
         GalaPromptView ShowGalaPrompt(string data);
         AutoGalaProcessSelectionView ShowProcessSelection();
-        ClipboardErrorView ShowClipboardError(string data, IEnumerable<string>? failedRows = null);
+        ErrorView ShowError(string data, IEnumerable<string>? failedRows = null, Window? owner = null);
         void UpdateGalaPrompt(string data, GalaPromptView galaPromptView);
     }
 }

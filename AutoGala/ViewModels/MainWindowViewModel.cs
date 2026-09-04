@@ -1,9 +1,11 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 
@@ -21,10 +23,10 @@ namespace AutoGala.ViewModels
         private IMainWindowService _mainWindowService;
         private IWindowService _windowService;
         private IGalaService _galaService;
-        private IAutoGalaProcessService _autoGalaProcessService;
         private IAutoGalaPipeClientService _autoGalaPipeClientService;
         private IMessageExchangeService _messageExchageService;
         private IJobInfoChangedNotifier _notifier;
+        private IAutoCADOperationRunner _autoCADRunnerService;
 
         public ICommand SaveAllToExcelCommand { get; }
         public ICommand LoadAllFromExcelCommand { get; }
@@ -42,10 +44,10 @@ namespace AutoGala.ViewModels
             IMainWindowService mainWindowService,
             IWindowService windowService,
             IGalaService galaService,
-            IAutoGalaProcessService autoGalaProcessService,
             IAutoGalaPipeClientService autoGalaPipeClientService,
             IJobInfoChangedNotifier notifier,
-            IMessageExchangeService messageExchangeService)
+            IMessageExchangeService messageExchangeService,
+            IAutoCADOperationRunner autoCADOperationRunnerService)
         {
             SectionView = sectionViewModel;
             RebarView = rebarViewModel;
@@ -56,10 +58,10 @@ namespace AutoGala.ViewModels
             _mainWindowService = mainWindowService;
             _windowService = windowService;
             _galaService = galaService;
-            _autoGalaProcessService = autoGalaProcessService;
             _autoGalaPipeClientService = autoGalaPipeClientService;
             _notifier = notifier;
             _messageExchageService = messageExchangeService;
+            _autoCADRunnerService = autoCADOperationRunnerService;
 
             _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
 
@@ -80,7 +82,15 @@ namespace AutoGala.ViewModels
 
         private async Task SetJobInfoAsync()
         {
-            await _galaService.HookToGalaJobAsync(EditJobInfoView.JobInfo);
+            try
+            {
+                await _galaService.HookToGalaJobAsync(EditJobInfoView.JobInfo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _windowService.ShowError(ex.Message);
+                return;
+            }
         }
 
         private async Task ConnectToAutoCADAsync()
@@ -90,52 +100,65 @@ namespace AutoGala.ViewModels
 
         private async Task GetAllFromAutoCADAsync()
         {
-            try
+            var (success, shapeData) = await _autoCADRunnerService.RunAsync(() =>
+            _messageExchageService.GetAllAsync(_autoGalaPipeClientService, EditJobInfoView.JobInfo.JobTitle));
+
+            if (!success)
             {
-                _autoGalaPipeClientService.ActivateAutoCAD();
-
-                var shapeData = await _messageExchageService.GetAllAsync(_autoGalaPipeClientService, EditJobInfoView.JobInfo.JobTitle);
-
-                if (shapeData.Item1.Item1.Any() || shapeData.Item1.Item2.Any())
-                {
-                    ClearAll();
-                }
-
-                foreach (var section in shapeData.Item1.Item1)
-                {
-                    SectionView.Sections.Add(section);
-                }
-
-                foreach (var rebar in shapeData.Item1.Item2)
-                {
-                    RebarView.Rebars.Add(rebar);
-                }
-
-                EditJobInfoView.JobInfo.JobTitle = shapeData.Item2;
-                _notifier.NotifyJobInfoChanged();
-
-                CommandManager.InvalidateRequerySuggested();
+                return;
             }
-            catch (InvalidOperationException ex)
+
+            if (shapeData.Item1.Item1.Any() || shapeData.Item1.Item2.Any())
             {
-                _windowService.ShowClipboardError(ex.Message);
+                ClearAll();
             }
+
+            foreach (var section in shapeData.Item1.Item1)
+            {
+                SectionView.Sections.Add(section);
+            }
+
+            foreach (var rebar in shapeData.Item1.Item2)
+            {
+                RebarView.Rebars.Add(rebar);
+            }
+
+            EditJobInfoView.JobInfo.JobTitle = shapeData.Item2;
+            _notifier.NotifyJobInfoChanged();
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void SaveAllToExcel()
         {
-            _mainWindowService.SaveAllToExcel(
-                SectionView.Sections,
-                RebarView.Rebars,
-                LoadView.Loads,
-                LoadView.IsSimpleBending,
-                EditJobInfoView.JobInfo);
+            try
+            {
+                _mainWindowService.SaveAllToExcel(
+                    SectionView.Sections,
+                    RebarView.Rebars,
+                    LoadView.Loads,
+                    LoadView.IsSimpleBending,
+                    EditJobInfoView.JobInfo);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+            {
+                _windowService.ShowError($"File was not saved: {ex.Message}");
+                return;
+            }
         }
 
         private void LoadAllFromExcel()
         {
-
-            var items = _mainWindowService.LoadAllExcel(LoadView.IsSimpleBending);
+            List<object> items;
+            try
+            {
+                items = _mainWindowService.LoadAllExcel(LoadView.IsSimpleBending);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+            {
+                _windowService.ShowError($"Unable to load file: {ex.Message}");
+                return;
+            }
 
             if (items == null || items.Count < 3)
             {
