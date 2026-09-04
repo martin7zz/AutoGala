@@ -69,6 +69,7 @@
                   SelectionMode="Extended"
                   SelectionUnit="FullRow"
                   CanUserSortColumns="False"
+                  PreviewKeyDown="RebarGrid_PreviewKeyDown"
                   CopyingRowClipboardContent="CopyingRowClipboardContent"
                   SelectionChanged="RebarGrid_SelectionChanged"
                   Validation.Error="RebarGrid_ValidationError"

@@ -56,5 +56,18 @@ namespace AutoGala.views
                 new Action(() => vm.CheckForDuplicates()),
                 System.Windows.Threading.DispatcherPriority.ContextIdle);
         }
+
+        private void RebarGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete)
+            {
+                e.Handled = true;
+
+                if (DataContext is RebarViewModel vm)
+                {
+                    vm.RemoveRebar();
+                }
+            }
+        }
     }
 }

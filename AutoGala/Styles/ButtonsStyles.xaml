@@ -27,15 +27,13 @@
                             VerticalAlignment="Center"
                             RecognizesAccessKey="True"/>
                     </Border>
-                    
+
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter
-                                Property="Opacity"
-                                Value="0.5"/>
+                            <Setter Property="Opacity" Value="0.5"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
-                    
+
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -47,18 +45,19 @@
            TargetType="Button"
            BasedOn="{StaticResource ModernButtonStyle}">
 
-        <Setter Property="Background" Value="#1fc5d1"/>
-        <Setter Property="Foreground" Value="#471a24"/>
-        <Setter Property="BorderBrush" Value="#1f6cd1"/>
+        <Setter Property="Background" Value="#4F46E5"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderBrush" Value="#4F46E5"/>
 
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#6898d9"/>
-                <Setter Property="BorderBrush" Value="#1f6cd1"/>
+                <Setter Property="Background" Value="#4338CA"/>
+                <Setter Property="BorderBrush" Value="#4338CA"/>
             </Trigger>
 
             <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="#164480"/>
+                <Setter Property="Background" Value="#3730A3"/>
+                <Setter Property="BorderBrush" Value="#3730A3"/>
             </Trigger>
         </Style.Triggers>
 
@@ -70,18 +69,19 @@
            TargetType="Button"
            BasedOn="{StaticResource ModernButtonStyle}">
 
-        <Setter Property="Background" Value="#ff6385"/>
-        <Setter Property="Foreground" Value="#471a24"/>
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#DC2626"/>
         <Setter Property="BorderBrush" Value="#FECACA"/>
 
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#a85668"/>
+                <Setter Property="Background" Value="#FEF2F2"/>
                 <Setter Property="BorderBrush" Value="#FCA5A5"/>
             </Trigger>
 
             <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="#FCA5A5"/>
+                <Setter Property="Background" Value="#FEE2E2"/>
+                <Setter Property="BorderBrush" Value="#F87171"/>
             </Trigger>
         </Style.Triggers>
 
@@ -94,24 +94,18 @@
            BasedOn="{StaticResource ModernButtonStyle}">
 
         <Setter Property="Background" Value="#FFFFFF"/>
-        <Setter Property="Foreground" Value="#471a24"/>
+        <Setter Property="Foreground" Value="#374151"/>
         <Setter Property="BorderBrush" Value="#D1D5DB"/>
 
         <Style.Triggers>
 
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter
-                Property="Background"
-                Value="#E5E7EB"/>
-                <Setter
-                Property="BorderBrush"
-                Value="#9CA3AF"/>
+                <Setter Property="Background" Value="#F9FAFB"/>
+                <Setter Property="BorderBrush" Value="#9CA3AF"/>
             </Trigger>
 
             <Trigger Property="IsPressed" Value="True">
-                <Setter
-                Property="Background"
-                Value="#D1D5DB"/>
+                <Setter Property="Background" Value="#F3F4F6"/>
             </Trigger>
 
         </Style.Triggers>
@@ -124,21 +118,22 @@
            TargetType="Button"
            BasedOn="{StaticResource ModernButtonStyle}">
 
-        <Setter Property="Background" Value="#32f02b"/>
-        <Setter Property="Foreground" Value="#471a24"/>
-        <Setter Property="BorderBrush" Value="#059669"/>
+        <Setter Property="Background" Value="#16A34A"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderBrush" Value="#16A34A"/>
 
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#6af765"/>
-                <Setter Property="BorderBrush" Value="#047857"/>
+                <Setter Property="Background" Value="#15803D"/>
+                <Setter Property="BorderBrush" Value="#15803D"/>
             </Trigger>
 
             <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="#059669"/>
+                <Setter Property="Background" Value="#166534"/>
+                <Setter Property="BorderBrush" Value="#166534"/>
             </Trigger>
         </Style.Triggers>
 
     </Style>
-    
+
 </ResourceDictionary>

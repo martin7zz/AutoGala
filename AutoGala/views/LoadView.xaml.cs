@@ -1,6 +1,7 @@
 ﻿using AutoGala.ViewModels;
 using Plugin.Core.Models;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace AutoGala.views
 {
@@ -43,6 +44,19 @@ namespace AutoGala.views
                 foreach (LoadItem item in e.AddedItems)
                 {
                     vm.SelectedLoads.Add(item);
+                }
+            }
+        }
+
+        private void LoadGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete)
+            {
+                e.Handled = true;
+
+                if (DataContext is LoadViewModel vm)
+                {
+                    vm.RemoveLoad();
                 }
             }
         }

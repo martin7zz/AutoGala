@@ -60,6 +60,7 @@
                       SelectionMode="Extended"
                       SelectionUnit="FullRow"
                       CanUserSortColumns="False"
+                      PreviewKeyDown="LoadGrid_PreviewKeyDown"
                       CopyingRowClipboardContent="CopyingRowClipboardContent"
                       SelectionChanged="LoadGrid_SelectionChanged"
                       Validation.Error="LoadGrid_ValidationError"

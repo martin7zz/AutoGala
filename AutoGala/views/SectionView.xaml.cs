@@ -1,6 +1,7 @@
 ﻿using AutoGala.ViewModels;
 using Plugin.Core.Models;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace AutoGala.views
 {
@@ -42,6 +43,18 @@ namespace AutoGala.views
                 foreach (SectionItem item in e.AddedItems)
                 {
                     vm.SelectedSections.Add(item);
+                }
+            }
+        }
+        private void SectionGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete)
+            {
+                e.Handled = true;
+
+                if (DataContext is SectionViewModel vm)
+                {
+                    vm.RemoveSections();
                 }
             }
         }
