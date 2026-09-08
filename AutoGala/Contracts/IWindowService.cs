@@ -1,4 +1,5 @@
-﻿using AutoGala.views;
+﻿using AutoGala.ViewModels.Disposable;
+using AutoGala.views;
 using Plugin.Core.Models;
 using System.Windows;
 
@@ -6,6 +7,8 @@ namespace AutoGala.Contracts
 {
     public interface IWindowService
     {
+        double? ShowScaleFactor(double scaleFactor);
+        LoadingWindowHandle ShowLoading(string message);
         EditJobInfoView ShowEditJobInfo(JobInfo jobInfo, IJobInfoChangedNotifier notifier);
         GalaPromptView ShowGalaPrompt(string data);
         AutoGalaProcessSelectionView ShowProcessSelection();

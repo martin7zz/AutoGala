@@ -1,5 +1,6 @@
 ﻿using AutoGala.Contracts;
 using AutoGala.ViewModels;
+using AutoGala.ViewModels.Disposable;
 using AutoGala.views;
 using Microsoft.Extensions.DependencyInjection;
 using Plugin.Core.Models;
@@ -37,7 +38,6 @@ namespace AutoGala.Services
 
             return window;
         }
-
 
         public ErrorView ShowError(
             string data,
@@ -107,6 +107,43 @@ namespace AutoGala.Services
                 vm.Message = data;
                 vm.IsWaiting = false;
             }
+        }
+
+        public LoadingWindowHandle ShowLoading(string message)
+        {
+            var window = new LoadingWindowView
+            {
+                Owner = Application.Current.MainWindow,
+                DataContext = new LoadingWindowViewModel(message)
+            };
+
+            window.Show();
+
+            return new LoadingWindowHandle(window);
+        }
+
+        public double? ShowScaleFactor(double scaleFactor)
+        {
+            var vm = new ScaleFactorViewModel(scaleFactor);
+            var window = new ScaleFactorWindowView
+            {
+                Owner = Application.Current.MainWindow,
+                DataContext = vm
+            };
+
+            double? result = null;
+
+            vm.Confirmed += value =>
+            {
+                result = value;
+                window.DialogResult = true;
+            };
+
+            vm.Cancelled += () => window.DialogResult = false;
+
+            window.ShowDialog();
+
+            return result;
         }
     }
 }
