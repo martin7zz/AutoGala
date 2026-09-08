@@ -158,14 +158,28 @@ namespace AutoGala.ViewModels
 
             try
             {
+                if (_pipeClientService.IsConnected)
+                {
+                    ConnectionSucceeded?.Invoke();
+                    return;
+                }
+
+                using var loading = _windowService.ShowLoading("Connecting to AutoCAD...");
+
                 if (!await TryConnectAsync(process))
+                {
+                    loading.Message = "Loading AutoGala plugin...";
+
+                    await Task.Yield();
+
                     await LoadPluginAndConnectAsync(process);
+                }
 
                 ConnectionSucceeded?.Invoke();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                ConnectionFailed?.Invoke(ex.Message);
+                ConnectionFailed?.Invoke("Failed to connect to AutoCAD.");
             }
         }
 
@@ -177,9 +191,8 @@ namespace AutoGala.ViewModels
                 await _pipeClientService.ConnectAsync(process);
                 return true;
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
-                _windowService.ShowError(ex.Message);
                 return false;
             }
         }
