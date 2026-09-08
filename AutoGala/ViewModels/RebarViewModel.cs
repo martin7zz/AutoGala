@@ -68,6 +68,7 @@ namespace AutoGala.ViewModels
         private readonly IMainWindowService _mainWindowService;
         private readonly IJobInfoChangedNotifier _notifier;
         private readonly IAutoCADOperationRunner _autoCADRunnerService;
+        private readonly IAutoCADSettingsService _autoCADSettingsService;
 
         public ICommand AddRebarCommand { get; }
         public ICommand RemoveRebarsCommand { get; }
@@ -89,7 +90,8 @@ namespace AutoGala.ViewModels
             IMessageExchangeService messageExchangeService,
             JobInfo jobInfo,
             IJobInfoChangedNotifier notifier,
-            IAutoCADOperationRunner autoCADOperationRunner)
+            IAutoCADOperationRunner autoCADOperationRunner,
+            IAutoCADSettingsService autoCADSettingsService)
         {
             _rebarService = rebarService;
             _clipboardService = clipboardService;
@@ -99,6 +101,7 @@ namespace AutoGala.ViewModels
             _autoGalaPipeClientService = autoGalaPipeClientService;
             _messageExchangeService = messageExchangeService;
             _autoCADRunnerService = autoCADOperationRunner;
+            _autoCADSettingsService = autoCADSettingsService;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
@@ -295,6 +298,10 @@ namespace AutoGala.ViewModels
 
             foreach (var rebar in rebars.Item1)
             {
+                rebar.Area *= Math.Pow(_autoCADSettingsService.ScaleFactor, 2);
+                rebar.X *= _autoCADSettingsService.ScaleFactor;
+                rebar.Y *= _autoCADSettingsService.ScaleFactor;
+
                 Rebars.Add(rebar);
             }
 

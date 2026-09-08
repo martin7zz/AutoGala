@@ -1,5 +1,6 @@
 ﻿using AutoGala.Common;
 using AutoGala.Contracts;
+using AutoGala.Services;
 using AutoGala.ViewModels.Base;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Plugin.Core.Contracts;
@@ -8,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace AutoGala.ViewModels
 {
@@ -19,7 +21,7 @@ namespace AutoGala.ViewModels
         public EditJobInfoViewModel EditJobInfoView { get; }
         public AutoGalaProcessSelectionViewModel AutoGalaProcessSelectionView { get; }
 
-
+        private IDialogService _dialogService;
         private IMainWindowService _mainWindowService;
         private IWindowService _windowService;
         private IGalaService _galaService;
@@ -27,6 +29,7 @@ namespace AutoGala.ViewModels
         private IMessageExchangeService _messageExchageService;
         private IJobInfoChangedNotifier _notifier;
         private IAutoCADOperationRunner _autoCADRunnerService;
+        private IAutoCADSettingsService _autoCADSettingsService;
 
         public ICommand SaveAllToExcelCommand { get; }
         public ICommand LoadAllFromExcelCommand { get; }
@@ -35,19 +38,22 @@ namespace AutoGala.ViewModels
         public ICommand SetJobInfoCommand { get; }
         public ICommand ConnectToAutoCADCommand { get; }
         public ICommand GetAllFromAutoCADCommand { get; }
+        public ICommand ScaleFactorCommand { get; }
 
         public MainWindowViewModel(SectionViewModel sectionViewModel,
             RebarViewModel rebarViewModel,
             LoadViewModel loadViewModel,
             EditJobInfoViewModel editJobInfoViewModel,
             AutoGalaProcessSelectionViewModel autoGalaProcessSelectionViewModel,
+            IDialogService dialogService,
             IMainWindowService mainWindowService,
             IWindowService windowService,
             IGalaService galaService,
             IAutoGalaPipeClientService autoGalaPipeClientService,
             IJobInfoChangedNotifier notifier,
             IMessageExchangeService messageExchangeService,
-            IAutoCADOperationRunner autoCADOperationRunnerService)
+            IAutoCADOperationRunner autoCADOperationRunnerService,
+            IAutoCADSettingsService autoCADSettingsService)
         {
             SectionView = sectionViewModel;
             RebarView = rebarViewModel;
@@ -55,6 +61,7 @@ namespace AutoGala.ViewModels
             EditJobInfoView = editJobInfoViewModel;
             AutoGalaProcessSelectionView = autoGalaProcessSelectionViewModel;
 
+            _dialogService = dialogService;
             _mainWindowService = mainWindowService;
             _windowService = windowService;
             _galaService = galaService;
@@ -62,6 +69,7 @@ namespace AutoGala.ViewModels
             _notifier = notifier;
             _messageExchageService = messageExchangeService;
             _autoCADRunnerService = autoCADOperationRunnerService;
+            _autoCADSettingsService = autoCADSettingsService;
 
             _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
 
@@ -72,6 +80,25 @@ namespace AutoGala.ViewModels
             SetJobInfoCommand = new RelayCommand(async param => await SetJobInfoAsync());
             ConnectToAutoCADCommand = new RelayCommand(async param => await ConnectToAutoCADAsync(), param => !_autoGalaPipeClientService.IsConnected);
             GetAllFromAutoCADCommand = new RelayCommand(async param => await GetAllFromAutoCADAsync(), param => _autoGalaPipeClientService.IsConnected);
+            ScaleFactorCommand = new RelayCommand(param => ChangeScaleFactor());
+        }
+
+        private void ChangeScaleFactor()
+        {
+            var newScaleFactor = _windowService.ShowScaleFactor(_autoCADSettingsService.ScaleFactor);
+
+            if (newScaleFactor.HasValue)
+            {
+                _autoCADSettingsService.ScaleFactor = newScaleFactor.Value;
+            }
+        }
+
+        public bool ConfirmClose()
+        {
+            return _dialogService.Confirm(
+                "Are you sure you want to close?",
+                "Exit"
+            );
         }
 
         private void EditJobInfo()
@@ -110,16 +137,21 @@ namespace AutoGala.ViewModels
 
             if (shapeData.Item1.Item1.Any() || shapeData.Item1.Item2.Any())
             {
-                ClearAll();
+                ClearAllAutoCAD();
             }
 
             foreach (var section in shapeData.Item1.Item1)
             {
+                section.X *= _autoCADSettingsService.ScaleFactor;
+                section.Y *= _autoCADSettingsService.ScaleFactor;
                 SectionView.Sections.Add(section);
             }
 
             foreach (var rebar in shapeData.Item1.Item2)
             {
+                rebar.Area *= Math.Pow(_autoCADSettingsService.ScaleFactor, 2);
+                rebar.X *= _autoCADSettingsService.ScaleFactor;
+                rebar.Y *= _autoCADSettingsService.ScaleFactor;
                 RebarView.Rebars.Add(rebar);
             }
 
@@ -192,6 +224,12 @@ namespace AutoGala.ViewModels
             EditJobInfoView.RefreshFromModel();
 
             CommandManager.InvalidateRequerySuggested();
+        }
+
+        private void ClearAllAutoCAD()
+        {
+            SectionView.ClearList();
+            RebarView.ClearList();
         }
 
         private void ClearAll()

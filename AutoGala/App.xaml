@@ -12,6 +12,7 @@
                 <ResourceDictionary Source="/Styles/JobInfoStyles.xaml"/>
                 <ResourceDictionary Source="/Styles/ProcessSelectionViewStyles.xaml"/>
                 <ResourceDictionary Source="/Styles/ErrorViewStyles.xaml"/>
+                <ResourceDictionary Source="/Styles/LoadingWindowViewStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

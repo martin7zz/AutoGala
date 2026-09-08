@@ -59,6 +59,7 @@ namespace AutoGala
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();
 
+            services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<ILoadService, LoadService>();
             services.AddSingleton<IRebarService, RebarService>();
             services.AddSingleton<ISectionService, SectionService>();
@@ -70,6 +71,7 @@ namespace AutoGala
             services.AddSingleton<IAutoGalaPipeClientService, AutoGalaPipeClientService>();
             services.AddSingleton<IMessageExchangeService, MessageExchangeService>();
             services.AddSingleton<IAutoCADOperationRunner, AutoCADOperationRunner>();
+            services.AddSingleton<IAutoCADSettingsService, AutoCADSettingsService>();
 
             services.AddTransient<SectionViewModel>();
             services.AddTransient<RebarViewModel>();
@@ -78,6 +80,9 @@ namespace AutoGala
             services.AddTransient<GalaPromptViewModel>();
             services.AddTransient<EditJobInfoViewModel>();
             services.AddTransient<AutoGalaProcessSelectionViewModel>();
+            services.AddTransient<LoadingWindowViewModel>();
+            services.AddTransient<ScaleFactorViewModel>();
+
 
             services.AddTransient<SectionView>();
             services.AddTransient<RebarView>();
@@ -86,6 +91,8 @@ namespace AutoGala
             services.AddTransient<ErrorView>();
             services.AddTransient<EditJobInfoView>();
             services.AddTransient<AutoGalaProcessSelectionView>();
+            services.AddTransient<LoadingWindowView>();
+            services.AddTransient<ScaleFactorWindowView>();
         }
     }
 }

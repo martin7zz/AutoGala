@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace AutoGala.ViewModels
 {
@@ -53,6 +54,7 @@ namespace AutoGala.ViewModels
         private readonly IAutoGalaPipeClientService _autoGalaPipeClientService;
         private readonly IMessageExchangeService _messageExchangeService;
         private readonly IAutoCADOperationRunner _autoCADRunnerService;
+        private readonly IAutoCADSettingsService _autoCADSettingsService;
 
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionsCommand { get; }
@@ -73,7 +75,8 @@ namespace AutoGala.ViewModels
             IJobInfoChangedNotifier notifier,
             IMessageExchangeService messageExchangeService,
             IAutoGalaPipeClientService autoGalaPipeClientService,
-            IAutoCADOperationRunner autoCADOperationRunnerService
+            IAutoCADOperationRunner autoCADOperationRunnerService,
+            IAutoCADSettingsService autoCADSettingsService
             )
         {
             _sectionService = sectionService;
@@ -84,6 +87,7 @@ namespace AutoGala.ViewModels
             _messageExchangeService = messageExchangeService;
             _autoGalaPipeClientService = autoGalaPipeClientService;
             _autoCADRunnerService = autoCADOperationRunnerService;
+            _autoCADSettingsService = autoCADSettingsService;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
@@ -260,6 +264,9 @@ namespace AutoGala.ViewModels
 
             foreach (var section in sections.Item1)
             {
+                section.X *= _autoCADSettingsService.ScaleFactor;
+                section.Y *= _autoCADSettingsService.ScaleFactor;
+
                 Sections.Add(section);
             }
 

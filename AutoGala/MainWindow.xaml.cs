@@ -1,4 +1,5 @@
 ﻿using AutoGala.ViewModels;
+using System.ComponentModel;
 using System.Windows;
 
 namespace AutoGala
@@ -12,6 +13,14 @@ namespace AutoGala
         {
             InitializeComponent();
             DataContext = vm;
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                e.Cancel = !vm.ConfirmClose();
+            }
         }
     }
 }
