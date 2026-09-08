@@ -13,7 +13,7 @@ namespace AutoGala.Services.Helper
         {
             var window = GetTopLevelWindow(clickedElement);
 
-            if (window == null)
+            if (window == null || !IsGaLaWindow(window))
             {
                 return false;
             }
@@ -21,6 +21,14 @@ namespace AutoGala.Services.Helper
             MainWindow = (IntPtr)window.Current.NativeWindowHandle;
 
             return MainWindow != IntPtr.Zero;
+        }
+
+        private static bool IsGaLaWindow(AutomationElement window)
+        {
+            var name = window.Current.Name;
+
+            return name.Contains("   GaLa Reinforcement  4.1e", StringComparison.OrdinalIgnoreCase)
+                || name.Contains("Report Configure", StringComparison.OrdinalIgnoreCase);
         }
 
         protected bool FocusWindow(IntPtr hwnd, IntPtr window, bool manageAttachment = true)

@@ -69,20 +69,14 @@ namespace AutoGala.Services
 
                 information = BuildJobInfoDictionary(jobInfo);
 
+                var keys = information.Keys.ToArray();
+                var values = information.Values.ToArray();
+
                 for (int col = 0; col < information.Count; col++)
                 {
-                    worksheet.Cell(1, col + 1).Value = information.Keys.ToArray()[col];
-
-                    var cell = worksheet.Cell(2, col + 1);
-
-                    if (col == 1)
-                    {
-                        cell.Value = Convert.ToInt64(information.Values.ToArray()[col]);
-                    }
-                    else
-                    {
-                        cell.Value = XLCellValue.FromObject(information.Values.ToArray()[col]);
-                    }
+                    worksheet.Cell(1, col + 1).Value = keys[col];
+                    worksheet.Cell(2, col + 1).Value =
+                        XLCellValue.FromObject(values[col]);
                 }
 
                 var range = worksheet.Range(1, 1, 1, information.Count);
@@ -196,19 +190,14 @@ namespace AutoGala.Services
 
                 information = BuildJobInfoDictionary(jobInfo);
 
+                var keys = information.Keys.ToArray();
+                var values = information.Values.ToArray();
+
                 for (int col = 0; col < information.Count; col++)
                 {
-                    worksheet.Cell(1, col + 1).Value = information.Keys.ToArray()[col];
-                    var cell = worksheet.Cell(2, col + 1);
-
-                    if (col == 1)
-                    {
-                        cell.Value = Convert.ToInt64(information.Values.ToArray()[col]);
-                    }
-                    else
-                    {
-                        cell.Value = XLCellValue.FromObject(information.Values.ToArray()[col]);
-                    }
+                    worksheet.Cell(1, col + 1).Value = keys[col];
+                    worksheet.Cell(2, col + 1).Value =
+                        XLCellValue.FromObject(values[col]);
                 }
 
                 var range = worksheet.Range(1, 1, 1, information.Count);
@@ -325,19 +314,11 @@ namespace AutoGala.Services
 
                 var worksheet = workbook.Worksheets.First();
 
-                bool expectedJobInfo = JobInfoHasHeaders(
-                    worksheet,
-                    1,
-                    "Job Title:", "Job Number:", "Client:", "Calcs by:", "Checked by:");
+                bool hasJobInfo = HasJobInfoData(worksheet);
 
-                if (expectedJobInfo)
+                if (hasJobInfo)
                 {
-                    // jobInfo
-                    jobInfo.JobTitle = worksheet.Cell(2, 1).GetString();
-                    jobInfo.JobNumber = worksheet.Cell(2, 2).GetString();
-                    jobInfo.Client = worksheet.Cell(2, 3).GetString();
-                    jobInfo.CalcsBy = worksheet.Cell(2, 4).GetString();
-                    jobInfo.CheckedBy = worksheet.Cell(2, 5).GetString();
+                    LoadJobInfo(worksheet, jobInfo);
                 }
 
                 for (int i = 0; i < expectedHeaders.Length; i++)
@@ -437,22 +418,39 @@ namespace AutoGala.Services
                 expectedHeaders.ToArray());
         }
 
-        private bool JobInfoHasHeaders(
-           IXLWorksheet worksheet,
-           int startColumn,
-           params string[] expected)
+        private bool HasJobInfoData(IXLWorksheet worksheet)
         {
-            for (int i = 0; i < expected.Length; i++)
-            {
-                var actual = worksheet.Cell(1, startColumn + i).GetString().Trim();
+            var jobTitle = worksheet.Cell(2, 1).GetString().Trim();
 
-                if (!string.Equals(actual, expected[i], StringComparison.Ordinal))
-                {
-                    return false;
-                }
+            return !string.IsNullOrWhiteSpace(jobTitle);
+        }
+
+        private void LoadJobInfo(IXLWorksheet worksheet, JobInfo jobInfo)
+        {
+            if (worksheet.Cell(1, 1).GetString().Trim() == "Job Title:")
+            {
+                jobInfo.JobTitle = worksheet.Cell(2, 1).GetString();
             }
 
-            return true;
+            if (worksheet.Cell(1, 2).GetString().Trim() == "Job Number:")
+            {
+                jobInfo.JobNumber = worksheet.Cell(2, 2).GetString();
+            }
+
+            if (worksheet.Cell(1, 3).GetString().Trim() == "Client:")
+            {
+                jobInfo.Client = worksheet.Cell(2, 3).GetString();
+            }
+
+            if (worksheet.Cell(1, 4).GetString().Trim() == "Calcs by:")
+            {
+                jobInfo.CalcsBy = worksheet.Cell(2, 4).GetString();
+            }
+
+            if (worksheet.Cell(1, 5).GetString().Trim() == "Checked by:")
+            {
+                jobInfo.CheckedBy = worksheet.Cell(2, 5).GetString();
+            }
         }
 
         private bool HasHeaders(
@@ -521,10 +519,7 @@ namespace AutoGala.Services
                     "Mx [kNm]"
                 };
 
-                bool expectedJobInfo = JobInfoHasHeaders(
-                    worksheet,
-                    1,
-                    "Job Title:", "Job Number:", "Client:", "Calcs by:", "Checked by:");
+                bool hasJobInfo = HasJobInfoData(worksheet);
 
                 if (!isSimpleBending)
                 {
@@ -536,7 +531,7 @@ namespace AutoGala.Services
                     10,
                     expectedLoads.ToArray());
 
-                if (!sectionsValid && !rebarsValid && !loadsValid)
+                if (!sectionsValid && !rebarsValid && !loadsValid && !hasJobInfo)
                 {
                     throw new InvalidOperationException("The Excel file does not have a valid format.");
                 }
@@ -591,14 +586,9 @@ namespace AutoGala.Services
                     }
                 }
 
-                if (expectedJobInfo)
+                if (hasJobInfo)
                 {
-                    // jobInfo
-                    jobInfo.JobTitle = worksheet.Cell(2, 1).GetString();
-                    jobInfo.JobNumber = worksheet.Cell(2, 2).GetString();
-                    jobInfo.Client = worksheet.Cell(2, 3).GetString();
-                    jobInfo.CalcsBy = worksheet.Cell(2, 4).GetString();
-                    jobInfo.CheckedBy = worksheet.Cell(2, 5).GetString();
+                    LoadJobInfo(worksheet, jobInfo);
                 }
 
                 items.Add(sections);
@@ -623,7 +613,7 @@ namespace AutoGala.Services
                     loaded.Add("Loads");
                 else
                     notLoaded.Add("Loads");
-                if (expectedJobInfo)
+                if (hasJobInfo)
                     loaded.Add("Job Information");
                 else
                     notLoaded.Add("Job Information");
