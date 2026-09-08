@@ -8,110 +8,169 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <GroupBox Header="Section List Data"
-              Grid.Column="2"
-              Margin="0,0,10,0">
+    <DockPanel LastChildFill="True"
+           Margin="0,0,10,0">
 
-        <DockPanel>
+        <Grid DockPanel.Dock="Bottom"
+            Margin="5,8,5,5"
+            MaxWidth="580"
+            HorizontalAlignment="Center">
 
-            <Grid DockPanel.Dock="Bottom"
-                  Margin="5,8,5,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- Local list editing -->
+            <WrapPanel Grid.Column="0">
 
-                <!-- Local list editing -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Content="Add"
-                            Command="{Binding AddSectionCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"/>
+                <Button Command="{Binding AddSectionCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    ToolTip="Add">
+                    <Viewbox Width="16" Height="16">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M15 12L12 12M12 12L9 12M12 12L12 9M12 12L12 15"
+                              Stroke="White"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              Height="24"
+                              Stretch="Fill"
+                              Width="24"
+                              StrokeThickness="2"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
 
-                    <Button Content="Delete"
-                            Command="{Binding RemoveSectionsCommand}"
-                            Style="{StaticResource DangerButtonStyle}"/>
+                <Button Command="{Binding RemoveSectionsCommand}"
+                    Style="{StaticResource DangerButtonStyle}"
+                    ToolTip="Delete">
+                    <Viewbox Width="16" Height="16">
+                        <Canvas Width="1024" Height="1024">
+                            <Path Data="M960 160h-291.2a160 160 0 0 0-313.6 0H64a32 32 0 0 0 0 64h896a32 32 0 0 0 0-64zM512 96a96 96 0 0 1 90.24 64h-180.48A96 96 0 0 1 512 96zM844.16 290.56a32 32 0 0 0-34.88 6.72A32 32 0 0 0 800 320a32 32 0 1 0 64 0 33.6 33.6 0 0 0-9.28-22.72 32 32 0 0 0-10.56-6.72zM832 416a32 32 0 0 0-32 32v96a32 32 0 0 0 64 0v-96a32 32 0 0 0-32-32zM832 640a32 32 0 0 0-32 32v224a32 32 0 0 1-32 32H256a32 32 0 0 1-32-32V320a32 32 0 0 0-64 0v576a96 96 0 0 0 96 96h512a96 96 0 0 0 96-96v-224a32 32 0 0 0-32-32z"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <Path Data="M384 768V352a32 32 0 0 0-64 0v416a32 32 0 0 0 64 0zM544 768V352a32 32 0 0 0-64 0v416a32 32 0 0 0 64 0zM704 768V352a32 32 0 0 0-64 0v416a32 32 0 0 0 64 0z"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
 
-                    <Button Content="Paste"
-                            Command="{Binding PasteSectionCommand}"
-                            Style="{StaticResource SecondaryButtonStyle}"/>
-                </StackPanel>
+                <Button Command="{Binding PasteSectionCommand}"
+                Style="{StaticResource SecondaryButtonStyle}"
+                    ToolTip="Paste">
+                    <Viewbox Width="16" Height="16">
+                        <Canvas Width="32" Height="32">
+                            <Path Data="M12,6h8c0.6,0,1-0.4,1-1V3c0-1.7-1.3-3-3-3h-4c-1.7,0-3,1.3-3,3v2C11,5.6,11.4,6,12,6z"
+                              Stroke="Black"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <Path Data="M23,10c0.4,0,0.8,0.1,1.2,0.3l1.5,1.2l1.3,1.3V7c0-2.4-1.8-4.5-4.1-4.9C23,2.4,23,2.7,23,3v2c0,1.7-1.3,3-3,3h-8
+                                    c-1.7,0-3-1.3-3-3V3c0-0.3,0-0.6,0.1-0.9C6.8,2.5,5,4.6,5,7v16c0,2.8,2.2,5,5,5h2V13c0-1.7,1.3-3,3-3H23z"
+                              Stroke="Black"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <Path Data="M28.2,20H23c-0.6,0-1-0.4-1-1v-7h-7c-0.6,0-1,0.4-1,1v18c0,0.6,0.4,1,1,1h14c0.6,0,1-0.4,1-1v-9.2C30,20.8,29.2,20,28.2,20
+                                z"
+                              Stroke="Black"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
 
-                <!-- External sync -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <Button Content="From Gala"
-                            Command="{Binding GetFromGalaCommand}"
-                            Style="{StaticResource SuccessButtonStyle}"/>
+            </WrapPanel>
 
-                    <Button Content="To Gala"
-                            Command="{Binding HookToGalaCommand}"
-                            Style="{StaticResource SuccessButtonStyle}"/>
+            <!-- External sync -->
+            <WrapPanel Grid.Column="2">
+                <Button Command="{Binding GetFromGalaCommand}"
+                    Style="{StaticResource SuccessButtonStyle}" 
+                    ToolTip="Add">
+                    <Viewbox Width="16" Height="16">
+                        <Canvas Width="32" Height="32">
+                            <Path Data="M0 26.016q0 2.496 1.76 4.224t4.256 1.76h4.992l-2.496-4h-2.496q-0.832 0-1.44-0.576t-0.576-1.408v-14.016h24v14.016q0 0.832-0.576 1.408t-1.408 0.576h-2.528l-2.496 4h5.024q2.464 0
+                              4.224-1.76t1.76-4.224v-20q0-2.496-1.76-4.256t-4.224-1.76h-20q-2.496 0-4.256 1.76t-1.76 4.256v20zM4 10.016v-4q0-0.832 0.576-1.408t1.44-0.608h20q0.8 0 1.408 0.608t0.576 1.408v4h-24zM6.016 8h1.984v-1.984h-1.984v1.984zM10.016 24l5.984 8 6.016-8h-4v-8h-4v8h-4zM10.016 8h1.984v-1.984h-1.984v1.984zM14.016 8h12v-1.984h-12v1.984z"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
 
-                    <Button Content="AutoCAD"
-                            Command="{Binding GetFromAutoCADCommand}"
-                            Style="{StaticResource SuccessButtonStyle}"/>
-                </StackPanel>
+                <Button Command="{Binding HookToGalaCommand}"
+                    Style="{StaticResource SuccessButtonStyle}"  
+                    ToolTip="Add">
+                    <Viewbox Width="16" Height="16">
+                        <Canvas Width="32" Height="32">
+                            <Path Data="M0 26.016q0 2.496 1.76 4.224t4.256 1.76h4v-4h-4q-0.832 0-1.44-0.576t-0.576-1.408v-14.016h24v14.016q0 0.832-0.576 1.408t-1.408 0.576h-4v4h4q2.464 0 4.224-1.76t1.76-4.224v-20q0-2.496-1.76-4.256t-4.224-1.76h-20q-2.496 0-4.256 1.76t-1.76 4.256v20zM4 10.016v-4q0-0.832 0.576-1.408t1.44-0.608h20q0.8 0
+                              1.408 0.608t0.576 1.408v4h-24zM6.016 8h1.984v-1.984h-1.984v1.984zM10.016 24h4v8h4v-8h4l-6.016-8zM10.016 8h1.984v-1.984h-1.984v1.984zM14.016 8h12v-1.984h-12v1.984z"
+                                Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
 
-            </Grid>
+                <Button Command="{Binding GetFromAutoCADCommand}"
+                    Style="{StaticResource SuccessButtonStyle}"
+                    ToolTip="Add">
+                    <Viewbox Width="16" Height="16">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="m14.574 1.0203c-0.097-0.096997-0.29099-0.58198-0.97097-0.58198h-6.7038s0.97097 0.096997 1.36 1.068c0 0 1.069 2.5269 2.0399 4.9558 2.8179 6.6068 7.1898 17.099 7.1898 17.099h6.5108c0.097-0.097-9.3267-22.443-9.4247-22.54zm-8.8407 0.87497-5.3438 12.631c-0.29199 0.87497-0.097997 1.9439 1.457 1.9439h4.1779l3.6919-8.8417c-1.166-2.9149-2.1359-5.2478-2.1359-5.2478-0.096997-0.29199-0.38899-1.069-0.97197-1.069-0.58298 0-0.77698 0.48598-0.87397
+                              0.58298zm-0.097997 15.643h-4.4689c-0.77698 0-1.166-0.48598-1.166-0.48598 0.77698 1.36 3.0119 5.6358 3.0119 5.6358 0.38899 0.48598 0.77698 0.77698 1.36 0.77698 1.263 0 3.2069-1.263 3.2069-1.263l7.4808-4.6639z"
+                                Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+            </WrapPanel>
 
-            <DataGrid x:Name="SectionGrid"
-                      SelectedItem="{Binding SelectedSection}"
-                      ItemsSource="{Binding Sections}"
-                      SelectionMode="Extended"
-                      SelectionUnit="FullRow"
-                      CanUserSortColumns="False"
-                      PreviewKeyDown="SectionGrid_PreviewKeyDown"
-                      CopyingRowClipboardContent="CopyingRowClipboardContent"
-                      Validation.Error="SectionGrid_ValidationError"
-                      SelectionChanged="SectionGrid_SelectionChanged"
-                      AutoGenerateColumns="False"
-                      HeadersVisibility="Column"
-                      CanUserAddRows="False"
-                      GridLinesVisibility="All"
-                      AlternatingRowBackground="#FAFAFA"
-                      RowHeight="26">
+        </Grid>
 
-                <DataGrid.Columns>
+        <DataGrid x:Name="SectionGrid"
+              SelectedItem="{Binding SelectedSection}"
+              ItemsSource="{Binding Sections}"
+              SelectionMode="Extended"
+              SelectionUnit="FullRow"
+              CanUserSortColumns="False"
+              PreviewKeyDown="SectionGrid_PreviewKeyDown"
+              CopyingRowClipboardContent="CopyingRowClipboardContent"
+              Validation.Error="SectionGrid_ValidationError"
+              SelectionChanged="SectionGrid_SelectionChanged"
+              AutoGenerateColumns="False"
+              HeadersVisibility="Column"
+              CanUserAddRows="False"
+              GridLinesVisibility="All"
+              AlternatingRowBackground="#FAFAFA"
+              RowHeight="26">
 
-                    <DataGridTextColumn Header="#"
-                                        Width="30"
-                                        Binding="{Binding Id}"
-                                        IsReadOnly="True"/>
+            <DataGrid.Columns>
 
-                    <DataGridTextColumn Header="X [cm]"
-                                        Width="*"
-                                        EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
+                <DataGridTextColumn Header="#"
+                                Width="30"
+                                Binding="{Binding Id}"
+                                IsReadOnly="True"/>
 
-                        <DataGridTextColumn.Binding>
-                            <Binding Path="X" NotifyOnValidationError="True">
-                                <Binding.ValidationRules>
-                                    <common:RequiredNumberValidationRule/>
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </DataGridTextColumn.Binding>
+                <DataGridTextColumn Header="X [cm]"
+                                Width="*"
+                                EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
 
-                    </DataGridTextColumn>
+                    <DataGridTextColumn.Binding>
+                        <Binding Path="X" NotifyOnValidationError="True">
+                            <Binding.ValidationRules>
+                                <common:RequiredNumberValidationRule/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </DataGridTextColumn.Binding>
 
-                    <DataGridTextColumn Header="Y [cm]"
-                                        Width="*"
-                                        EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
+                </DataGridTextColumn>
 
-                        <DataGridTextColumn.Binding>
-                            <Binding Path="Y" NotifyOnValidationError="True">
-                                <Binding.ValidationRules>
-                                    <common:RequiredNumberValidationRule/>
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </DataGridTextColumn.Binding>
+                <DataGridTextColumn Header="Y [cm]"
+                                Width="*"
+                                EditingElementStyle="{StaticResource ValidationTextBoxStyle}">
 
-                    </DataGridTextColumn>
+                    <DataGridTextColumn.Binding>
+                        <Binding Path="Y" NotifyOnValidationError="True">
+                            <Binding.ValidationRules>
+                                <common:RequiredNumberValidationRule/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </DataGridTextColumn.Binding>
 
-                </DataGrid.Columns>
+                </DataGridTextColumn>
 
-            </DataGrid>
+            </DataGrid.Columns>
 
-        </DockPanel>
+        </DataGrid>
 
-    </GroupBox>
+    </DockPanel>
 </UserControl>
