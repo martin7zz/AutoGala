@@ -5,15 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AutoGala.views"
         mc:Ignorable="d"
-        Title="EditJobInfoView" Height="450" Width="800" ResizeMode="NoResize">
+        Title="EditJobInfoView" Height="450" Width="800" ResizeMode="NoResize"
+        Background="#F9FAFB"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display">
 
     <Grid Margin="35">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="24"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="25"/>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -29,22 +33,29 @@
             <TextBlock Text="Update the details for this job."
                        FontSize="14"
                        Foreground="{StaticResource SecondaryTextBrush}"
-                       Margin="0,5,0,0"/>
+                       Margin="0,6,0,0"/>
 
         </StackPanel>
 
 
         <!-- CARD -->
         <ScrollViewer Grid.Row="2"
-              VerticalScrollBarVisibility="Auto"
-              HorizontalScrollBarVisibility="Disabled">
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
 
-            <Border Grid.Row="2"
-                    Background="White"
+            <Border Background="White"
                     CornerRadius="12"
-                    Padding="25"
-                    BorderBrush="#E5E7EB"
+                    Padding="28,24"
+                    BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1">
+
+                <Border.Effect>
+                    <DropShadowEffect Color="#1F2937"
+                                      Opacity="0.06"
+                                      BlurRadius="18"
+                                      ShadowDepth="4"
+                                      Direction="270"/>
+                </Border.Effect>
 
                 <Grid>
 
@@ -57,71 +68,70 @@
                     </Grid.RowDefinitions>
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="140"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
 
                     <!-- Job Title -->
                     <TextBlock Grid.Row="0"
-                   Grid.Column="0"
-                   Text="Job Title"
-                   Style="{StaticResource FieldLabel}"/>
+                               Grid.Column="0"
+                               Text="Job Title"
+                               Style="{StaticResource FieldLabel}"/>
 
                     <TextBox Grid.Row="0"
-                 Grid.Column="1"
-                 Text="{Binding JobTitle, UpdateSourceTrigger=PropertyChanged}"/>
+                             Grid.Column="1"
+                             Text="{Binding JobTitle, UpdateSourceTrigger=PropertyChanged}"/>
 
 
                     <!-- Job Number -->
                     <TextBlock Grid.Row="1"
-                   Grid.Column="0"
-                   Text="Job Number"
-                   Style="{StaticResource FieldLabel}"/>
+                               Grid.Column="0"
+                               Text="Job Number"
+                               Style="{StaticResource FieldLabel}"/>
 
                     <TextBox Grid.Row="1"
-                 Grid.Column="1"
-                 Text="{Binding JobNumber, UpdateSourceTrigger=PropertyChanged}"/>
+                             Grid.Column="1"
+                             Text="{Binding JobNumber, UpdateSourceTrigger=PropertyChanged}"/>
 
 
                     <!-- Client -->
                     <TextBlock Grid.Row="2"
-                   Grid.Column="0"
-                   Text="Client"
-                   Style="{StaticResource FieldLabel}"/>
+                               Grid.Column="0"
+                               Text="Client"
+                               Style="{StaticResource FieldLabel}"/>
 
                     <TextBox Grid.Row="2"
-                 Grid.Column="1"
-                 Text="{Binding Client, UpdateSourceTrigger=PropertyChanged}"/>
+                             Grid.Column="1"
+                             Text="{Binding Client, UpdateSourceTrigger=PropertyChanged}"/>
 
 
                     <!-- Calcs By -->
                     <TextBlock Grid.Row="3"
-                   Grid.Column="0"
-                   Text="Calculated By"
-                   Style="{StaticResource FieldLabel}"/>
+                               Grid.Column="0"
+                               Text="Calculated By"
+                               Style="{StaticResource FieldLabel}"/>
 
                     <TextBox Grid.Row="3"
-                 Grid.Column="1"
-                 Text="{Binding CalcsBy, UpdateSourceTrigger=PropertyChanged}"/>
+                             Grid.Column="1"
+                             Text="{Binding CalcsBy, UpdateSourceTrigger=PropertyChanged}"/>
 
 
                     <!-- Checked By -->
                     <TextBlock Grid.Row="4"
-                   Grid.Column="0"
-                   Text="Checked By"
-                   Style="{StaticResource FieldLabel}"/>
+                               Grid.Column="0"
+                               Text="Checked By"
+                               Style="{StaticResource FieldLabel}"/>
 
                     <TextBox Grid.Row="4"
-                 Grid.Column="1"
-                 Text="{Binding CheckedBy, UpdateSourceTrigger=PropertyChanged}"/>
+                             Grid.Column="1"
+                             Text="{Binding CheckedBy, UpdateSourceTrigger=PropertyChanged}"/>
 
                 </Grid>
 
             </Border>
 
         </ScrollViewer>
-        
 
 
         <!-- BUTTONS -->
