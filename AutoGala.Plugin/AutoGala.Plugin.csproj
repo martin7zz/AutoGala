@@ -1,22 +1,57 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <RootNamespace>AutoGala.Plugin</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <Platforms>x64;AnyCPU</Platforms>
-	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-	<UseWindowsForms>true</UseWindowsForms>
-	<UseWPF>true</UseWPF>
-	<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="AutoCAD.NET" Version="26.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AutoGala.Ipc\AutoGala.Ipc.csproj" />
-  </ItemGroup>
+
+	<PropertyGroup>
+		<TargetFrameworks>net48;net8.0-windows;net10.0-windows</TargetFrameworks>
+
+		<RootNamespace>AutoGala.Plugin</RootNamespace>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+
+		<Platforms>x64;AnyCPU</Platforms>
+		<PlatformTarget>x64</PlatformTarget>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+		<UseWindowsForms>true</UseWindowsForms>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
+
+	<!-- AutoCAD 2021–2024 (.NET Framework 4.8) -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+		<PackageReference Include="AutoCAD.NET" Version="24.3.0" />
+	</ItemGroup>
+
+	<!-- AutoCAD 2025–2026 (.NET 8) -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+		<PackageReference Include="AutoCAD.NET" Version="25.1.0" />
+	</ItemGroup>
+
+	<!-- AutoCAD 2027 (.NET 10) -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+		<PackageReference Include="AutoCAD.NET" Version="26.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Properties\" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\AutoGala.Ipc\AutoGala.Ipc.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="myCommands.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>myCommands.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="myCommands.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>myCommands.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
 </Project>

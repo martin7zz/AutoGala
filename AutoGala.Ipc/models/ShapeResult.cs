@@ -1,4 +1,4 @@
-﻿namespace AutoGala.Plugin.models
+﻿namespace AutoGala.Ipc.models
 {
     public class ShapeResult
     {

@@ -1,9 +1,7 @@
-﻿using Autodesk.AutoCAD.Interop;
-
-namespace AutoGala.Contracts
+﻿namespace AutoGala.Contracts
 {
     public interface IAutoGalaProcessService
     {
-        AcadApplication GetAcadApplicationByProcessId(int pid);
+        object? GetAcadApplicationByProcessId(int pid);
     }
 }

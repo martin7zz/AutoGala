@@ -1,5 +1,4 @@
-﻿using Autodesk.AutoCAD.Interop;
-using AutoGala.Contracts;
+﻿using AutoGala.Contracts;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -8,7 +7,7 @@ namespace AutoGala.Services
 {
     public class AutoGalaProcessService : IAutoGalaProcessService
     {
-        public AcadApplication? GetAcadApplicationByProcessId(int pid)
+        public object? GetAcadApplicationByProcessId(int pid)
         {
             int hr = GetRunningObjectTable(0, out IRunningObjectTable rot);
             Marshal.ThrowExceptionForHR(hr);
@@ -38,43 +37,31 @@ namespace AutoGala.Services
                         if (rot.GetObject(moniker, out object obj) != 0)
                             continue;
 
+                        object? app = null;
                         try
                         {
-                            if (obj is not AcadDocument doc)
-                                continue;
+                            dynamic doc = obj;
+                            // throws if obj isn't a document-like object
+                            app = doc.Application;
+                            long hwnd = Convert.ToInt64(((dynamic)app).HWND);
+                            GetWindowThreadProcessId((IntPtr)hwnd, out uint appPid);
 
-                            Debug.WriteLine($"DOCUMENT: {doc.Name}");
-
-                            AcadApplication? app = null;
-
-                            try
+                            if (appPid == pid)
                             {
-                                app = doc.Application;
-
-                                GetWindowThreadProcessId(
-                                    (IntPtr)app.HWND,
-                                    out uint appPid);
-
-                                Debug.WriteLine(
-                                    $"APP PID: {appPid}, requested PID: {pid}");
-
-                                if (appPid == pid)
-                                {
-                                    // Transfer ownership of app to caller.
-                                    var result = app;
-                                    app = null;
-
-                                    return result;
-                                }
+                                var result = app;
+                                app = null;
+                                // caller owns it
+                                return result; 
                             }
-                            finally
-                            {
-                                if (app != null)
-                                    Marshal.ReleaseComObject(app);
-                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // not an AutoCAD document, skip
+                            Debug.WriteLine($"ROT entry failed: {ex.GetType().Name} 0x{ex.HResult:X8}: {ex.Message}");
                         }
                         finally
                         {
+                            if (app != null) Marshal.ReleaseComObject(app);
                             Marshal.ReleaseComObject(obj);
                         }
                     }

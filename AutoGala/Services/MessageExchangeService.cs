@@ -1,6 +1,6 @@
 ﻿using AutoGala.Contracts;
 using AutoGala.Ipc;
-using AutoGala.Plugin.models;
+using AutoGala.Ipc.models;
 using Plugin.Core.Contracts;
 using Plugin.Core.Models;
 using System.Text.Json;

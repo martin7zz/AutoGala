@@ -5,7 +5,11 @@
     },
     "Profile 1": {
       "commandName": "Executable",
-      "executablePath": "D:\\Programs\\AutoCAD\\AutoCAD 2027\\acad.exe"
+      "executablePath": "D:\\Programs\\autocad2021\\AutoCAD 2021\\acad.exe"
+    },
+    "Profile 2": {
+      "commandName": "Executable",
+      "executablePath": "D:\\Programming\\Job\\software and tests\\AutoGala\\AutoGala.exe"
     }
   }
 }

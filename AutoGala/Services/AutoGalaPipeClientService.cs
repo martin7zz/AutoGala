@@ -3,6 +3,7 @@ using AutoGala.Ipc;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Text;
 using System.Text.Json;
 using System.Windows;
 
@@ -71,23 +72,24 @@ namespace AutoGala.Services
         // before anything downstream (CommandManager.InvalidateRequerySuggested) runs.
         private void OnAutoCADExited(object? sender, EventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(Disconnect);
+            Application.Current?.Dispatcher.BeginInvoke(Disconnect);
         }
 
         public void Disconnect()
         {
-            if (_watchedProcess != null)
-            {
-                _watchedProcess.Exited -= OnAutoCADExited;
-                _watchedProcess = null;
-            }
+            var proc = _watchedProcess;
+            _watchedProcess = null;
+            if (proc != null)
+                proc.Exited -= OnAutoCADExited;
 
-            _reader?.Dispose();
-            _writer?.Dispose();
-            _pipe?.Dispose();
+            var pipe = _pipe;
+            _pipe = null;
             _reader = null;
             _writer = null;
-            _pipe = null;
+
+            try { pipe?.Dispose(); }
+            catch (IOException) { }
+            catch (ObjectDisposedException) { }
 
             ConnectionStateChanged?.Invoke();
         }
@@ -109,19 +111,37 @@ namespace AutoGala.Services
             await _lock.WaitAsync(ct);
             try
             {
-                await _writer.WriteLineAsync(JsonSerializer.Serialize(request));
-                string? line = await _reader.ReadLineAsync(ct);
+                var writer = _writer;
+                var reader = _reader;
+                if (!IsConnected || writer is null || reader is null)
+                    throw new InvalidOperationException("Not connected to AutoCAD. Press the connect to autoCAD button in the menu.");
 
-                if (line is null)
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
+
+                try
                 {
-                    Disconnect();
-                    throw new IOException("Pipe was closed due to an error in request.");
-                }
+                    await writer.WriteLineAsync(JsonSerializer.Serialize(request));
+                    string? line = await reader.ReadLineAsync(timeoutCts.Token);
 
-                return JsonSerializer.Deserialize<PluginResponse>(line)
-                    ?? throw new InvalidOperationException("Bad response from plugin.");
+                    if (line is null)
+                    {
+                        Disconnect();
+                        throw new IOException("Pipe was closed by AutoCAD.");
+                    }
+
+                    return JsonSerializer.Deserialize<PluginResponse>(line)
+                        ?? throw new InvalidOperationException("Bad response from plugin.");
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                {
+                    // A late reply would be read as the answer to the *next* request,
+                    // so drop the connection instead of reusing it.
+                    Disconnect();
+                    throw new TimeoutException("AutoCAD did not respond in time.");
+                }
             }
-            catch (IOException)
+            catch (Exception ex) when (ex is IOException or ObjectDisposedException)
             {
                 Disconnect();
                 throw;

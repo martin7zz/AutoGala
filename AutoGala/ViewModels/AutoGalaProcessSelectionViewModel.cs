@@ -1,12 +1,13 @@
-﻿using Autodesk.AutoCAD.Interop;
-using AutoGala.Common;
+﻿using AutoGala.Common;
 using AutoGala.Contracts;
 using AutoGala.ViewModels.Base;
 using Plugin.Core.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -199,8 +200,11 @@ namespace AutoGala.ViewModels
 
         private async Task LoadPluginAndConnectAsync(Process process)
         {
-            AcadApplication? acadApp = await Task.Run(
+            object? acadApp = await Task.Run(
                 () => _autoGalaProcessService.GetAcadApplicationByProcessId(process.Id));
+
+            if (acadApp is null)
+                throw new InvalidOperationException("Could not find the AutoCAD instance in the ROT.");
 
             try
             {
@@ -214,14 +218,17 @@ namespace AutoGala.ViewModels
             await _pipeClientService.ConnectAsync(process);
         }
 
-        private static void InjectPlugin(AcadApplication acadApp)
-        {
-            const string pluginPath = @"D:\Programming\Job\AutoGala\AutoGala.Plugin\bin\Debug\net10.0-windows\AutoGala.Plugin.dll";
+        private static readonly string PluginBinRoot = Path.Combine(AppContext.BaseDirectory, "Plugin");
 
-            AcadDocument? document = acadApp.ActiveDocument;
+        private static void InjectPlugin(object acadApp)
+        {
+            dynamic app = acadApp;
+            object? document = app.ActiveDocument;
             try
             {
-                document.SendCommand(
+                string acadVer = ((dynamic)document).GetVariable("ACADVER");
+                string pluginPath = GetPluginPathForAcadVersion(acadVer);
+                ((dynamic)document).SendCommand(
                     "(setvar \"FILEDIA\" 0)\n" +
                     $"NETLOAD \"{pluginPath}\"\n" +
                     "(setvar \"FILEDIA\" 1)\n");
@@ -230,6 +237,31 @@ namespace AutoGala.ViewModels
             {
                 Marshal.ReleaseComObject(document);
             }
+        }
+
+        private static string GetPluginPathForAcadVersion(string acadVer)
+        {
+            var match = Regex.Match(acadVer, @"^(\d+)\.(\d+)");
+            if (!match.Success)
+                throw new InvalidOperationException($"Could not parse ACADVER: '{acadVer}'");
+
+            int major = int.Parse(match.Groups[1].Value);
+
+            string tfm = major switch
+            {
+                24 => "net48",              // AutoCAD 2021–2024
+                25 => "net8.0-windows",     // AutoCAD 2025–2026
+                26 => "net10.0-windows",    // AutoCAD 2027
+                _ => throw new NotSupportedException($"Unsupported AutoCAD version: {acadVer}")
+            };
+
+            string pluginPath = Path.Combine(PluginBinRoot, tfm, "AutoGala.Plugin.dll");
+
+            if (!File.Exists(pluginPath))
+                throw new FileNotFoundException(
+                    $"Plugin build for AutoCAD series {major}.x not found. Expected at: {pluginPath}", pluginPath);
+
+            return pluginPath;
         }
     }
 }

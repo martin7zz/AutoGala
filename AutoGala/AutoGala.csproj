@@ -1,55 +1,65 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AutoCAD.NET.Interop" Version="2026.0.1" />
-    <PackageReference Include="ClosedXML" Version="0.105.1" />
-    <PackageReference Include="InputSimulatorStandard" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
-    <PackageReference Include="MouseKeyHook" Version="5.7.1" />
-    <PackageReference Include="System.Management" Version="10.0.11" />
-  </ItemGroup>
+	<PropertyGroup>
+		<PluginProject>$(MSBuildThisFileDirectory)..\AutoGala.Plugin\AutoGala.Plugin.csproj</PluginProject>
+		<PluginTargetFrameworks>net48;net8.0-windows;net10.0-windows</PluginTargetFrameworks>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\AutoGala.Common\AutoGala.Common.csproj" />
-    <ProjectReference Include="..\AutoGala.Core\AutoGala.Core.csproj" />
-    <ProjectReference Include="..\AutoGala.Plugin\AutoGala.Plugin.csproj" />
-  </ItemGroup>
+	<Target Name="BuildPlugin" BeforeTargets="Build;Publish">
+		<ItemGroup>
+			<PluginTfm Include="$(PluginTargetFrameworks)" />
+		</ItemGroup>
+		<MSBuild Projects="$(PluginProject)" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=%(PluginTfm.Identity)" RemoveProperties="RuntimeIdentifier" />
+	</Target>
 
-  <ItemGroup>
-    <Reference Include="Autodesk.AutoCAD.Interop">
-      <HintPath>..\..\..\..\Programs\AutoCAD\AutoCAD 2027\Autodesk.AutoCAD.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="Autodesk.AutoCAD.Interop.Common">
-      <HintPath>..\..\..\..\Programs\AutoCAD\AutoCAD 2027\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<Target Name="CopyPluginOutputs" AfterTargets="BuildPlugin" BeforeTargets="Build;Publish">
+		<ItemGroup>
+			<PluginOutputs Include="$(MSBuildThisFileDirectory)..\AutoGala.Plugin\bin\$(Configuration)\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(PluginOutputs)" DestinationFolder="$(OutDir)Plugin\%(RecursiveDir)" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(PluginOutputs)" DestinationFolder="$(PublishDir)Plugin\%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'$(PublishDir)' != ''" />
+	</Target>
 
-  <ItemGroup>
-    <Compile Update="Properties\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="ClosedXML" Version="0.105.1" />
+		<PackageReference Include="InputSimulatorStandard" Version="1.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+		<PackageReference Include="MouseKeyHook" Version="5.7.1" />
+		<PackageReference Include="System.Management" Version="10.0.11" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="Properties\Settings.Designer.cs">
+			<DesignTimeSharedInput>True</DesignTimeSharedInput>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Settings.settings</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Assets\" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="Properties\Settings.settings">
+			<Generator>SettingsSingleFileGenerator</Generator>
+			<LastGenOutput>Settings.Designer.cs</LastGenOutput>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Assets\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\AutoGala.Common\AutoGala.Common.csproj" />
+	  <ProjectReference Include="..\AutoGala.Core\AutoGala.Core.csproj" />
+	  <ProjectReference Include="..\AutoGala.Ipc\AutoGala.Ipc.csproj" />
+	</ItemGroup>
 
 </Project>
