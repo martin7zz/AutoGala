@@ -54,7 +54,7 @@ namespace AutoGala.views
             {
                 e.Handled = true;
 
-                if (DataContext is LoadViewModel vm)
+                if (DataContext is LoadViewModel vm && !vm.HasValidationError)
                 {
                     vm.RemoveLoad();
                 }

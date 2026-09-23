@@ -72,6 +72,7 @@ namespace AutoGala
             services.AddSingleton<IMessageExchangeService, MessageExchangeService>();
             services.AddSingleton<IAutoCADOperationRunner, AutoCADOperationRunner>();
             services.AddSingleton<IAutoCADSettingsService, AutoCADSettingsService>();
+            services.AddSingleton<IAutoCADStateService, AutoCADStateService>();
 
             services.AddTransient<SectionViewModel>();
             services.AddTransient<RebarViewModel>();

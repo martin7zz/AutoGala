@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AutoGala.views"
         mc:Ignorable="d"
-        Title="Connect to AutoGala"
+        Title="Connect"
         Width="720"
         Height="500"
         MinWidth="600"
@@ -32,12 +32,12 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0">
-                <TextBlock Text="Connect to AutoGala"
+                <TextBlock Text="Connect to AutoCAD"
                            FontSize="24"
                            FontWeight="SemiBold"
                            Foreground="{StaticResource ProcessSelectionTextBrush}"/>
 
-                <TextBlock Text="Select a running instance to connect to."
+                <TextBlock Text="Select a running instance to connect to AutoCAD."
                            Margin="0,6,0,0"
                            FontSize="14"
                            Foreground="{StaticResource ProcessSelectionSecondaryTextBrush}"/>

@@ -63,7 +63,7 @@ namespace AutoGala.views
             {
                 e.Handled = true;
 
-                if (DataContext is RebarViewModel vm)
+                if (DataContext is RebarViewModel vm && !vm.HasValidationError)
                 {
                     vm.RemoveRebar();
                 }

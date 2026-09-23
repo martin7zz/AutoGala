@@ -79,7 +79,7 @@
             <WrapPanel Grid.Column="2">
                 <Button Command="{Binding GetFromGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}" 
-                    ToolTip="Add">
+                    ToolTip="From Gala">
                     <Viewbox Width="16" Height="16">
                         <Canvas Width="32" Height="32">
                             <Path Data="M0 26.016q0 2.496 1.76 4.224t4.256 1.76h4.992l-2.496-4h-2.496q-0.832 0-1.44-0.576t-0.576-1.408v-14.016h24v14.016q0 0.832-0.576 1.408t-1.408 0.576h-2.528l-2.496 4h5.024q2.464 0
@@ -91,7 +91,7 @@
 
                 <Button Command="{Binding HookToGalaCommand}"
                     Style="{StaticResource SuccessButtonStyle}"  
-                    ToolTip="Add">
+                    ToolTip="To Gala">
                     <Viewbox Width="16" Height="16">
                         <Canvas Width="32" Height="32">
                             <Path Data="M0 26.016q0 2.496 1.76 4.224t4.256 1.76h4v-4h-4q-0.832 0-1.44-0.576t-0.576-1.408v-14.016h24v14.016q0 0.832-0.576 1.408t-1.408 0.576h-4v4h4q2.464 0 4.224-1.76t1.76-4.224v-20q0-2.496-1.76-4.256t-4.224-1.76h-20q-2.496 0-4.256 1.76t-1.76 4.256v20zM4 10.016v-4q0-0.832 0.576-1.408t1.44-0.608h20q0.8 0
@@ -103,7 +103,7 @@
 
                 <Button Command="{Binding GetFromAutoCADCommand}"
                     Style="{StaticResource SuccessButtonStyle}"
-                    ToolTip="Add">
+                    ToolTip="From AutoCAD">
                     <Viewbox Width="16" Height="16">
                         <Canvas Width="24" Height="24">
                             <Path Data="m14.574 1.0203c-0.097-0.096997-0.29099-0.58198-0.97097-0.58198h-6.7038s0.97097 0.096997 1.36 1.068c0 0 1.069 2.5269 2.0399 4.9558 2.8179 6.6068 7.1898 17.099 7.1898 17.099h6.5108c0.097-0.097-9.3267-22.443-9.4247-22.54zm-8.8407 0.87497-5.3438 12.631c-0.29199 0.87497-0.097997 1.9439 1.457 1.9439h4.1779l3.6919-8.8417c-1.166-2.9149-2.1359-5.2478-2.1359-5.2478-0.096997-0.29199-0.38899-1.069-0.97197-1.069-0.58298 0-0.77698 0.48598-0.87397

@@ -126,7 +126,7 @@
              <!-- AutoCAD -->
              <Button Command="{Binding GetFromAutoCADCommand}"
                  Style="{StaticResource SuccessButtonStyle}"
-                 ToolTip="AutoCAD">
+                 ToolTip="From AutoCAD">
 
                  <Viewbox Width="16" Height="16">
                      <Canvas Width="24" Height="24">

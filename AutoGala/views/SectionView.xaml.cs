@@ -52,7 +52,7 @@ namespace AutoGala.views
             {
                 e.Handled = true;
 
-                if (DataContext is SectionViewModel vm)
+                if (DataContext is SectionViewModel vm && !vm.HasValidationError)
                 {
                     vm.RemoveSections();
                 }
