@@ -5,49 +5,47 @@ using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using AutoGala.Ipc;
 using AutoGala.Ipc.models;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Windows.Markup;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using Exception = System.Exception;
 
 namespace AutoGala.Plugin
 {
-    internal static class PluginLog
-    {
-        private static readonly string FilePath = Path.Combine(Path.GetTempPath(), "AutoGala_plugin.log");
-        private static readonly object Gate = new();
-
-        public static void Write(string msg)
-        {
-            try { lock (Gate) File.AppendAllText(FilePath, $"{DateTime.Now:HH:mm:ss.fff} [t{Environment.CurrentManagedThreadId}] {msg}\n"); }
-            catch { }
-        }
-    }
-
     public class AutoGalaPlugin : IExtensionApplication
     {
         private PipeServer? _pipeServer;
-
+        private readonly ConcurrentQueue<Action> _mainThreadQueue = new();
         public void Initialize()
         {
+            Application.Idle += OnIdle;
+
 #if NET48
             AppDomain.CurrentDomain.AssemblyResolve += ResolvePluginDependencies;
 #endif
-
-            var ed = Application.DocumentManager.MdiActiveDocument?.Editor;
+            int mainThreadId = Environment.CurrentManagedThreadId;
+            //var ed = Application.DocumentManager.MdiActiveDocument?.Editor;
             try
             {
                 int pid = Process.GetCurrentProcess().Id;
-                _pipeServer = new PipeServer($"AutoGala_{pid}") { RequestHandler = HandleRequestAsync };
+                _pipeServer = new PipeServer($"AutoGala_{pid}") { RequestHandler = HandleRequestAsync};
                 _pipeServer.Start();
-                ed?.WriteMessage("\nAutoGala plugin started.\n");
-                _pipeServer.Log = msg => ed?.WriteMessage("\n" + msg);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                ed?.WriteMessage($"\nAutoGala plugin failed to start: {ex}\n");
                 throw;
+            }
+        }
+
+        private void OnIdle(object? sender, EventArgs e)
+        {
+            while (_mainThreadQueue.TryDequeue(out var action))
+            {
+                try { action(); }
+                catch (Exception ex) { throw; }
             }
         }
 
@@ -78,6 +76,7 @@ namespace AutoGala.Plugin
                 }
                 finally
                 {
+                    Application.Idle -= OnIdle;
                     _pipeServer = null;
                 }
             }
@@ -85,8 +84,6 @@ namespace AutoGala.Plugin
 
         private async Task<string> HandleRequestAsync(string json)
         {
-            PluginLog.Write($"request received: {json}");
-
             PluginResponse pluginResponse;
 
             try
@@ -108,7 +105,6 @@ namespace AutoGala.Plugin
             {
                 pluginResponse = new PluginResponse { Success = false, Error = ex.Message };
             }
-            PluginLog.Write("dispatch done");
             return JsonSerializer.Serialize(pluginResponse);
         }
 
@@ -119,25 +115,38 @@ namespace AutoGala.Plugin
         {
             var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            Application.DocumentManager.ExecuteInApplicationContext(_ =>
+            _mainThreadQueue.Enqueue(() =>
             {
-                PluginLog.Write("callback entered");
-
                 try
                 {
-                    Document doc = Application.DocumentManager.MdiActiveDocument;
+                    if (request.Action == "GetActiveDocumentState")
+                    {
+                        var active = Application.DocumentManager.MdiActiveDocument;
+                        tcs.SetResult(new { HasActiveDocument = active is not null, DocumentName = active?.Name });
+                        return;
+                    }
 
-                    Status(doc);
+                    var doc = Application.DocumentManager.MdiActiveDocument;
+                    if (doc is null)
+                    {
+                        tcs.SetException(new InvalidOperationException("No active AutoCAD document."));
+                        return;
+                    }
 
-                    object? result = Dispatch(request, doc);
-                    PluginLog.Write("dispatch done");
-                    tcs.SetResult(result);
+                    // Now we're already safely on the main thread; hop into command
+                    // context only for actions that actually need to touch the database.
+                    _ = Application.DocumentManager.ExecuteInCommandContextAsync(async _ =>
+                    {
+                        try { tcs.SetResult(Dispatch(request, doc)); }
+                        catch (Exception ex) { tcs.SetException(ex); }
+                        await Task.CompletedTask;
+                    }, null);
                 }
                 catch (Exception ex)
                 {
-                    tcs.SetException(ex);
+                    tcs.TrySetException(ex);
                 }
-            }, null);
+            });
 
             return tcs.Task;
         }
@@ -155,9 +164,7 @@ namespace AutoGala.Plugin
                         try
                         {
                             var requestPayload = JsonSerializer.Deserialize<JsonElement>(request.PayloadJson);
-
                             string name = requestPayload.GetProperty("name").GetString();
-
                             return BuildShape(doc, acDatabase, name);
                         }
                         catch (Exception ex)
@@ -166,7 +173,7 @@ namespace AutoGala.Plugin
                             throw;
                         }
                     default:
-                        throw new System.Exception($"Unknown action: {request.Action}");
+                        throw new Exception($"Unknown action: {request.Action}");
                 }
             }
         }
