@@ -42,7 +42,7 @@ namespace AutoGala.ViewModels
         }
 
         private int _validationErrorCount;
-        private bool HasValidationError => _validationErrorCount > 0;
+        public bool HasValidationError => _validationErrorCount > 0;
 
         private readonly JobInfo _jobInfo;
         private readonly ISectionService _sectionService;
@@ -55,6 +55,7 @@ namespace AutoGala.ViewModels
         private readonly IMessageExchangeService _messageExchangeService;
         private readonly IAutoCADOperationRunner _autoCADRunnerService;
         private readonly IAutoCADSettingsService _autoCADSettingsService;
+        private readonly IAutoCADStateService _autoCADStateService;
 
         public ICommand AddSectionCommand { get; }
         public ICommand RemoveSectionsCommand { get; }
@@ -76,7 +77,8 @@ namespace AutoGala.ViewModels
             IMessageExchangeService messageExchangeService,
             IAutoGalaPipeClientService autoGalaPipeClientService,
             IAutoCADOperationRunner autoCADOperationRunnerService,
-            IAutoCADSettingsService autoCADSettingsService
+            IAutoCADSettingsService autoCADSettingsService,
+            IAutoCADStateService autoCADStateService
             )
         {
             _sectionService = sectionService;
@@ -88,11 +90,13 @@ namespace AutoGala.ViewModels
             _autoGalaPipeClientService = autoGalaPipeClientService;
             _autoCADRunnerService = autoCADOperationRunnerService;
             _autoCADSettingsService = autoCADSettingsService;
+            _autoCADStateService = autoCADStateService;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
 
             _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
+            _autoCADStateService.StateChanged += () => CommandManager.InvalidateRequerySuggested();
 
             AddSectionCommand = new RelayCommand(param => AddSection(), param => !HasValidationError);
             RemoveSectionsCommand = new RelayCommand(param => RemoveSections(), param => SelectedSections.Count > 0 && !HasValidationError);
@@ -102,7 +106,8 @@ namespace AutoGala.ViewModels
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Sections.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
             GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
-            GetFromAutoCADCommand = new RelayCommand(async param => await GetFromAutoCAD(), param => !HasValidationError && _autoGalaPipeClientService.IsConnected);
+            GetFromAutoCADCommand = new RelayCommand(async param => await GetFromAutoCAD(),
+                param => !HasValidationError && _autoGalaPipeClientService.IsConnected && _autoCADStateService.HasActiveDocument);
         }
 
         private void AddSection()

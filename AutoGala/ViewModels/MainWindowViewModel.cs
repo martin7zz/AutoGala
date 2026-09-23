@@ -30,6 +30,7 @@ namespace AutoGala.ViewModels
         private IJobInfoChangedNotifier _notifier;
         private IAutoCADOperationRunner _autoCADRunnerService;
         private IAutoCADSettingsService _autoCADSettingsService;
+        private readonly IAutoCADStateService _autoCADStateService;
 
         public ICommand SaveAllToExcelCommand { get; }
         public ICommand LoadAllFromExcelCommand { get; }
@@ -53,7 +54,8 @@ namespace AutoGala.ViewModels
             IJobInfoChangedNotifier notifier,
             IMessageExchangeService messageExchangeService,
             IAutoCADOperationRunner autoCADOperationRunnerService,
-            IAutoCADSettingsService autoCADSettingsService)
+            IAutoCADSettingsService autoCADSettingsService,
+            IAutoCADStateService autoCADStateService)
         {
             SectionView = sectionViewModel;
             RebarView = rebarViewModel;
@@ -70,8 +72,10 @@ namespace AutoGala.ViewModels
             _messageExchageService = messageExchangeService;
             _autoCADRunnerService = autoCADOperationRunnerService;
             _autoCADSettingsService = autoCADSettingsService;
+            _autoCADStateService = autoCADStateService;
 
             _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
+            _autoCADStateService.StateChanged += () => CommandManager.InvalidateRequerySuggested();
 
             SaveAllToExcelCommand = new RelayCommand(param => SaveAllToExcel(), param => HasAll());
             LoadAllFromExcelCommand = new RelayCommand(param => LoadAllFromExcel());
@@ -79,7 +83,8 @@ namespace AutoGala.ViewModels
             EditJobInfoCommand = new RelayCommand(param => EditJobInfo());
             SetJobInfoCommand = new RelayCommand(async param => await SetJobInfoAsync());
             ConnectToAutoCADCommand = new RelayCommand(async param => await ConnectToAutoCADAsync(), param => !_autoGalaPipeClientService.IsConnected);
-            GetAllFromAutoCADCommand = new RelayCommand(async param => await GetAllFromAutoCADAsync(), param => _autoGalaPipeClientService.IsConnected);
+            GetAllFromAutoCADCommand = new RelayCommand(async param => await GetAllFromAutoCADAsync(),
+                param => _autoGalaPipeClientService.IsConnected && _autoCADStateService.HasActiveDocument);
             ScaleFactorCommand = new RelayCommand(param => ChangeScaleFactor());
         }
 

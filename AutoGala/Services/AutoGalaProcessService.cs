@@ -27,11 +27,7 @@ namespace AutoGala.Services
 
                     try
                     {
-                        moniker.GetDisplayName(
-                            bindCtx,
-                            null,
-                            out string displayName);
-
+                        moniker.GetDisplayName(bindCtx, null, out string displayName);
                         Debug.WriteLine($"ROT: {displayName}");
 
                         if (rot.GetObject(moniker, out object obj) != 0)
@@ -48,10 +44,12 @@ namespace AutoGala.Services
 
                             if (appPid == pid)
                             {
+                                // This is the one COM object we hand back to the caller to hold
+                                // onto (e.g. to poll Documents/ActiveDocument for button state).
+                                // Don't release it — only the document (obj) and the moniker.
                                 var result = app;
                                 app = null;
-                                // caller owns it
-                                return result; 
+                                return result;
                             }
                         }
                         catch (Exception ex)
@@ -67,8 +65,7 @@ namespace AutoGala.Services
                     }
                     catch (COMException ex)
                     {
-                        Debug.WriteLine(
-                            $"ROT entry failed: {ex.Message}");
+                        Debug.WriteLine($"ROT entry failed: {ex.Message}");
                     }
                     finally
                     {
@@ -86,7 +83,6 @@ namespace AutoGala.Services
             }
         }
 
-
         [DllImport("ole32.dll")]
         private static extern int GetRunningObjectTable(
             uint reserved,
@@ -96,6 +92,7 @@ namespace AutoGala.Services
         private static extern int CreateBindCtx(
             uint reserved,
             out IBindCtx ppbc);
+
         [DllImport("user32.dll")]
         private static extern uint GetWindowThreadProcessId(
             IntPtr hWnd,

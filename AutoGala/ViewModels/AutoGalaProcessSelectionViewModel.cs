@@ -210,10 +210,14 @@ namespace AutoGala.ViewModels
             {
                 InjectPlugin(acadApp);
             }
-            finally
+            catch (Exception ex)
             {
-                Marshal.ReleaseComObject(acadApp);
+                Debug.WriteLine(ex);
             }
+            //finally
+            //{
+            //    Marshal.ReleaseComObject(acadApp);
+            //}
 
             await _pipeClientService.ConnectAsync(process);
         }

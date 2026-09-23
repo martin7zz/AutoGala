@@ -69,6 +69,7 @@ namespace AutoGala.ViewModels
         private readonly IJobInfoChangedNotifier _notifier;
         private readonly IAutoCADOperationRunner _autoCADRunnerService;
         private readonly IAutoCADSettingsService _autoCADSettingsService;
+        private readonly IAutoCADStateService _autoCADStateService;
 
         public ICommand AddRebarCommand { get; }
         public ICommand RemoveRebarsCommand { get; }
@@ -91,7 +92,8 @@ namespace AutoGala.ViewModels
             JobInfo jobInfo,
             IJobInfoChangedNotifier notifier,
             IAutoCADOperationRunner autoCADOperationRunner,
-            IAutoCADSettingsService autoCADSettingsService)
+            IAutoCADSettingsService autoCADSettingsService,
+            IAutoCADStateService autoCADStateService)
         {
             _rebarService = rebarService;
             _clipboardService = clipboardService;
@@ -102,11 +104,13 @@ namespace AutoGala.ViewModels
             _messageExchangeService = messageExchangeService;
             _autoCADRunnerService = autoCADOperationRunner;
             _autoCADSettingsService = autoCADSettingsService;
+            _autoCADStateService = autoCADStateService;
 
             _jobInfo = jobInfo;
             _notifier = notifier;
 
             _autoGalaPipeClientService.ConnectionStateChanged += () => CommandManager.InvalidateRequerySuggested();
+            _autoCADStateService.StateChanged += () => CommandManager.InvalidateRequerySuggested();
 
             AddRebarCommand = new RelayCommand(param => AddRebar(), param => !HasValidationError);
             RemoveRebarsCommand = new RelayCommand(param => RemoveRebar(), param => SelectedRebars.Count > 0 && !HasValidationError);
@@ -117,7 +121,8 @@ namespace AutoGala.ViewModels
             SaveToExcelCommand = new RelayCommand(param => SaveToExcel(), param => Rebars.Count > 0 && !HasValidationError);
             LoadFromExcelCommand = new RelayCommand(param => LoadFromExcel(), param => !HasValidationError);
             GetFromGalaCommand = new RelayCommand(async param => await GetFromGalaAsync(), param => !HasValidationError);
-            GetFromAutoCADCommand = new RelayCommand(async param => await GetFromAutoCADAsync(), param => !HasValidationError && _autoGalaPipeClientService.IsConnected);
+            GetFromAutoCADCommand = new RelayCommand(async param => await GetFromAutoCADAsync(),
+                param => !HasValidationError && _autoGalaPipeClientService.IsConnected && _autoCADStateService.HasActiveDocument);
         }
 
         private void AddRebar()
